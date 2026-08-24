@@ -26,6 +26,7 @@ Controls:
 
 import math
 import random
+import sys
 from dataclasses import dataclass
 from typing import Optional
 
@@ -45,6 +46,7 @@ FPS = 60
 HORIZON_Y = 104
 GROUND_H = NATIVE_H - HORIZON_Y
 AUDIO_RATE = 44100
+BUILD_ID = "V7-STEREO-AUDIOFIX"
 
 BLACK = (4, 5, 12)
 WHITE = (236, 246, 255)
@@ -176,8 +178,17 @@ class AudioSynth:
         self.music_cache = {}
         self.current = None
         self.sfx = {}
+        self.last_error = None
         if self.enabled:
-            self._make_sfx()
+            try:
+                self._make_sfx()
+            except Exception as exc:
+                # Audio should never prevent the game from launching.
+                # If an unusual Windows/SDL mixer configuration is encountered,
+                # disable synthesized audio and continue running silently.
+                self.last_error = f"{type(exc).__name__}: {exc}"
+                self.enabled = False
+                self.sfx = {}
 
     @staticmethod
     def midi_hz(note):
@@ -356,11 +367,17 @@ class AudioSynth:
     def play_stage(self, stage_index):
         if not self.enabled:
             return
-        if self.current is not None:
-            self.current.stop()
-        self.current = self.generate_stage_loop(stage_index)
-        if self.current:
-            self.current.play(loops=-1)
+        try:
+            if self.current is not None:
+                self.current.stop()
+            self.current = self.generate_stage_loop(stage_index)
+            if self.current:
+                self.current.play(loops=-1)
+        except Exception as exc:
+            # Preserve gameplay even if a runtime audio device changes.
+            self.last_error = f"{type(exc).__name__}: {exc}"
+            self.enabled = False
+            self.current = None
 
     def stop_music(self):
         if self.current:
@@ -1084,9 +1101,9 @@ class Boss:
 
 class Game:
     def __init__(self):
-        pygame.mixer.pre_init(AUDIO_RATE, -16, 1, 512)
+        pygame.mixer.pre_init(AUDIO_RATE, -16, 2, 512)
         pygame.init()
-        pygame.display.set_caption("OMEGA HORIZON - 16 BIT PSEUDO 3D SHMUP")
+        pygame.display.set_caption(f"OMEGA HORIZON {BUILD_ID} - 16 BIT PSEUDO 3D SHMUP")
         self.window = pygame.display.set_mode((WINDOW_W, WINDOW_H))
         self.canvas = pygame.Surface((NATIVE_W, NATIVE_H)).convert()
         self.clock = pygame.time.Clock()
@@ -1496,6 +1513,7 @@ class Game:
             draw_text(self.canvas,"ENTER TO START",83,155,YELLOW)
             draw_text(self.canvas,"MOVE WASD  FIRE Z",74,176,(170,210,230))
             draw_text(self.canvas,"WEAPON Q E  PAUSE P",67,187,(170,210,230))
+            draw_text(self.canvas,"BUILD V7 AUDIOFIX",76,205,(90,140,170))
         else:
             self.draw_gameplay()
 
@@ -1536,5 +1554,30 @@ class Game:
         pygame.quit()
 
 
+def packaged_smoke_test():
+    """Initialize the same core systems as the release EXE, render a frame, and exit."""
+    g = Game()
+    try:
+        # The critical regression: synthesized SFX must survive the actual
+        # mixer channel configuration used by the packaged executable.
+        if pygame.mixer.get_init() is not None:
+            channels = pygame.mixer.get_init()[2]
+            if channels >= 2 and g.audio.enabled:
+                shot = g.audio.sfx.get("shot")
+                if shot is None:
+                    raise RuntimeError("Stereo mixer active but synthesized SFX was not created")
+
+        g.reset_new_game()
+        g.begin_play()
+        g.update(1.0 / 60.0)
+        g.draw()
+        g.audio.stop_music()
+    finally:
+        pygame.quit()
+    return 0
+
+
 if __name__ == "__main__":
+    if "--smoke-test" in sys.argv:
+        raise SystemExit(packaged_smoke_test())
     Game().run()
