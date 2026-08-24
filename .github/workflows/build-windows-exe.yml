@@ -57,6 +57,14 @@ jobs:
         run: |
           python -m py_compile omega_horizon_shmup.py
 
+      - name: Runtime smoke test including stereo audio
+        shell: pwsh
+        env:
+          SDL_VIDEODRIVER: dummy
+          SDL_AUDIODRIVER: dummy
+        run: |
+          python runtime_smoke_test.py
+
       - name: Build OmegaHorizon.exe
         shell: pwsh
         run: |
