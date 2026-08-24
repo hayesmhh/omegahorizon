@@ -1,0 +1,92 @@
+name: Build Omega Horizon for Windows
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows:
+    name: Build standalone Windows EXE
+    runs-on: windows-2022
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out game source
+        uses: actions/checkout@v4
+
+      - name: Set up 64-bit Python 3.13
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          architecture: 'x64'
+          cache: 'pip'
+          cache-dependency-path: requirements-build.txt
+
+      - name: Show build environment
+        shell: pwsh
+        run: |
+          python --version
+          python -c "import platform; print('Architecture:', platform.architecture()[0])"
+
+      - name: Install pinned build dependencies
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install --only-binary=:all: -r requirements-build.txt
+
+      - name: Verify imports
+        shell: pwsh
+        run: |
+          @'
+          import sys
+          import pygame
+          import numpy
+          import PyInstaller
+          print("Python:", sys.version)
+          print("pygame:", pygame.version.ver)
+          print("NumPy:", numpy.__version__)
+          print("PyInstaller:", PyInstaller.__version__)
+          print("DEPENDENCIES_OK")
+          '@ | Set-Content -Encoding UTF8 verify_build.py
+          python verify_build.py
+
+      - name: Syntax-check the game
+        shell: pwsh
+        run: |
+          python -m py_compile omega_horizon_shmup.py
+
+      - name: Build OmegaHorizon.exe
+        shell: pwsh
+        run: |
+          python -m PyInstaller --noconfirm --clean OmegaHorizon.spec
+          if (-not (Test-Path "dist\OmegaHorizon.exe")) {
+            throw "PyInstaller completed without creating dist\OmegaHorizon.exe"
+          }
+
+      - name: Create SHA-256 checksum
+        shell: pwsh
+        run: |
+          $hash = (Get-FileHash "dist\OmegaHorizon.exe" -Algorithm SHA256).Hash
+          Set-Content -Path "dist\OmegaHorizon_SHA256.txt" -Value $hash -Encoding ASCII
+          Write-Host "OmegaHorizon.exe SHA-256: $hash"
+
+      - name: Create release ZIP
+        shell: pwsh
+        run: |
+          Compress-Archive `
+            -Path "dist\OmegaHorizon.exe","dist\OmegaHorizon_SHA256.txt" `
+            -DestinationPath "dist\OmegaHorizon_Windows_x64.zip" `
+            -Force
+
+      - name: Upload finished Windows build
+        uses: actions/upload-artifact@v4
+        with:
+          name: OmegaHorizon-Windows-x64
+          path: |
+            dist/OmegaHorizon.exe
+            dist/OmegaHorizon_SHA256.txt
+            dist/OmegaHorizon_Windows_x64.zip
+          if-no-files-found: error
+          retention-days: 30
