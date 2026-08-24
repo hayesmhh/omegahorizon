@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-OMEGA HORIZON V8.1 - ARTIST PASS & PLAYABILITY POLISH
+OMEGA HORIZON V8.2 - BOSS ARTIST PASS & SYSTEMS
 =========================================================
 Single-file procedural Pygame shooter designed around a 256x224 SNES-like
 canvas, software perspective rendering, original artist-directed pixel art,
@@ -14,13 +14,19 @@ Controls:
     Arrow keys / WASD : Move
     Space / Z          : Fire
     Q / E              : Previous / next UNLOCKED weapon
-    P                   : Pause
-    Enter               : Start / restart / skip stage card
-    Esc                 : Quit
+    P / Esc             : Pause menu
+    Enter               : Start / confirm / skip stage card
+    F5                  : Quick save campaign checkpoint
+    F9                  : Quick load campaign checkpoint
+    F1                  : Test menu after hidden TEST MODE activation
 
-Build identity: V8.1-ARTIST-PASS
+Developer code:
+    Type TERMINUS on the title screen to enable TEST MODE.
+
+Build identity: V8.2-BOSS-ART-SYSTEMS
 """
 
+import json
 import math
 import os
 import random
@@ -44,7 +50,7 @@ FPS = 60
 HUD_H = 21
 HORIZON_Y = 104
 AUDIO_RATE = 44100
-BUILD_ID = "V8.1-ARTIST-PASS"
+BUILD_ID = "V8.2-BOSS-ART-SYSTEMS"
 
 BLACK = (4, 5, 12)
 WHITE = (236, 246, 255)
@@ -315,6 +321,170 @@ BASTION_TURBINE_B=[
     "....11111....",
 ]
 
+
+# ---------------------------------------------------------------------------
+# V8.2 authored boss metasprites
+# ---------------------------------------------------------------------------
+
+# Pyroclast is a horned magma golem rather than an abstract molten polygon.
+# The separate head/torso/limbs give it readable anatomy and animation.
+PYRO_HEAD=[
+    "1.................1",
+    "11.......1.......11",
+    ".11.....121.....11.",
+    "..111..12221..111..",
+    "...1222233322221...",
+    "..122334444332221..",
+    ".12234588854332221.",
+    ".12345566554333221.",
+    "1234566666544333221",
+    "1234556665544333221",
+    ".12344455444333221.",
+    ".12233344333322221.",
+    "..122223322222221..",
+    "...1112333211111...",
+    ".....1233321.......",
+    ".....122221........",
+    "......111..........",
+]
+PYRO_TORSO=[
+    "..........111111111..........",
+    "......11112222222221111......",
+    "...11122223333333332222111...",
+    "..1222233334444444333322221..",
+    ".122233344455555554443332221.",
+    "12233444555666666655544332221",
+    "12334455666667776666655443321",
+    "12344566677777777776665544321",
+    "12345667777777777777766544321",
+    "12345667777666667777766544321",
+    "12345667776655566777766544321",
+    "12345667776655566777766544321",
+    "12345667777666667777766544321",
+    "12344566677777777776665544321",
+    "12334455666777777666555443321",
+    "12233445556666666655544332221",
+    ".122333445555555554443332221.",
+    "..1222233444444444333322221..",
+    "...11122233333333332222111...",
+    "......1112222222221111.......",
+    "..........11111111...........",
+]
+PYRO_ARM_L=[
+    ".........111..",
+    "......1112221.",
+    "....1122333321",
+    "...12234443321",
+    "..123455443321",
+    ".12345655443321",
+    "123456655443321",
+    "123456655443321",
+    ".12345554433221",
+    "..123444433221.",
+    "...1223332221..",
+    "....11222211...",
+    "...11221.......",
+    "..1221.........",
+    ".1221..........",
+    "1221...........",
+    "121............",
+    "11.............",
+]
+PYRO_ARM_R=[
+    "..111.........",
+    ".1222111......",
+    "123332211....",
+    "12334443221...",
+    "123344554321..",
+    "1234455654321.",
+    "12344556654321",
+    "12344556654321",
+    "1223345554321.",
+    ".122334444321..",
+    "..1222333221...",
+    "...11222211....",
+    ".......12211...",
+    ".........1221..",
+    "..........1221.",
+    "...........1221",
+    "............121",
+    ".............11",
+]
+PYRO_CLAW=[
+    "..1...1..",
+    ".121.121.",
+    "123212321",
+    ".1234321.",
+    "..12321..",
+]
+
+# Stage 1 carrier becomes a long, readable capital ship with flight deck,
+# command bridge, hangar bays and engine block.
+CARRIER_BODY=[
+    "....................111111111111111....................",
+    "...............111112222222222222211111...............",
+    "..........111112222233333333333333222221111..........",
+    "......1111222233334444444444444444333322221111.......",
+    "..11112222333344445555555555555554444333322221111....",
+    "111222233344445555666666666666665555444433322221111..",
+    "77772222334444555566666666666666555544443332222111188",
+    "77772222334444555566666666666666555544443332222111188",
+    "111222233344445555666666666666665555444433322221111..",
+    "..11112222333344445555555555555554444333322221111....",
+    "......1111222233334444444444444444333322221111.......",
+    "..........111112222233333333333333222221111..........",
+    "...............111112222222222222211111...............",
+    "....................111111111111111....................",
+]
+CARRIER_BRIDGE=[
+    "......11111......",
+    "...11122222111...",
+    "..1222333333221..",
+    ".122344555443221.",
+    "12234456665443321",
+    "11111111111111111",
+]
+CARRIER_HANGAR=[
+    "111111111111111",
+    "122222222222221",
+    "129999999999921",
+    "122222222222221",
+    "111111111111111",
+]
+
+# Leviathan has an authored predatory head plus repeated armored body segments.
+LEVIATHAN_HEAD=[
+    "...........111111..........",
+    ".......1111222222111.......",
+    "....111222233333322211.....",
+    "..1122233334444443332211...",
+    ".122334444555555544433221..",
+    "12234455566666666555433221.",
+    "123455666677777766655443321",
+    "123455666777777776655443321",
+    "123456667777777776665443321",
+    "123456667788887776665443321",
+    "123455666777777776655443321",
+    "123455666677777766655443321",
+    "12234455566666666555433221.",
+    ".122334444555555544433221..",
+    "..1122233334444443332211...",
+    "....111222233333322211.....",
+    ".......1111222222111.......",
+    "...........111111..........",
+]
+LEVIATHAN_SEGMENT=[
+    "...1111111...",
+    ".11222222211.",
+    "1223333333221",
+    "1233445443321",
+    "1234566543321",
+    "1233445443321",
+    "1223333333221",
+    ".11222222211.",
+    "...1111111...",
+]
+
 BOSS_DETAIL_TILES={
     'carrier': [".111.","12221","12321","12221",".111."],
     'pyroclast':[".111.","12321","13431","12321",".111."],
@@ -424,6 +594,8 @@ class AudioSynth:
         self.weapon_sfx = [[] for _ in range(10)]
         self.sfx = {}
         self.last_error = None
+        self.music_volume = .80
+        self.sfx_volume = .90
         self.rng = np.random.default_rng(8080)
         if self.enabled:
             try:
@@ -431,6 +603,17 @@ class AudioSynth:
             except Exception as exc:
                 self.last_error = f"{type(exc).__name__}: {exc}"
                 self.enabled = False
+
+    def set_volumes(self, music=None, sfx=None):
+        if music is not None:
+            self.music_volume=clamp(float(music),0.0,1.0)
+        if sfx is not None:
+            self.sfx_volume=clamp(float(sfx),0.0,1.0)
+        try:
+            if self.current:
+                self.current.set_volume(self.music_volume)
+        except Exception:
+            pass
 
     @staticmethod
     def midi_hz(note):
@@ -607,6 +790,7 @@ class AudioSynth:
             ch=sound.play()
             if ch:
                 p=clamp(x/(NATIVE_W-1),0,1)
+                volume*=self.sfx_volume
                 left=math.cos(p*math.pi/2)*volume
                 right=math.sin(p*math.pi/2)*volume
                 ch.set_volume(left,right)
@@ -676,7 +860,7 @@ class AudioSynth:
         p=STAGES[stage_index]
         bpm = p.bpm + (14 if boss else 0)
         beat=60.0/bpm
-        bars=12
+        bars=16
         total=bars*4*beat
         mix=np.zeros((int(total*AUDIO_RATE),2),dtype=np.float32)
 
@@ -757,7 +941,7 @@ class AudioSynth:
             "war":[7,12,10,7,5,7,3,5], "crystal":[12,10,7,5,3,5,7,10],
             "unreal":[0,8,1,6,11,3,9,1], "omega":[0,1,6,3,8,6,1,0]}
         cinst=counter_instruments[p.music_style]; motif=counter_motifs[p.music_style]
-        for section_bar in (4,8):
+        for section_bar in (4,8,12):
             for i,noff in enumerate(motif):
                 st=(section_bar*4*beat)+i*(beat/2)
                 if st>=total:break
@@ -801,7 +985,7 @@ class AudioSynth:
 
         # Section-end fills at bars 4/8/12 keep the loop from sounding like a
         # continuously repeated procedural groove.
-        for bar_end in (4,8,12):
+        for bar_end in (4,8,12,16):
             start=(bar_end*4*beat)-beat
             for j in range(4):
                 sig=self._snare(7000+stage_index*50+bar_end*4+j,duration=.075,strength=.045+.012*j)
@@ -817,6 +1001,59 @@ class AudioSynth:
             pan=.58 if i%2 else -.58
             self.add_stereo(mix,i*hat_step,self.pan_mono(hat,pan))
 
+        # Stage-signature ambience: subtle enough to remain musical, but it
+        # gives each world an immediately different "air" behind the notes.
+        ambient_seed=5100+stage_index*97+(1 if boss else 0)
+        arng=np.random.default_rng(ambient_seed)
+        n=len(mix); tt=np.arange(n,dtype=np.float32)/AUDIO_RATE
+        if p.music_style=="heroic":
+            amb=.008*np.sin(2*np.pi*54*tt)+.004*np.sin(2*np.pi*81*tt)
+        elif p.music_style=="storm":
+            amb=arng.uniform(-1,1,n).astype(np.float32)*.006
+            amb*=.55+.45*np.sin(2*np.pi*.37*tt)**2
+        elif p.music_style=="industrial":
+            amb=.010*np.sign(np.sin(2*np.pi*27*tt))*np.sin(2*np.pi*.5*tt)**2
+        elif p.music_style=="aquatic":
+            amb=.010*np.sin(2*np.pi*(43+2*np.sin(2*np.pi*.11*tt))*tt)
+        elif p.music_style=="mechanical":
+            amb=.006*np.sign(np.sin(2*np.pi*96*tt))*(.5+.5*np.sin(2*np.pi*2*tt))
+        elif p.music_style=="organic":
+            amb=.009*np.sin(2*np.pi*(39+3*np.sin(2*np.pi*.19*tt))*tt)
+        elif p.music_style=="war":
+            amb=arng.uniform(-1,1,n).astype(np.float32)*.004 + .006*np.sin(2*np.pi*48*tt)
+        elif p.music_style=="crystal":
+            amb=.007*np.sin(2*np.pi*132*tt)+.004*np.sin(2*np.pi*198.7*tt)
+        elif p.music_style=="unreal":
+            amb=.008*np.sin(2*np.pi*(57+9*np.sin(2*np.pi*.07*tt))*tt)
+        else:
+            amb=.010*np.sin(2*np.pi*41*tt)+arng.uniform(-1,1,n).astype(np.float32)*.003
+        # Slow opposing pan modulation keeps ambience stereo rather than centered.
+        panwave=np.sin(2*np.pi*.035*tt+stage_index*.4)
+        mix[:,0]+=amb*(.65-.22*panwave)
+        mix[:,1]+=amb*(.65+.22*panwave)
+
+        # Boss versions gain a stage-specific low ostinato and a second lead
+        # response, making them arrangements rather than simply faster loops.
+        if boss:
+            boss_pattern={
+                "heroic":[0,7,12,7],"storm":[0,3,10,7],"industrial":[0,1,6,1],
+                "aquatic":[0,5,3,7],"mechanical":[0,3,6,7],"organic":[0,6,1,3],
+                "war":[0,5,7,10],"crystal":[0,8,5,10],"unreal":[0,1,8,6],"omega":[0,1,6,3]
+            }[p.music_style]
+            ost_step=beat/2
+            for i in range(int(total/ost_step)):
+                note=base-12+boss_pattern[i%len(boss_pattern)]
+                sig=self.instrument("bass",note,ost_step*.48,.045)
+                self.add_stereo(mix,i*ost_step,self.pan_mono(sig,-.10 if i%2 else .10))
+            response=[7,10,12,15,12,10,7,5]
+            for section_bar in (3,7,11,15):
+                for i,noff in enumerate(response):
+                    st=section_bar*4*beat+i*(beat/2)
+                    if st>=total: break
+                    sig=self.instrument("brass" if p.music_style not in ("aquatic","crystal") else "bell",
+                                        base+12+noff,beat*.34,.035)
+                    self.add_stereo(mix,st,self.pan_mono(sig,.58 if i%2 else -.58))
+
         mix=self.stereo_delay(mix,
                               .22 if p.music_style in ("aquatic","crystal") else .135,
                               .29 if p.music_style in ("aquatic","crystal") else .185,
@@ -830,7 +1067,9 @@ class AudioSynth:
             if self.current: self.current.stop()
             self.music_sound=self.generate_stage_mix(stage_index,False)
             self.current=self.music_sound
-            if self.current: self.current.play(loops=-1)
+            if self.current:
+                self.current.set_volume(self.music_volume)
+                self.current.play(loops=-1)
         except Exception as exc:
             self.last_error=f"{type(exc).__name__}: {exc}"; self.enabled=False
 
@@ -840,7 +1079,9 @@ class AudioSynth:
             if self.current: self.current.stop()
             self.boss_sound=self.generate_stage_mix(stage_index,True)
             self.current=self.boss_sound
-            if self.current: self.current.play(loops=-1)
+            if self.current:
+                self.current.set_volume(self.music_volume)
+                self.current.play(loops=-1)
         except Exception as exc:
             self.last_error=f"{type(exc).__name__}: {exc}"; self.enabled=False
 
@@ -860,6 +1101,7 @@ class Background:
         self.scroll=0.0
         self.time=0.0
         self.rng=random.Random(1337)
+        self.fx_level=2
         self.stars=[]
         for count,speed,bright in [(46,.16,90),(34,.40,150),(24,.82,230)]:
             pts=[(self.rng.randrange(NATIVE_W),self.rng.randrange(HUD_H+2,NATIVE_H-8),self.rng.randrange(1,3)) for _ in range(count)]
@@ -930,7 +1172,9 @@ class Background:
     def _stars(self,surf,ymin=HUD_H,ymax=NATIVE_H,speedmul=1.0,tint=(1.0,1.0,1.0)):
         for li,(pts,speed,bright) in enumerate(self.stars):
             off=self.time*28*speed*speedmul
-            for x,y,sz in pts:
+            for pi,(x,y,sz) in enumerate(pts):
+                if self.fx_level==0 and pi%3: continue
+                if self.fx_level==1 and pi%2: continue
                 if not ymin<=y<ymax: continue
                 xx=int((x-off)%NATIVE_W)
                 pulse=clamp(bright+int(18*math.sin(self.time*2+(x+y)*.04)),40,255)
@@ -981,7 +1225,7 @@ class Background:
         pygame.draw.circle(surf,(50,66,111),(px-5,62),16)
         pygame.draw.arc(surf,(98,153,184),(px-23,44,46,46),2.4,5.0,1)
         # Debris perspective stream.
-        for i in range(12):
+        for i in range(12 if self.fx_level==2 else 7 if self.fx_level==1 else 4):
             t=(self.time*.16+i/12)%1
             x=int(280-t*310); y=int(108+(i%5-2)*8+t*92); r=max(1,int(t*4))
             pygame.draw.rect(surf,(75,85,108),(x,y,r+1,r))
@@ -1035,7 +1279,7 @@ class Background:
             base=213; top=170-(i%3)*13
             pygame.draw.polygon(surf,(27,8,7),[(x-10,base),(x,top),(x+8,top-10),(x+18,base)])
         # Embers.
-        for i in range(22):
+        for i in range(22 if self.fx_level==2 else 12 if self.fx_level==1 else 6):
             x=int((i*37+self.time*(7+i%4))%NATIVE_W)
             y=198-int((self.time*(18+i%5)+i*19)%105)
             safe_set(surf,x,y,YELLOW if i%4==0 else ORANGE)
@@ -1059,7 +1303,7 @@ class Background:
             for x in range(-20,NATIVE_W+20,33):
                 pygame.draw.line(surf,(39,135,145),(x+off,y),(x+off+15,y+2),1)
         # Bubbles.
-        for i in range(20):
+        for i in range(20 if self.fx_level==2 else 11 if self.fx_level==1 else 5):
             x=(i*43+17)%NATIVE_W
             y=NATIVE_H-int((self.time*(9+i%5)+i*31)%(NATIVE_H-HUD_H))
             pygame.draw.circle(surf,(99,190,198),(x,y),1,1)
@@ -1139,7 +1383,7 @@ class Background:
             pygame.draw.line(surf,(142,206,228),(x+10,104-h),(x+19,90),1)
         self._floor_cast(surf,"ice",103,.5,(21,55,83))
         # Blowing snow.
-        for i in range(34):
+        for i in range(34 if self.fx_level==2 else 18 if self.fx_level==1 else 8):
             x=int((i*23-self.time*(22+i%6))%NATIVE_W)
             y=HUD_H+(i*37)%198
             safe_set(surf,x,y,(190,229,244))
@@ -1174,7 +1418,7 @@ class Background:
             pygame.draw.line(surf,(151,31,78),(x+2,HUD_H),(x+20,105),1)
         self._floor_cast(surf,"omega",101,4.0,(25,3,12))
         # Energy filaments foreground.
-        for i in range(8):
+        for i in range(8 if self.fx_level==2 else 5 if self.fx_level==1 else 3):
             x=int((i*49+self.time*11)%300)-20
             pygame.draw.line(surf,(226,47,104),(x,128),(x+int(math.sin(self.time*4+i)*16),216),1)
             if i%3==0: safe_set(surf,x,145+(i*9)%60,(255,230,173))
@@ -1535,6 +1779,9 @@ class Player:
             Weapon.fire(self.weapon,self,game); self.fire_timer=Weapon.COOLDOWNS[self.weapon]
 
     def hit(self,damage,game):
+        if getattr(game,"god_mode",False):
+            self.invuln=max(self.invuln,.12)
+            return
         if self.invuln>0:return
         self.health-=damage; self.invuln=.88
         game.audio.play_sfx("hit",self.x,.8)
@@ -1725,7 +1972,11 @@ class Boss:
 
     def rect(self):
         r=self.radius
-        # Wyrm and Omega are broader; still use generous collision box.
+        # Collision silhouettes track the larger authored metasprites.
+        if self.stage==1:return pygame.Rect(int(self.x-40),int(self.y-24),82,48)
+        if self.stage==2:return pygame.Rect(int(self.x-45),int(self.y-33),92,65)
+        if self.stage==3:return pygame.Rect(int(self.x-38),int(self.y-39),77,70)
+        if self.stage==4:return pygame.Rect(int(self.x-24),int(self.y-25),86,50)
         if self.stage==8:return pygame.Rect(int(self.x-r-16),int(self.y-r),int(r*2+28),int(r*2))
         return pygame.Rect(int(self.x-r),int(self.y-r),int(r*2),int(r*2))
 
@@ -1935,7 +2186,7 @@ class Boss:
         successful unique silhouettes but receive denser pixel-authored facial,
         mechanical, or organic focal detail in this pass.
         """
-        if self.profile.boss_kind=='bastion': return
+        if self.profile.boss_kind in ('bastion','carrier','pyroclast','leviathan'): return
         tile=BOSS_DETAIL_TILES.get(self.profile.boss_kind)
         if not tile:return
         x,y=int(self.x),int(self.y)
@@ -1962,18 +2213,26 @@ class Boss:
 
     def draw_carrier(self,surf):
         x,y=int(self.x),int(self.y)
-        # Swept command carrier with hangar cavities.
-        pygame.draw.polygon(surf,(18,30,62),[(x-31,y),(x-15,y-19),(x+24,y-13),(x+31,y),(x+21,y+14),(x-16,y+19)])
-        pygame.draw.polygon(surf,(51,83,132),[(x-25,y),(x-9,y-14),(x+23,y-9),(x+28,y),(x+18,y+9),(x-9,y+14)])
-        pygame.draw.polygon(surf,(87,173,195),[(x-18,y-2),(x+7,y-9),(x+24,y),(x+7,y+5),(x-18,y+3)])
-        # launch bays
-        for oy in (-11,10):
-            pygame.draw.rect(surf,(5,11,25),(x-24,y+oy-3,15,6)); pygame.draw.line(surf,MAGENTA,(x-22,y+oy),(x-12,y+oy),1)
-        # engines/core
-        pygame.draw.rect(surf,(16,41,78),(x+15,y-7,10,14)); pygame.draw.circle(surf,CYAN,(x+20,y),5)
-        safe_set(surf,x+18,y-2,WHITE)
-        for py in (-14,14):pygame.draw.line(surf,(133,201,220),(x-5,y+py),(x+17,y+int(py*.55)),1)
-        self._damage_fx(surf,[(-10,-15),(8,11),(-22,5),(18,-8)])
+        pal={'1':(6,15,34),'2':(17,37,70),'3':(35,67,108),'4':(61,108,151),
+             '5':(91,170,193),'6':(157,224,232),'7':(255,141,54),'8':CYAN,'9':MAGENTA}
+        # Main flight-deck body.
+        draw_indexed_sprite(surf,CARRIER_BODY,x-38,y-7,pal)
+        draw_indexed_sprite(surf,CARRIER_BRIDGE,x-4,y-19,pal)
+        # Two clearly recessed fighter bays.
+        draw_indexed_sprite(surf,CARRIER_HANGAR,x-28,y-14,pal)
+        draw_indexed_sprite(surf,CARRIER_HANGAR,x-28,y+9,pal)
+        # Long dorsal and ventral fins emphasize a capital-ship silhouette.
+        pygame.draw.line(surf,pal['4'],(x-7,y-16),(x+15,y-27),3)
+        pygame.draw.line(surf,pal['2'],(x-8,y+15),(x+14,y+26),3)
+        # Four hot engine nozzles.
+        for ey in (-8,-3,4,9):
+            pygame.draw.rect(surf,pal['2'],(x+31,y+ey-1,8,3))
+            pygame.draw.line(surf,pal['8'],(x+38,y+ey),(x+45,y+ey),2)
+            safe_set(surf,x+46,y+ey,WHITE)
+        # Bridge lamps / identification strip.
+        for wx in (-1,4,9): safe_set(surf,x+wx,y-16,pal['6'])
+        pygame.draw.line(surf,pal['9'],(x-25,y),(x-12,y),1)
+        self._damage_fx(surf,[(-24,-10),(12,12),(-5,-20),(24,-5)])
 
     def draw_bastion(self,surf):
         x,y=int(self.x),int(self.y)
@@ -2010,39 +2269,79 @@ class Boss:
         self._damage_fx(surf,[(-22,-5),(11,9),(2,-20),(-7,14)])
 
     def draw_pyroclast(self,surf):
-        x,y=int(self.x),int(self.y); crust=(55,20,13) if not self.shell else (45,38,34)
-        # Massive asymmetrical molten torso.
-        pygame.draw.polygon(surf,(33,8,5),[(x-28,y+17),(x-25,y-8),(x-12,y-26),(x+8,y-29),(x+25,y-11),(x+29,y+14),(x+13,y+28),(x-11,y+27)])
-        pygame.draw.polygon(surf,crust,[(x-23,y+13),(x-20,y-7),(x-8,y-22),(x+9,y-24),(x+21,y-8),(x+23,y+12),(x+9,y+23),(x-10,y+22)])
-        # arms / claws
-        pygame.draw.polygon(surf,crust,[(x-18,y-3),(x-37,y+5),(x-31,y+18),(x-18,y+10)])
-        pygame.draw.polygon(surf,crust,[(x+18,y-4),(x+36,y+2),(x+32,y+17),(x+18,y+10)])
-        # moving molten fissures
-        for dx,dy in [(-12,-12),(4,-16),(13,-5),(-5,4),(8,10),(-12,13)]:
-            col=(255,171,34) if int(self.age*5+dx)%2 else LAVA
-            pygame.draw.line(surf,col,(x+dx,y+dy),(x+dx+4,y+dy+6),2)
-        pygame.draw.circle(surf,(19,5,4),(x-4,y-5),9); pygame.draw.circle(surf,YELLOW,(x-5,y-6),4)
-        safe_set(surf,x-6,y-7,WHITE)
+        x,y=int(self.x),int(self.y)
+        # Strong readable material ramp: almost-black silhouette, cool obsidian
+        # edge, then volcanic rock and extremely bright internal magma.
         if self.shell:
-            pygame.draw.arc(surf,(105,98,89),(x-24,y-25,47,48),.2,5.8,2)
-        self._damage_fx(surf,[(-18,-6),(12,15),(-2,-19),(18,-10)])
+            pal={'1':(8,6,7),'2':(28,27,28),'3':(56,51,49),'4':(92,78,68),
+                 '5':(131,104,82),'6':(190,82,38),'7':(255,91,20),'8':(181,225,239)}
+        else:
+            pal={'1':(15,5,5),'2':(48,12,8),'3':(88,22,11),'4':(139,35,12),
+                 '5':(204,56,13),'6':(255,100,18),'7':(255,209,58),'8':WHITE}
+        # Torso first, with a slight breathing/heat heave.
+        heave=int(math.sin(self.age*2.1)*1.5)
+        draw_indexed_sprite(surf,PYRO_TORSO,x-15,y-6+heave,pal)
+        # Horned skull sits above the body and moves independently.
+        head_y=y-25+int(math.sin(self.age*2.7)*2)
+        draw_indexed_sprite(surf,PYRO_HEAD,x-9,head_y,pal)
+        # Massive forelimbs swing instead of staying as rigid triangles.
+        arm_swing=int(math.sin(self.age*2.0)*3)
+        draw_indexed_sprite(surf,PYRO_ARM_L,x-32,y-3+arm_swing,pal)
+        draw_indexed_sprite(surf,PYRO_ARM_R,x+17,y-3-arm_swing,pal)
+        draw_indexed_sprite(surf,PYRO_CLAW,x-35,y+12+arm_swing,pal)
+        draw_indexed_sprite(surf,PYRO_CLAW,x+29,y+12-arm_swing,pal,flip_x=True)
+        # Jaw / eye focal points make the creature's face readable instantly.
+        eye_col=(170,235,255) if self.shell else WHITE
+        safe_set(surf,x-4,head_y+6,eye_col); safe_set(surf,x+5,head_y+6,eye_col)
+        pygame.draw.line(surf,(12,4,4),(x-4,head_y+12),(x+6,head_y+12),2)
+        for tooth_x in (-2,2,6):
+            safe_set(surf,x+tooth_x,head_y+13,(230,222,180))
+        # Animated magma channels glow through the chest/arms. In shell mode
+        # they contract and cool, visually communicating the resistance cycle.
+        fissure=(122,213,232) if self.shell else (255,224,75)
+        fissure2=(73,137,167) if self.shell else (255,92,16)
+        channels=[(-7,-1,-3,7),(4,-2,8,6),(-1,7,2,14),(-21,4,-18,10),(22,3,25,10)]
+        for i,(ax,ay,bx,by) in enumerate(channels):
+            if self.shell and i%2: continue
+            pygame.draw.line(surf,fissure2,(x+ax,y+ay+heave),(x+bx,y+by+heave),2)
+            safe_set(surf,x+bx,y+by+heave,fissure)
+        # Radiant core in the sternum rather than an ambiguous floating circle.
+        core_r=4+int((math.sin(self.age*4.5)+1))
+        pygame.draw.circle(surf,(35,8,5),(x,y+4+heave),core_r+3)
+        pygame.draw.circle(surf,fissure2,(x,y+4+heave),core_r)
+        safe_set(surf,x-1,y+3+heave,fissure)
+        # Hardened-state outline reads as cooled obsidian armor.
+        if self.shell:
+            pygame.draw.arc(surf,(135,165,174),(x-20,y-13,41,40),.15,3.0,1)
+            pygame.draw.arc(surf,(79,101,112),(x-20,y-13,41,40),3.2,6.0,1)
+        self._damage_fx(surf,[(-15,-3),(13,12),(-2,-20),(22,3)])
 
     def draw_leviathan(self,surf):
         x,y=int(self.x),int(self.y)
-        # Serpentine tail segments behind head.
-        for i in range(5,0,-1):
-            sx=x+i*10; sy=y+int(math.sin(self.age*3-i*.7)*8)
-            pygame.draw.ellipse(surf,(9,63,76),(sx-8,sy-6,17,12))
-            pygame.draw.arc(surf,(43,187,179),(sx-8,sy-6,17,12),.3,2.8,1)
-        pygame.draw.polygon(surf,(5,47,64),[(x-29,y),(x-17,y-17),(x+10,y-20),(x+28,y),(x+10,y+20),(x-18,y+17)])
-        pygame.draw.polygon(surf,(18,105,113),[(x-23,y),(x-12,y-13),(x+10,y-15),(x+23,y),(x+7,y+14),(x-12,y+12)])
-        # fins and jaw
-        pygame.draw.polygon(surf,(34,152,151),[(x-3,y-13),(x+9,y-29),(x+13,y-14)])
-        pygame.draw.polygon(surf,(34,152,151),[(x-4,y+12),(x+8,y+28),(x+12,y+13)])
-        pygame.draw.polygon(surf,(2,23,31),[(x-25,y),(x-10,y-5),(x-8,y),(x-10,y+5)])
-        for yy in (-5,5): safe_set(surf,x-17,y+yy,(125,255,223))
-        pygame.draw.circle(surf,(91,242,217),(x-5,y-5),3); safe_set(surf,x-6,y-6,WHITE)
-        self._damage_fx(surf,[(-4,12),(10,-13),(-17,-7),(14,7)])
+        pal={'1':(1,19,31),'2':(4,43,58),'3':(8,77,91),'4':(14,116,124),
+             '5':(33,163,161),'6':(72,211,199),'7':(137,255,230),'8':WHITE}
+        # Segmented body travels behind the head with alternating pitch.
+        for i in range(6,0,-1):
+            sx=x+i*10
+            sy=y+int(math.sin(self.age*3.0-i*.7)*9)
+            draw_indexed_sprite(surf,LEVIATHAN_SEGMENT,sx-6,sy-4,pal)
+            # dorsal bioluminescent node
+            safe_set(surf,sx,sy-3,pal['7'])
+        # Large predator head with an unmistakable snout/jaw.
+        draw_indexed_sprite(surf,LEVIATHAN_HEAD,x-20,y-9,pal)
+        # Swept fins are small authored-looking clusters attached to the body.
+        fin=["...1...","..121..",".12321.","1234321","..121.."]
+        draw_indexed_sprite(surf,fin,x+2,y-17,pal)
+        draw_indexed_sprite(surf,fin,x+2,y+13,pal,flip_x=True)
+        # Open black jaw with bright tooth pixels.
+        pygame.draw.line(surf,pal['1'],(x-18,y),(x-7,y),4)
+        for tx in (-16,-12,-8): safe_set(surf,x+tx,y-2,pal['8'])
+        # Eye and lure.
+        pygame.draw.circle(surf,pal['7'],(x-3,y-4),3)
+        safe_set(surf,x-4,y-5,pal['8'])
+        pygame.draw.line(surf,pal['4'],(x+7,y-8),(x+12,y-18),1)
+        pygame.draw.circle(surf,pal['7'],(x+13,y-19),2)
+        self._damage_fx(surf,[(-6,10),(11,-10),(-17,-5),(15,5)])
 
     def draw_sentinel(self,surf):
         x,y=int(self.x),int(self.y)
@@ -2160,12 +2459,29 @@ class Game:
         # True stereo request. AudioSynth still adapts if the backend differs.
         pygame.mixer.pre_init(AUDIO_RATE,-16,2,512)
         pygame.init()
+
+        self.data_dir=self._user_data_dir()
+        self.save_path=os.path.join(self.data_dir,"campaign_save.json")
+        self.settings_path=os.path.join(self.data_dir,"settings.json")
+        self.settings={
+            "music_volume":.80,
+            "sfx_volume":.90,
+            "fullscreen":False,
+            "window_scale":4,
+            "effects":2,
+        }
+        self._load_settings_file()
+
         pygame.display.set_caption(f"OMEGA HORIZON {BUILD_ID} - 16 BIT PSEUDO 3D SHMUP")
-        self.window=pygame.display.set_mode((WINDOW_W,WINDOW_H))
+        self.window=None
+        self.set_display_mode()
         self.canvas=pygame.Surface((NATIVE_W,NATIVE_H)).convert()
         self.clock=pygame.time.Clock(); self.running=True
 
-        self.background=Background(); self.audio=AudioSynth(); self.player=Player()
+        self.background=Background(); self.background.fx_level=int(self.settings["effects"])
+        self.audio=AudioSynth(); self.audio.set_volumes(self.settings["music_volume"],self.settings["sfx_volume"])
+        self.player=Player()
+
         self.stage=1; self.state="title"; self.state_timer=0.0
         self.score=0; self.stage_distance=0.0; self.stage_goal=self.stage_distance_goal()
         self.enemies=[]; self.player_bullets=[]; self.enemy_bullets=[]; self.pickups=[]; self.explosions=[]; self.hazards=[]
@@ -2173,7 +2489,217 @@ class Game:
         self.reward_pending=False; self.reward_timer=0.0; self.weapon_notice=""; self.notice_timer=0.0
         self.clean_waves=0; self.stage_deaths=0; self.last_enemy_label=""; self.health_drop_timer=10.0; self.health_pity=0
 
+        # Menus / developer test tools.
+        self.pause_index=0
+        self.settings_index=0
+        self.test_index=0
+        self.test_stage=1
+        self.menu_message=""
+        self.menu_message_timer=0.0
+        self.settings_return_state="pause"
+        self.test_return_state="pause"
+        self.test_code_buffer=""
+        self.test_mode=False
+        self.god_mode=False
+
     def stage_distance_goal(self): return 2200+(self.stage-1)*190
+
+    # ------------------------ persistence / display --------------------
+
+    @staticmethod
+    def _user_data_dir():
+        base=os.getenv("LOCALAPPDATA") or os.path.expanduser("~")
+        path=os.path.join(base,"OmegaHorizon")
+        try:
+            os.makedirs(path,exist_ok=True)
+        except Exception:
+            path=os.getcwd()
+        return path
+
+    def _load_settings_file(self):
+        try:
+            with open(self.settings_path,"r",encoding="utf-8") as f:
+                data=json.load(f)
+            if isinstance(data,dict):
+                self.settings["music_volume"]=clamp(float(data.get("music_volume",self.settings["music_volume"])),0,1)
+                self.settings["sfx_volume"]=clamp(float(data.get("sfx_volume",self.settings["sfx_volume"])),0,1)
+                self.settings["fullscreen"]=bool(data.get("fullscreen",False))
+                self.settings["window_scale"]=int(clamp(int(data.get("window_scale",4)),2,5))
+                self.settings["effects"]=int(clamp(int(data.get("effects",2)),0,2))
+        except Exception:
+            pass
+
+    def save_settings(self):
+        try:
+            with open(self.settings_path,"w",encoding="utf-8") as f:
+                json.dump(self.settings,f,indent=2)
+            return True
+        except Exception:
+            return False
+
+    def set_display_mode(self):
+        if self.settings.get("fullscreen",False):
+            try:
+                self.window=pygame.display.set_mode((0,0),pygame.FULLSCREEN)
+                return
+            except Exception:
+                self.settings["fullscreen"]=False
+        scale=int(clamp(int(self.settings.get("window_scale",4)),2,5))
+        self.settings["window_scale"]=scale
+        self.window=pygame.display.set_mode((NATIVE_W*scale,NATIVE_H*scale))
+
+    def apply_settings(self):
+        self.background.fx_level=int(self.settings["effects"]) if hasattr(self,"background") else int(self.settings["effects"])
+        if hasattr(self,"audio"):
+            self.audio.set_volumes(self.settings["music_volume"],self.settings["sfx_volume"])
+        self.set_display_mode()
+        self.save_settings()
+
+    def save_game(self):
+        # Test-mode jumps must never contaminate normal campaign progression.
+        if self.test_mode:
+            self.menu_message="SAVE DISABLED IN TEST MODE"; self.menu_message_timer=2.2
+            return False
+        data={
+            "version":1,
+            "build":BUILD_ID,
+            "stage":int(clamp(self.stage,1,10)),
+            "score":int(max(0,self.score)),
+            "lives":int(max(1,self.player.lives)),
+            "health":float(clamp(self.player.health,1,self.player.max_health)),
+            "max_health":float(self.player.max_health),
+            "weapon":int(clamp(self.player.weapon,0,9)),
+            "unlocked":[bool(v) for v in self.player.unlocked[:10]],
+        }
+        try:
+            with open(self.save_path,"w",encoding="utf-8") as f:
+                json.dump(data,f,indent=2)
+            self.menu_message=f"SAVED STAGE {self.stage:02d} CHECKPOINT"; self.menu_message_timer=2.0
+            return True
+        except Exception:
+            self.menu_message="SAVE FAILED"; self.menu_message_timer=2.0
+            return False
+
+    def load_game(self):
+        try:
+            with open(self.save_path,"r",encoding="utf-8") as f:
+                data=json.load(f)
+            stage=int(data.get("stage",1))
+            if not 1<=stage<=10: raise ValueError("bad stage")
+            unlocked=list(data.get("unlocked",[True]+[False]*9))
+            if len(unlocked)!=10: raise ValueError("bad unlock list")
+            unlocked=[bool(v) for v in unlocked]; unlocked[0]=True
+            self.start_stage(stage)
+            self.score=max(0,int(data.get("score",0)))
+            self.player.lives=max(1,int(data.get("lives",3)))
+            self.player.max_health=max(1,float(data.get("max_health",100)))
+            self.player.health=clamp(float(data.get("health",self.player.max_health)),1,self.player.max_health)
+            self.player.unlocked=unlocked
+            weapon=int(clamp(int(data.get("weapon",0)),0,9))
+            self.player.weapon=weapon if self.player.unlocked[weapon] else next(i for i,v in enumerate(self.player.unlocked) if v)
+            self.menu_message=f"LOADED STAGE {stage:02d} CHECKPOINT"; self.menu_message_timer=2.2
+            return True
+        except Exception:
+            self.menu_message="NO VALID SAVE FOUND"; self.menu_message_timer=2.2
+            return False
+
+    # ------------------------ menu / test mode -------------------------
+
+    def pause_items(self):
+        items=["RESUME","SAVE GAME","LOAD GAME","SETTINGS"]
+        if self.test_mode: items.append("TEST MENU")
+        items.append("QUIT TO TITLE")
+        return items
+
+    def open_pause(self):
+        if self.state=="play":
+            self.pause_index=0; self.state="pause"
+
+    def open_settings(self,return_state="pause"):
+        self.settings_return_state=return_state; self.settings_index=0; self.state="settings"
+
+    def open_test_menu(self,return_state=None):
+        if not self.test_mode:return
+        self.test_return_state=return_state or self.state
+        self.test_index=0; self.test_stage=int(clamp(self.stage,1,10)); self.state="test_menu"
+
+    def activate_test_mode(self):
+        self.test_mode=True
+        self.test_stage=self.stage
+        self.menu_message="TEST MODE ENABLED - F1"; self.menu_message_timer=3.0
+
+    def prepare_test_loadout(self,stage):
+        for i in range(10):
+            self.player.unlocked[i]=(i<=stage-1)
+        self.player.unlocked[0]=True
+        if not self.player.unlocked[self.player.weapon]:
+            self.player.weapon=max(i for i,v in enumerate(self.player.unlocked) if v)
+
+    def test_jump_stage(self,stage):
+        self.start_stage(stage)
+        self.prepare_test_loadout(stage)
+        self.player.health=self.player.max_health
+        self.player.lives=max(self.player.lives,3)
+        self.state="stage_intro"
+        self.menu_message=f"TEST JUMP STAGE {stage:02d}"; self.menu_message_timer=2.0
+
+    def test_spawn_boss(self,stage):
+        self.start_stage(stage); self.begin_play(); self.prepare_test_loadout(stage)
+        self.player.health=self.player.max_health; self.player.lives=max(self.player.lives,5)
+        self.enemies.clear(); self.waves.clear(); self.enemy_bullets.clear(); self.hazards.clear(); self.pickups.clear()
+        self.stage_distance=self.stage_goal; self.boss_warning=2.0
+        self.boss=Boss(stage); self.boss.intro=.45
+        self.weapon_notice=f"TEST BOSS: {STAGES[stage-1].boss_name}"; self.notice_timer=2.0
+        self.audio.play_boss(stage-1)
+
+    def unlock_all_test_weapons(self):
+        self.player.unlocked=[True]*10
+        self.weapon_notice="TEST: ALL WEAPONS UNLOCKED"; self.notice_timer=2.0
+
+    def test_refill(self):
+        self.player.health=self.player.max_health; self.player.lives=max(self.player.lives,9)
+        self.weapon_notice="TEST: HEALTH AND LIVES REFILLED"; self.notice_timer=2.0
+
+    def pause_action(self):
+        items=self.pause_items(); choice=items[self.pause_index%len(items)]
+        if choice=="RESUME": self.state="play"
+        elif choice=="SAVE GAME": self.save_game()
+        elif choice=="LOAD GAME": self.load_game()
+        elif choice=="SETTINGS": self.open_settings("pause")
+        elif choice=="TEST MENU": self.open_test_menu("pause")
+        elif choice=="QUIT TO TITLE":
+            self.audio.stop_music(); self.state="title"; self.boss=None; self.enemy_bullets.clear()
+
+    def adjust_setting(self,direction):
+        idx=self.settings_index
+        if idx==0:
+            self.settings["music_volume"]=round(clamp(self.settings["music_volume"]+direction*.1,0,1),2)
+        elif idx==1:
+            self.settings["sfx_volume"]=round(clamp(self.settings["sfx_volume"]+direction*.1,0,1),2)
+        elif idx==2 and direction:
+            self.settings["fullscreen"]=not self.settings["fullscreen"]
+        elif idx==3:
+            self.settings["window_scale"]=int(clamp(self.settings["window_scale"]+direction,2,5))
+        elif idx==4:
+            self.settings["effects"]=int(clamp(self.settings["effects"]+direction,0,2))
+        self.apply_settings()
+
+    def settings_action(self):
+        if self.settings_index in (2,): self.adjust_setting(1)
+        elif self.settings_index==5:
+            self.state=self.settings_return_state
+
+    def test_action(self):
+        if self.test_index==0:return
+        if self.test_index==1:self.test_jump_stage(self.test_stage)
+        elif self.test_index==2:self.test_spawn_boss(self.test_stage)
+        elif self.test_index==3:self.unlock_all_test_weapons()
+        elif self.test_index==4:self.test_refill()
+        elif self.test_index==5:
+            self.god_mode=not self.god_mode
+            self.menu_message="GOD MODE ON" if self.god_mode else "GOD MODE OFF"; self.menu_message_timer=2.0
+        elif self.test_index==6:self.state=self.test_return_state
+
 
     def reset_new_game(self):
         self.player=Player(); self.score=0; self.stage=1; self.start_stage(1)
@@ -2339,6 +2865,7 @@ class Game:
     def update_play(self,dt):
         keys=pygame.key.get_pressed(); self.player.update(dt,keys,self); self.background.update(dt,self.stage)
         self.notice_timer=max(0,self.notice_timer-dt)
+        self.menu_message_timer=max(0,self.menu_message_timer-dt)
 
         # Recovery cadence / pity system. Standard +30 HP crosses periodically
         # enter from the right even if the player misses a perfect wave. Low HP
@@ -2414,6 +2941,7 @@ class Game:
         else:
             self.background.update(dt*.45,self.stage)
             self.notice_timer=max(0,self.notice_timer-dt)
+            self.menu_message_timer=max(0,self.menu_message_timer-dt)
             for ex in self.explosions:ex.update(dt)
             self.explosions=[e for e in self.explosions if e.life>0]
             if self.state=="stage_intro":
@@ -2428,17 +2956,97 @@ class Game:
     # ------------------------ input -----------------------------------
 
     def handle_event(self,event):
-        if event.type==pygame.QUIT:self.running=False
-        elif event.type==pygame.KEYDOWN:
-            if event.key==pygame.K_ESCAPE:self.running=False
-            elif self.state=="title" and event.key in (pygame.K_RETURN,pygame.K_SPACE):self.reset_new_game()
-            elif self.state in ("game_over","victory") and event.key in (pygame.K_RETURN,pygame.K_SPACE):self.reset_new_game()
-            elif self.state=="stage_intro" and event.key==pygame.K_RETURN:self.begin_play()
-            elif self.state=="play":
-                if event.key==pygame.K_q:self.player.cycle_weapon(-1)
-                elif event.key==pygame.K_e:self.player.cycle_weapon(1)
-                elif event.key==pygame.K_p:self.state="pause"
-            elif self.state=="pause" and event.key==pygame.K_p:self.state="play"
+        if event.type==pygame.QUIT:
+            self.running=False; return
+        if event.type!=pygame.KEYDOWN:
+            return
+
+        key=event.key
+
+        # Global developer/test and checkpoint shortcuts.
+        if key==pygame.K_F1 and self.test_mode and self.state not in ("settings",):
+            if self.state=="test_menu": self.state=self.test_return_state
+            else: self.open_test_menu(self.state)
+            return
+        if key==pygame.K_F5 and self.state in ("play","pause"):
+            self.save_game(); return
+        if key==pygame.K_F9 and self.state in ("title","play","pause"):
+            self.load_game(); return
+
+        if self.state=="title":
+            if key==pygame.K_ESCAPE:
+                self.running=False; return
+            # Hidden deliberate cheat-code activation.
+            ch=getattr(event,"unicode","")
+            if ch and ch.isalpha():
+                self.test_code_buffer=(self.test_code_buffer+ch.upper())[-16:]
+                if self.test_code_buffer.endswith("TERMINUS"):
+                    self.activate_test_mode()
+            if key in (pygame.K_RETURN,pygame.K_SPACE):
+                self.reset_new_game()
+            elif key==pygame.K_l:
+                self.load_game()
+            elif key==pygame.K_F2:
+                self.open_settings("title")
+            return
+
+        if self.state in ("game_over","victory"):
+            if key in (pygame.K_RETURN,pygame.K_SPACE): self.reset_new_game()
+            elif key==pygame.K_ESCAPE: self.state="title"
+            return
+
+        if self.state=="stage_intro":
+            if key==pygame.K_RETURN:self.begin_play()
+            elif key in (pygame.K_ESCAPE,pygame.K_p): self.begin_play(); self.open_pause()
+            return
+
+        if self.state=="play":
+            if key==pygame.K_q:self.player.cycle_weapon(-1)
+            elif key==pygame.K_e:self.player.cycle_weapon(1)
+            elif key in (pygame.K_p,pygame.K_ESCAPE):self.open_pause()
+            return
+
+        if self.state=="pause":
+            items=self.pause_items()
+            if key in (pygame.K_p,pygame.K_ESCAPE):
+                self.state="play"
+            elif key==pygame.K_UP:
+                self.pause_index=(self.pause_index-1)%len(items)
+            elif key==pygame.K_DOWN:
+                self.pause_index=(self.pause_index+1)%len(items)
+            elif key in (pygame.K_RETURN,pygame.K_SPACE):
+                self.pause_action()
+            return
+
+        if self.state=="settings":
+            if key in (pygame.K_ESCAPE,pygame.K_p):
+                self.state=self.settings_return_state
+            elif key==pygame.K_UP:
+                self.settings_index=(self.settings_index-1)%6
+            elif key==pygame.K_DOWN:
+                self.settings_index=(self.settings_index+1)%6
+            elif key==pygame.K_LEFT:
+                self.adjust_setting(-1)
+            elif key==pygame.K_RIGHT:
+                self.adjust_setting(1)
+            elif key in (pygame.K_RETURN,pygame.K_SPACE):
+                self.settings_action()
+            return
+
+        if self.state=="test_menu":
+            if key in (pygame.K_ESCAPE,pygame.K_F1):
+                self.state=self.test_return_state
+            elif key==pygame.K_UP:
+                self.test_index=(self.test_index-1)%7
+            elif key==pygame.K_DOWN:
+                self.test_index=(self.test_index+1)%7
+            elif key==pygame.K_LEFT and self.test_index==0:
+                self.test_stage=10 if self.test_stage<=1 else self.test_stage-1
+            elif key==pygame.K_RIGHT and self.test_index==0:
+                self.test_stage=1 if self.test_stage>=10 else self.test_stage+1
+            elif key in (pygame.K_RETURN,pygame.K_SPACE):
+                self.test_action()
+            return
 
     # ------------------------ HUD / rendering -------------------------
 
@@ -2465,7 +3073,10 @@ class Game:
         if self.boss and not self.boss.dead:self.boss.draw(self.canvas)
         for b in self.player_bullets:b.draw(self.canvas)
         for b in self.enemy_bullets:b.draw(self.canvas)
-        for ex in self.explosions:ex.draw(self.canvas)
+        for i,ex in enumerate(self.explosions):
+            fx=int(self.settings.get("effects",2))
+            if fx==2 or (fx==1 and i%2==0) or (fx==0 and i%3==0):
+                ex.draw(self.canvas)
         self.player.draw(self.canvas)
 
         if self.boss is None and self.stage_distance>=self.stage_goal and int(self.boss_warning*8)%2==0:
@@ -2478,6 +3089,58 @@ class Game:
             tx=max(x+5,(NATIVE_W-text_width(self.weapon_notice))//2); draw_text(self.canvas,self.weapon_notice,tx,35,YELLOW)
         self.draw_hud()
 
+    def draw_menu_box(self,title,items,selected,x=43,y=38,w=170):
+        h=30+len(items)*15
+        pygame.draw.rect(self.canvas,(4,7,17),(x,y,w,h))
+        pygame.draw.rect(self.canvas,(62,125,157),(x,y,w,h),1)
+        draw_text(self.canvas,title,(NATIVE_W-text_width(title))//2,y+7,CYAN)
+        for i,label in enumerate(items):
+            yy=y+23+i*15
+            if i==selected:
+                pygame.draw.rect(self.canvas,(26,43,58),(x+6,yy-3,w-12,12))
+                pygame.draw.rect(self.canvas,(85,174,199),(x+6,yy-3,w-12,12),1)
+            draw_text(self.canvas,label,x+12,yy,YELLOW if i==selected else WHITE)
+
+    def draw_pause_menu(self):
+        self.draw_menu_box("PAUSE MENU",self.pause_items(),self.pause_index,47,38,162)
+        draw_text(self.canvas,"F5 SAVE  F9 LOAD",77,204,(119,178,197))
+
+    def draw_settings_menu(self):
+        fx_names=("LOW","MED","HIGH")
+        items=[
+            f"MUSIC {int(self.settings['music_volume']*100):03d}",
+            f"SFX {int(self.settings['sfx_volume']*100):03d}",
+            "FULLSCREEN "+("ON" if self.settings["fullscreen"] else "OFF"),
+            f"WINDOW SCALE {int(self.settings['window_scale'])}X",
+            "EFFECTS "+fx_names[int(self.settings["effects"])],
+            "BACK",
+        ]
+        self.draw_menu_box("SETTINGS",items,self.settings_index,40,34,176)
+        draw_text(self.canvas,"LEFT RIGHT ADJUST",76,198,(119,178,197))
+
+    def draw_test_menu(self):
+        items=[
+            f"STAGE {self.test_stage:02d}",
+            "JUMP TO STAGE",
+            "SPAWN BOSS",
+            "UNLOCK ALL WEAPONS",
+            "REFILL HEALTH LIVES",
+            "GOD MODE "+("ON" if self.god_mode else "OFF"),
+            "BACK",
+        ]
+        self.draw_menu_box("TEST MODE",items,self.test_index,35,27,186)
+        p=STAGES[self.test_stage-1]
+        draw_text(self.canvas,p.title,(NATIVE_W-text_width(p.title))//2,157,MAGENTA)
+        draw_text(self.canvas,"LEFT RIGHT CHOOSE STAGE",60,188,(119,178,197))
+        draw_text(self.canvas,"F1 CLOSE",101,199,(119,178,197))
+
+    def draw_menu_message(self):
+        if self.menu_message_timer<=0 or not self.menu_message:return
+        w=min(244,max(116,text_width(self.menu_message)+12)); x=(NATIVE_W-w)//2
+        pygame.draw.rect(self.canvas,(5,8,18),(x,210-13,w,12))
+        pygame.draw.rect(self.canvas,(80,160,180),(x,210-13,w,12),1)
+        draw_text(self.canvas,self.menu_message,(NATIVE_W-text_width(self.menu_message))//2,200,YELLOW)
+
     def draw_overlay_center(self,title,subtitle=None,col=WHITE,subtitle2=None):
         w=max(166,text_width(title)+18,text_width(subtitle or "")+18,text_width(subtitle2 or "")+18)
         x=(NATIVE_W-w)//2; y=76; h=58 if subtitle2 else 48
@@ -2489,21 +3152,30 @@ class Game:
 
     def draw_title(self):
         self.background.draw_space(self.canvas,1)
-        # Hero presentation uses the same authored sprite language as gameplay.
         hero_pal={'1':(8,23,50),'2':(22,57,99),'3':(41,105,151),'4':(76,176,202),
                   '5':(138,225,235),'6':WHITE,'7':ORANGE,'8':(124,240,255)}
         draw_indexed_sprite(self.canvas,PLAYER_PIXELS,53,100,hero_pal,scale=2)
-        # Layered engine plume behind the large title ship.
         for i,col in enumerate(((255,229,91),ORANGE,(153,48,54),(76,35,70))):
             pygame.draw.line(self.canvas,col,(51-i*3,112),(44-i*5,112),max(1,4-i))
-        draw_text(self.canvas,"OMEGA HORIZON",38,49,CYAN,2,True)
-        draw_text(self.canvas,"V8.1 ARTIST PASS",79,76,YELLOW)
-        draw_text(self.canvas,"ENTER TO START",83,158,WHITE)
-        draw_text(self.canvas,"MOVE WASD  FIRE Z",74,178,(170,210,230)); draw_text(self.canvas,"WEAPON Q E  PAUSE P",67,189,(170,210,230))
-        draw_text(self.canvas,"BUILD V8.1 ARTIST",82,207,(75,128,160))
+        draw_text(self.canvas,"OMEGA HORIZON",38,45,CYAN,2,True)
+        draw_text(self.canvas,"V8.2 BOSS ART SYSTEMS",62,72,YELLOW)
+        draw_text(self.canvas,"ENTER NEW GAME",84,154,WHITE)
+        draw_text(self.canvas,"L LOAD  F2 SETTINGS",70,168,(170,210,230))
+        draw_text(self.canvas,"MOVE WASD  FIRE Z",74,181,(170,210,230))
+        draw_text(self.canvas,"WEAPON Q E  PAUSE P",67,192,(170,210,230))
+        if self.test_mode:
+            draw_text(self.canvas,"TEST MODE ENABLED  F1",68,204,MAGENTA)
+        else:
+            draw_text(self.canvas,"BUILD V8.2",100,207,(75,128,160))
+        self.draw_menu_message()
 
     def draw(self):
-        if self.state=="title":self.draw_title()
+        if self.state=="title":
+            self.draw_title()
+        elif self.state=="settings" and self.settings_return_state=="title":
+            self.draw_title(); self.draw_settings_menu(); self.draw_menu_message()
+        elif self.state=="test_menu" and self.test_return_state=="title":
+            self.draw_title(); self.draw_test_menu(); self.draw_menu_message()
         else:
             self.draw_gameplay()
             if self.state=="stage_intro":
@@ -2513,11 +3185,26 @@ class Game:
                 reward=STAGES[self.stage-1].reward_weapon
                 sub=f"SCORE {self.score:07d}" if reward is None else f"NEW: {WEAPON_NAMES[reward]}"
                 self.draw_overlay_center("STAGE CLEAR",sub,GREEN)
-            elif self.state=="pause":self.draw_overlay_center("PAUSED","PRESS P TO RETURN",YELLOW)
-            elif self.state=="game_over":self.draw_overlay_center("GAME OVER","ENTER TO RESTART",RED)
+            elif self.state=="pause":
+                self.draw_pause_menu()
+            elif self.state=="settings":
+                self.draw_settings_menu()
+            elif self.state=="test_menu":
+                self.draw_test_menu()
+            elif self.state=="game_over":
+                self.draw_overlay_center("GAME OVER","ENTER TO RESTART",RED)
             elif self.state=="victory":
                 self.draw_overlay_center("OMEGA DESTROYED",f"FINAL SCORE {self.score:07d}",GREEN,"THE TERMINUS IS SILENT")
-        scaled=pygame.transform.scale(self.canvas,(WINDOW_W,WINDOW_H)); self.window.blit(scaled,(0,0)); pygame.display.flip()
+            self.draw_menu_message()
+
+        # Preserve the 256x224 native image under every display option.
+        ww,wh=self.window.get_size()
+        scale=max(1,min(ww//NATIVE_W,wh//NATIVE_H))
+        tw,th=NATIVE_W*scale,NATIVE_H*scale
+        scaled=pygame.transform.scale(self.canvas,(tw,th))
+        self.window.fill(BLACK)
+        self.window.blit(scaled,((ww-tw)//2,(wh-th)//2))
+        pygame.display.flip()
 
     def run(self):
         while self.running:
@@ -2531,25 +3218,48 @@ class Game:
 # ---------------------------------------------------------------------------
 
 def packaged_smoke_test():
-    """Exercise every stage renderer, all archetypes, all bosses and stereo SFX."""
+    """Exercise V8.2 art, menus, saves, settings, all stages and stereo SFX."""
     g=Game()
     try:
-        assert BUILD_ID=="V8.1-ARTIST-PASS"
+        assert BUILD_ID=="V8.2-BOSS-ART-SYSTEMS"
         assert WEAPON_NAMES[4]=="HOMING ROCKET"
         assert g.player.unlocked==[True]+[False]*9
         assert len({(p.music_style,p.bpm,p.key) for p in STAGES})==10
-        # Weapon SFX must exist and mixer must accept them.
+        assert len(PYRO_HEAD)>=15 and len(PYRO_TORSO)>=18
+        assert len(CARRIER_BODY)>=12 and len(LEVIATHAN_HEAD)>=16
+
+        # Audio architecture remains truly stereo and volume-adjustable.
         if pygame.mixer.get_init() is not None and g.audio.enabled:
             assert len(g.audio.weapon_sfx)==10
             assert all(len(v)==3 for v in g.audio.weapon_sfx)
-        # Draw every campaign environment and its four local enemy variants.
+            g.audio.set_volumes(.5,.6)
+            assert abs(g.audio.music_volume-.5)<.01 and abs(g.audio.sfx_volume-.6)<.01
+
+        # Draw every campaign environment and all enemy/boss families.
         for stage in range(1,11):
             g.stage=stage; g.background.draw(g.canvas,stage)
             for i,arch in enumerate(ARCHETYPES):
                 e=Enemy(155+i*18,65+i*27,stage,999+i,i,arch); e.draw(g.canvas)
             boss=Boss(stage); boss.intro=0; boss.draw(g.canvas)
-        # One real game frame.
-        g.stage=1; g.reset_new_game(); g.begin_play(); g.update(1/60); g.draw()
+
+        # Save/load checkpoint and developer tools.
+        g.reset_new_game(); g.begin_play()
+        g.stage=3; g.score=12345; g.player.health=61; g.player.lives=4
+        g.player.unlocked[:4]=[True]*4; g.player.weapon=3
+        assert g.save_game()
+        g.score=0; g.player.health=5
+        assert g.load_game()
+        assert g.stage==3 and g.score==12345 and int(g.player.health)==61
+        g.activate_test_mode(); assert g.test_mode
+        g.test_spawn_boss(3); assert g.boss and g.boss.stage==3
+        g.unlock_all_test_weapons(); assert all(g.player.unlocked)
+        g.god_mode=True; hp=g.player.health; g.player.invuln=0; g.player.hit(99,g); assert g.player.health==hp
+
+        # Menu render paths and one real gameplay frame.
+        g.state="pause"; g.draw()
+        g.open_settings("pause"); g.draw()
+        g.open_test_menu("settings"); g.draw()
+        g.state="play"; g.update(1/60); g.draw()
         g.audio.stop_music()
     finally:
         pygame.quit()

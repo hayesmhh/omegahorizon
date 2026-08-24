@@ -1,51 +1,106 @@
-OMEGA HORIZON V8.1 - ARTIST PASS & PLAYABILITY POLISH
-======================================================
+OMEGA HORIZON V8.2 - BOSS ARTIST PASS & SYSTEMS
+================================================
 
-PURPOSE
--------
-V8.1 is the first dedicated craftsmanship pass after V8 established the ten
-stage identities, weapon progression, enemy roles, unique bosses, and true
-stereo soundtrack architecture.
+V8.2 continues the V8.1 artist-direction work and adds the development/player
+systems needed to test and play the expanding ten-stage campaign efficiently.
 
-THE BIG VISUAL CHANGE
+BOSS ARTIST PASS
+----------------
+- PYROCLAST is completely rebuilt as an authored metasprite lava creature:
+  horned skull/head, eyes, jaw/teeth, broad torso, separate animated arms and
+  claws, internal molten core/fissures, and a visually distinct obsidian-shell
+  state. It should read as a magma monster before its details are examined.
+- VALKYRIE CARRIER now uses an authored capital-ship body with command bridge,
+  fighter bays, fins, identification lighting, and four engine nozzles.
+- ABYSSAL LEVIATHAN now has an authored predatory head, jaw/teeth, eye/lure,
+  fins, and repeated armored/bioluminescent body segments.
+- TEMPEST BASTION retains the successful V8.1 airborne-fortress metasprite.
+- Boss collision silhouettes were updated to better match the new large art.
+
+AUDIO ESCALATION
+----------------
+- Stage arrangements grow from 12 to 16 bars.
+- Stage-specific ambient sound beds are mixed into the actual stereo music.
+- Boss arrangements add low ostinatos and stereo call/response phrases rather
+  than merely increasing BPM.
+- Existing unique stereo weapon sounds remain intact.
+- Music and SFX volume are now independently adjustable in-game.
+
+PAUSE / SETTINGS MENU
 ---------------------
-Finished combat sprites are moving away from runtime polygon silhouettes and
-into authored indexed pixel matrices/metasprites stored directly in the Python
-source. The game remains a single-file procedural/no-external-art project, but
-its art is now constructed more like actual 16-bit sprite work.
+Press P or Esc during gameplay.
 
-V8.1 specifically includes:
-- Rebuilt authored pixel-matrix player ship.
-- Rebuilt authored enemy archetype sprites with stage-specific material ramps.
-- Stage 3 Magma Caverns enemy readability correction using dark obsidian forms,
-  cool rim lighting, brighter focal pixels, and a less noisy lava field.
-- Completely rebuilt Stage 2 Tempest Bastion metasprite. It now has an obvious
-  side-view airborne-fortress silhouette, main cannon, command tower, four
-  animated lift turbines, engines, antennae, warning lights and damage effects.
-- Additional hand-authored focal-detail tiles and lighting on the other bosses.
-- Richer shaded pixel-cloud treatment in Stage 2.
-- Cleaner, broader basalt/lava structures in Stage 3.
-- Dependable periodic +30 HP recovery cadence/pity system, accelerated at low
-  health, while preserving rare Major Health and Extra Life pickups.
-- 12-bar stage arrangements with B-section counter-melodies, additional
-  synthesized instrument colors, and section-end percussion fills.
+Pause menu:
+- Resume
+- Save Game
+- Load Game
+- Settings
+- Test Menu (only after TEST MODE activation)
+- Quit to Title
+
+Settings:
+- Music volume 0-100
+- SFX volume 0-100
+- Fullscreen on/off
+- Integer window scale 2x-5x
+- Effects density Low/Medium/High
+
+The game ALWAYS renders internally at 256x224. Window/fullscreen presentation
+uses nearest-neighbor integer scaling and letterboxing where required.
+
+SAVE / LOAD
+-----------
+F5 = quick save
+F9 = quick load
+
+The manual and quick save system uses reliable stage checkpoints rather than
+trying to serialize every projectile and enemy on an arbitrary frame. It saves:
+- current stage
+- score
+- lives
+- health
+- unlocked weapons
+- active weapon
+
+Loading resumes at the beginning of the saved stage with those campaign stats.
+Save and settings files live in the Windows per-user LOCALAPPDATA\OmegaHorizon
+folder. Missing/corrupt saves are handled without crashing.
+
+DEVELOPER / CHEAT TEST MODE
+---------------------------
+At the TITLE SCREEN type:
+
+    TERMINUS
+
+A confirmation appears. Then press:
+
+    F1
+
+The TEST MODE menu can:
+- select any Stage 01-10
+- jump directly to that stage
+- spawn that stage's boss immediately
+- unlock all weapons
+- refill health and raise lives to 9
+- toggle God Mode
+
+TEST MODE is deliberately excluded from normal campaign saving. If TEST MODE is
+active, Save Game refuses to overwrite the normal campaign checkpoint.
 
 BUILD
 -----
-Replace the files in your existing GitHub repository, including the workflow,
-commit them, then run:
+Replace the files in the existing GitHub repository, commit, then run:
 
-    Build Omega Horizon V8.1 for Windows
+    Build Omega Horizon V8.2 for Windows
 
-Wait for both regression testing and:
+Wait for:
 
-    Smoke-test the PACKAGED V8.1 EXE
+    Smoke-test the PACKAGED V8.2 EXE
 
 to turn green.
 
-Download ONLY the artifact:
+Download ONLY:
 
-    OmegaHorizon-Windows-x64-V8.1-ARTIST-PASS
+    OmegaHorizon-Windows-x64-V8.2-BOSS-ART-SYSTEMS
 
-The running window title contains V8.1-ARTIST-PASS so it is easy to distinguish
-from older builds.
+The window title contains V8.2-BOSS-ART-SYSTEMS.
