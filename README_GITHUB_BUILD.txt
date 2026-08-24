@@ -1,62 +1,98 @@
-OMEGA HORIZON - GITHUB WINDOWS BUILD V7
-=======================================
+OMEGA HORIZON V8 - STAGE IDENTITY & PROGRESSION OVERHAUL
+========================================================
 
-V7 is deliberately impossible to confuse with the earlier broken EXE.
+BUILD ID
+--------
+V8-STAGE-IDENTITY
 
-VISIBLE IDENTITY
-----------------
-The running game window title contains:
+This package replaces V7. Upload/replace the files in your existing GitHub
+repository, commit them to the default branch, then run:
 
-    OMEGA HORIZON V7-STEREO-AUDIOFIX
+    Build Omega Horizon V8 for Windows
 
-The title screen also contains:
+The successful artifact is deliberately named:
 
-    BUILD V7 AUDIOFIX
+    OmegaHorizon-Windows-x64-V8-STAGE-IDENTITY
 
-The GitHub artifact is named:
+WHAT V8 CHANGES
+---------------
+- Ten visually distinct environments rather than one repeated background.
+- Stage 1 deep space.
+- Stage 2 atmospheric planetary descent.
+- Stage 3 underground magma caverns.
+- Stage 4 underwater/pelagic ruins.
+- Stage 5 orbital space station.
+- Stage 6 biomechanical alien hive.
+- Stage 7 ruined future megacity.
+- Stage 8 frozen moon/ice trenches.
+- Stage 9 reality-warped alien ringworld.
+- Stage 10 Omega's living machine core.
 
-    OmegaHorizon-Windows-x64-V7-AUDIOFIX
+- Four tactical enemy archetypes: Interceptor, Heavy, Artillery, Ambusher.
+- Stage-local names, colors/materials and behavior variants.
+- Tactical weapon strengths without arbitrary hard immunity.
+- Ten separate stage bosses with unique art, movement, attacks and weaknesses.
+- Bosses visually reflect their stages, including Pyroclast in the magma
+  caverns and Abyssal Leviathan on the water world.
+- Visible boss damage effects.
+- Player starts with Plasma Repeater only.
+- One new weapon reward per boss through Stage 9.
+- Weapon #05 is officially HOMING ROCKET.
+- Standard green +30 health cross.
+- Rare major +65 health core.
+- Rare extra-life pickup.
+- Skill-earned extra-life opportunities on selected no-death boss clears.
+- Stage-specific environmental hazards.
+- More detailed original procedural pixel-art player, enemies and bosses.
+- Weapon-specific projectile art.
 
-A build that does not show those identifiers is NOT V7.
+TRUE STEREO AUDIO OVERHAUL
+--------------------------
+V8 no longer generates one mono song and duplicates it to L/R.
 
-AUDIO FIX
----------
-V7 adapts generated mono synth data to the ACTUAL pygame mixer channel count.
-With a stereo mixer it creates a contiguous (samples, 2) int16 array before
-calling pygame.sndarray.make_sound().
+The music engine now mixes independently panned voices into a stereo bus:
+- bass
+- percussion
+- pads/chords
+- lead
+- arpeggiator/counterline
+- stage-dependent instrumentation
+- unequal left/right feedback delay
 
-V7 also fails soft: an unexpected audio-device problem disables audio instead
-of crashing the entire game at startup.
+All ten stages use different BPM/key/style data AND different melodic/rhythmic
+arrangements. Boss battles receive intensified stage-specific arrangements.
 
-TWO LEVELS OF CLOUD TESTING
----------------------------
-Before GitHub uploads the EXE, it now runs:
+Every weapon now has its own layered procedural firing sound. There are three
+micro-variants per weapon to reduce repetition, and weapon/explosion/pickup
+sounds are stereo-positioned according to their screen X coordinate.
 
-1. Source-level stereo audio/render smoke test.
-2. The actual packaged dist\OmegaHorizon.exe with --smoke-test.
+CLOUD TESTING
+-------------
+GitHub performs both:
+1. Source-level regression tests across all ten stage renderers, enemy types,
+   bosses, weapon progression and true stereo sample data.
+2. A smoke test of the ACTUAL packaged OmegaHorizon.exe before upload.
 
-The artifact is uploaded only if BOTH tests exit successfully.
+BUILD
+-----
+1. Extract this ZIP.
+2. Replace/upload ALL files into your existing repository.
+3. Make sure .github/workflows/build-windows-exe.yml is replaced.
+4. Commit to the default branch.
+5. Open Actions.
+6. Select "Build Omega Horizon V8 for Windows".
+7. Run workflow.
+8. Wait for every step to turn green, especially:
+       Smoke-test the PACKAGED V8 EXE
+9. Download ONLY:
+       OmegaHorizon-Windows-x64-V8-STAGE-IDENTITY
+10. Delete/rename older EXEs before extracting the V8 artifact.
 
-HOW TO UPDATE YOUR EXISTING REPOSITORY
---------------------------------------
-1. Extract this V7 ZIP.
-2. Upload/replace ALL files in your existing GitHub repository.
-3. Pay particular attention to:
-       omega_horizon_shmup.py
-       runtime_smoke_test.py
-       .github/workflows/build-windows-exe.yml
-       version_info.txt
-4. Commit the replacements to the default branch.
-5. Go to Actions.
-6. Run:
-       Build Omega Horizon V7 for Windows
-7. Wait for every step to turn green, including:
-       Smoke-test the PACKAGED EXE itself
-8. Download ONLY the artifact named:
-       OmegaHorizon-Windows-x64-V7-AUDIOFIX
-9. Delete/rename older OmegaHorizon.exe copies before extracting V7.
-10. Run the new OmegaHorizon.exe.
-11. Confirm the window title contains V7-STEREO-AUDIOFIX.
+SUCCESS OUTPUT
+--------------
+OmegaHorizon.exe
+OmegaHorizon_V8_SHA256.txt
+OmegaHorizon_V8_Windows_x64.zip
 
-If the title does not contain V7-STEREO-AUDIOFIX, Windows is running an older
-copy of the executable.
+The finished EXE is standalone and does not require Python/Pygame/NumPy on
+the computer that runs it.
