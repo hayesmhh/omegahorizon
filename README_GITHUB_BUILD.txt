@@ -1,5 +1,10 @@
-OMEGA HORIZON - GITHUB WINDOWS BUILD V5
+OMEGA HORIZON - GITHUB WINDOWS BUILD V6
 =======================================
+
+V6 RUNTIME FIX
+--------------
+V6 fixes the Windows startup crash `Array must be 2-dimensional for stereo mixer`. The procedural synth now adapts generated NumPy sample arrays to the mixer channel count. The GitHub workflow also runs a forced-stereo audio/runtime smoke test before creating the EXE.
+
 
 This package is designed to build OmegaHorizon.exe entirely on a free
 GitHub-hosted Windows virtual machine. Your local Python installation,

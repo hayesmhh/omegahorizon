@@ -208,8 +208,22 @@ class AudioSynth:
     def _sound_from_float(self, wave):
         if not self.enabled:
             return None
-        wave = np.clip(wave, -1.0, 1.0)
-        arr = (wave * 32767).astype(np.int16)
+
+        # pygame.sndarray.make_sound() requires the NumPy array shape to
+        # match the mixer channel count. Windows/SDL can initialize a stereo
+        # mixer even when a mono preference was requested via pre_init().
+        # Keep synthesis internally mono, then duplicate it into each actual
+        # output channel at the final conversion step.
+        wave = np.asarray(np.clip(wave, -1.0, 1.0), dtype=np.float32).reshape(-1)
+        mono = np.ascontiguousarray((wave * 32767).astype(np.int16))
+
+        mixer_info = pygame.mixer.get_init()
+        channels = mixer_info[2] if mixer_info else 1
+        if channels <= 1:
+            arr = mono
+        else:
+            arr = np.ascontiguousarray(np.repeat(mono[:, None], channels, axis=1))
+
         return pygame.sndarray.make_sound(arr)
 
     def _make_sfx(self):
