@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-OMEGA HORIZON V8 - STAGE IDENTITY & PROGRESSION OVERHAUL
+OMEGA HORIZON V8.1 - ARTIST PASS & PLAYABILITY POLISH
 =========================================================
 Single-file procedural Pygame shooter designed around a 256x224 SNES-like
 canvas, software perspective rendering, original artist-directed pixel art,
@@ -18,7 +18,7 @@ Controls:
     Enter               : Start / restart / skip stage card
     Esc                 : Quit
 
-Build identity: V8-STAGE-IDENTITY
+Build identity: V8.1-ARTIST-PASS
 """
 
 import math
@@ -44,7 +44,7 @@ FPS = 60
 HUD_H = 21
 HORIZON_Y = 104
 AUDIO_RATE = 44100
-BUILD_ID = "V8-STAGE-IDENTITY"
+BUILD_ID = "V8.1-ARTIST-PASS"
 
 BLACK = (4, 5, 12)
 WHITE = (236, 246, 255)
@@ -153,6 +153,179 @@ def color_lerp(a, b, t):
 def safe_set(surface, x, y, color):
     if 0 <= x < surface.get_width() and 0 <= y < surface.get_height():
         surface.set_at((x, y), color)
+
+
+# ---------------------------------------------------------------------------
+# Authored indexed pixel-art / metasprite helpers
+# ---------------------------------------------------------------------------
+
+def draw_indexed_sprite(surface, rows, x, y, palette, flip_x=False, scale=1):
+    """Draw an authored palette-indexed sprite matrix.
+
+    `.` is transparent. Other characters are palette keys.  Finished combat
+    sprites use these matrices so their identity comes from intentional pixel
+    clusters rather than runtime polygons.
+    """
+    for gy,row in enumerate(rows):
+        iterable = row[::-1] if flip_x else row
+        for gx,key in enumerate(iterable):
+            if key == '.':
+                continue
+            col=palette.get(key)
+            if col is None:
+                continue
+            if scale==1:
+                safe_set(surface,x+gx,y+gy,col)
+            else:
+                pygame.draw.rect(surface,col,(x+gx*scale,y+gy*scale,scale,scale))
+
+
+def draw_pixel_cloud(surface, x, y, scale=1, light=(194,211,218), mid=(142,169,181), shadow=(88,121,137)):
+    """Chunky three-value cloud cluster designed to read like painted tiles."""
+    rows=[
+        "........22222........",
+        ".....22223333222......",
+        "...222333333333222....",
+        ".2223333333333333322..",
+        "222333333333333333322.",
+        "111222333333333322211.",
+        ".1111222222222222111..",
+        "...11111111111111.....",
+    ]
+    draw_indexed_sprite(surface,rows,x,y,{'1':shadow,'2':mid,'3':light},scale=scale)
+
+
+PLAYER_PIXELS=[
+    ".............11...............",
+    ".........11112211.............",
+    "......1112223344211...........",
+    "..1111222333444554211.........",
+    "..112222333444556643211.......",
+    "771222333444455566554332111...",
+    "777122333444455555544443321188",
+    "771222333444455566554332111...",
+    "..112222333444556643211.......",
+    "..1111222333444554211.........",
+    "......1112223344211...........",
+    ".........11112211.............",
+    ".............11...............",
+]
+
+ENEMY_PIXEL_BANK={
+    'interceptor':[
+        ".......11.......",
+        "....111221.......",
+        "..1122334411.....",
+        "112234455443311..",
+        "81123445555544331",
+        "112234455443311..",
+        "..1122334411.....",
+        "....111221.......",
+        ".......11.......",
+    ],
+    'heavy':[
+        "...111111111.....",
+        ".1122222222211....",
+        "112233333332211...",
+        "1223344444332211..",
+        "812345555554332211",
+        "1223344444332211..",
+        "112233333332211...",
+        ".1122222222211....",
+        "...111111111.....",
+    ],
+    'artillery':[
+        "......1111.......",
+        "...111222211......",
+        ".1122333332211.....",
+        "112334444433211....",
+        "88812345554332211..",
+        "112334444433211....",
+        ".1122333332211.....",
+        "...111222211......",
+        "......1111.......",
+    ],
+    'ambusher':[
+        "....11......11....",
+        "...1221....1221...",
+        "..1233211123321...",
+        ".12334444443321....",
+        "8123445555443321..",
+        ".12334444443321....",
+        "..1233211123321...",
+        "...1221....1221...",
+        "....11......11....",
+    ],
+}
+
+# Tempest Bastion is intentionally constructed as a hand-authored metasprite.
+# It reads as a side-view airborne fortress: cannon on the left, command deck
+# above the hull, four lift turbines, and engine exhaust on the right.
+BASTION_HULL=[
+    "......................111111.....................",
+    ".................111112222221111................",
+    "............111112222233333322221111............",
+    ".......11111222233333444444333322221111.........",
+    "...111122223333444445555554444433332222111......",
+    "111122223333444455555666555544443333222211111...",
+    "777712223333444455566666655544443333222211111188",
+    "777712223333444455566666655544443333222211111188",
+    "111122223333444455555666555544443333222211111...",
+    "...111122223333444445555554444433332222111......",
+    ".......11111222233333444444333322221111.........",
+    "............111112222233333322221111............",
+    ".................111112222221111................",
+    "......................111111.....................",
+]
+
+BASTION_TOWER=[
+    "......11......",
+    "....112211....",
+    "...12233221...",
+    "..1223443221..",
+    ".122344443221.",
+    "11223444432211",
+    "11111111111111",
+]
+
+BASTION_TURBINE_A=[
+    "....11111....",
+    "..112222211..",
+    ".12223332221.",
+    "1223311333221",
+    "1233115113321",
+    "1233155513321",
+    "1233115113321",
+    "1223311333221",
+    ".12223332221.",
+    "..112222211..",
+    "....11111....",
+]
+BASTION_TURBINE_B=[
+    "....11111....",
+    "..112222211..",
+    ".12223132221.",
+    "1223331333221",
+    "1233155513321",
+    "1233115113321",
+    "1233155513321",
+    "1223331333221",
+    ".12223132221.",
+    "..112222211..",
+    "....11111....",
+]
+
+BOSS_DETAIL_TILES={
+    'carrier': [".111.","12221","12321","12221",".111."],
+    'pyroclast':[".111.","12321","13431","12321",".111."],
+    'leviathan':["..11.",".1221","12331",".1221","..11."],
+    'sentinel':["11111","12221","12321","12221","11111"],
+    'mother':[".111.","12321","13431","12321",".111."],
+    'ares':["11111","12321","13331","12221",".111."],
+    'wyrm':["..1..",".121.","12321",".121.","..1.."],
+    'sovereign':["..1..",".121.","12321",".121.","..1.."],
+    'omega':[".111.","12321","13431","12321",".111."],
+}
 
 
 # ---------------------------------------------------------------------------
@@ -475,6 +648,16 @@ class AudioSynth:
                     self.voice(hz*1.005,duration,"sine",volume*.45,attack=.15,decay=.28,vibrato=.005))
         if kind == "pluck":
             return self.voice(hz,duration,"pulse25",volume,attack=.001,decay=max(.03,duration*.75))
+        if kind == "strings":
+            return (self.voice(hz,duration,"saw",volume*.34,attack=.08,decay=.22,vibrato=.004) +
+                    self.voice(hz*1.006,duration,"tri",volume*.48,attack=.10,decay=.25,vibrato=.006))
+        if kind == "organ":
+            return (self.voice(hz,duration,"square",volume*.46,attack=.012,decay=.10) +
+                    self.voice(hz*2,duration,"sine",volume*.25,attack=.012,decay=.11) +
+                    self.voice(hz*3,duration,"sine",volume*.10,attack=.012,decay=.08))
+        if kind == "mallet":
+            return (self.voice(hz,duration,"sine",volume,attack=.001,decay=max(.04,duration*.72)) +
+                    self.voice(hz*2.99,duration,"sine",volume*.20,attack=.001,decay=max(.03,duration*.42)))
         return self.voice(hz,duration,"square",volume,attack=.004,decay=.08)
 
     def _kick(self, duration=.13, strength=.18):
@@ -493,7 +676,7 @@ class AudioSynth:
         p=STAGES[stage_index]
         bpm = p.bpm + (14 if boss else 0)
         beat=60.0/bpm
-        bars=8
+        bars=12
         total=bars*4*beat
         mix=np.zeros((int(total*AUDIO_RATE),2),dtype=np.float32)
 
@@ -563,6 +746,25 @@ class AudioSynth:
                 pan=(-.38 if i%4<2 else .38)
             self.add_stereo(mix,start,self.pan_mono(sig,pan))
 
+        # B-section counter-melody gives the loop an actual arrangement arc.
+        counter_instruments={
+            "heroic":"strings","storm":"organ","industrial":"mallet","aquatic":"glass","mechanical":"mallet",
+            "organic":"choir","war":"strings","crystal":"glass","unreal":"organ","omega":"strings"}
+        counter_motifs={
+            "heroic":[7,9,12,11,9,7,4,5], "storm":[3,7,10,8,7,3,2,0],
+            "industrial":[0,6,1,7,0,3,1,6], "aquatic":[7,10,12,14,12,10,7,5],
+            "mechanical":[0,3,7,10,7,3,6,3], "organic":[0,6,5,1,3,6,8,5],
+            "war":[7,12,10,7,5,7,3,5], "crystal":[12,10,7,5,3,5,7,10],
+            "unreal":[0,8,1,6,11,3,9,1], "omega":[0,1,6,3,8,6,1,0]}
+        cinst=counter_instruments[p.music_style]; motif=counter_motifs[p.music_style]
+        for section_bar in (4,8):
+            for i,noff in enumerate(motif):
+                st=(section_bar*4*beat)+i*(beat/2)
+                if st>=total:break
+                sig=self.instrument(cinst,base+12+noff,beat*.42,.028 if not boss else .040)
+                pan=.48 if i%2 else -.48
+                self.add_stereo(mix,st,self.pan_mono(sig,pan))
+
         # Arpeggiator/counterline, absent or sparse on slower aquatic stage.
         arp_intervals=cfg["mode"]+[cfg["mode"][1]+12]
         arp_step=beat/4 if p.music_style not in ("aquatic","crystal") else beat/2
@@ -596,6 +798,14 @@ class AudioSynth:
                 self.add_stereo(mix,st,self.pan_mono(self._kick(.13,.15 if not boss else .19),0))
             if snare:
                 self.add_stereo(mix,st,self.pan_mono(self._snare(2000+stage_index*100+bi,strength=.09 if not boss else .12),.08))
+
+        # Section-end fills at bars 4/8/12 keep the loop from sounding like a
+        # continuously repeated procedural groove.
+        for bar_end in (4,8,12):
+            start=(bar_end*4*beat)-beat
+            for j in range(4):
+                sig=self._snare(7000+stage_index*50+bar_end*4+j,duration=.075,strength=.045+.012*j)
+                self.add_stereo(mix,start+j*(beat/4),self.pan_mono(sig,-.35+j*.23))
 
         # Hi-hats/percussion have style-dependent density and stereo separation.
         hat_step=beat/2 if p.music_style in ("aquatic","crystal") else beat/4
@@ -665,11 +875,14 @@ class Background:
             tex[...,0]=24+stripes*9; tex[...,1]=54+stripes*14; tex[...,2]=74+stripes*16
             ridges=((xx*3+yy*2)%53)<3; tex[ridges]=(78,105,97)
         elif theme=="lava":
-            noise=((xx*17+yy*31+(xx^yy)*7)&31)
-            tex[...,0]=26+noise; tex[...,1]=7+noise//5; tex[...,2]=4
-            cracks=(((xx*5+yy*3)%47)<3)|(((xx-yy*2)%61)<2)
-            tex[cracks]=(245,66,12)
-            hot=(((xx+yy*2)%83)<2); tex[hot]=(255,207,58)
+            # Large cooled basalt plates separated by readable molten channels.
+            # V8's fine-grain noise competed with enemy silhouettes.
+            plate=((xx//18 + yy//15)&1)
+            broad=((xx*3+yy*2+(xx^yy))&15)
+            tex[...,0]=18+plate*8+broad//5; tex[...,1]=5+plate*3; tex[...,2]=5+plate*2
+            cracks=(((xx*3+yy*2)%67)<2)|(((xx-yy*2)%83)<2)
+            tex[cracks]=(205,47,11)
+            hot=(((xx+yy*2)%109)<2)&cracks; tex[hot]=(255,199,49)
         elif theme=="water":
             wave=((np.sin(xx*.11)+np.sin(yy*.17))*12).astype(np.int16)
             tex[...,0]=np.clip(4+wave,0,255); tex[...,1]=np.clip(58+wave,0,255); tex[...,2]=np.clip(91+wave*2,0,255)
@@ -779,12 +992,18 @@ class Background:
         # Planet curvature / atmosphere glow.
         pygame.draw.ellipse(surf,(36,86,112),(-72,67,400,155))
         pygame.draw.arc(surf,(128,211,229),(-72,60,400,160),3.2,6.1,2)
-        # Cloud parallax bands.
-        for layer,(spd,col,ybase) in enumerate([(7,(155,180,190),73),(14,(109,142,154),91),(25,(79,113,125),111)]):
-            for i in range(7):
-                x=int((i*52-self.time*spd)%(NATIVE_W+80))-40
+        # Painterly pixel-cloud parallax. Three-value clusters give the clouds
+        # actual volume instead of reading as flat geometric ellipses.
+        cloud_sets=[
+            (7,73,1,(203,219,224),(149,176,187),(92,124,140)),
+            (14,91,1,(173,196,205),(118,151,165),(69,105,122)),
+            (25,108,1,(139,171,183),(89,129,145),(48,85,104)),
+        ]
+        for layer,(spd,ybase,sc,light,mid,shadow) in enumerate(cloud_sets):
+            for i in range(6):
+                x=int((i*58-self.time*spd)%(NATIVE_W+90))-45
                 y=ybase+int(math.sin(i*1.9+self.time*.3)*5)
-                pygame.draw.ellipse(surf,col,(x,y,54,10+layer*3))
+                draw_pixel_cloud(surf,x,y,sc,light,mid,shadow)
         self._floor_cast(surf,"atmosphere",112,0,(47,75,84))
         # Lightning.
         if int(self.time*2.1)%11==0:
@@ -805,7 +1024,11 @@ class Background:
         pygame.draw.rect(surf,(115,25,8),(wx,47,12,64))
         pygame.draw.rect(surf,(245,69,13),(wx+3,48,6,65))
         pygame.draw.line(surf,(255,211,71),(wx+5,48),(wx+5,110),1)
-        self._floor_cast(surf,"lava",99,1.3,(70,8,3))
+        # A darker midground shelf separates combat sprites from the hottest
+        # floor texture while retaining the oppressive cavern atmosphere.
+        pygame.draw.polygon(surf,(20,7,10),[(0,91),(42,86),(81,92),(126,84),(171,91),(215,85),(256,91),(256,105),(0,105)])
+        pygame.draw.line(surf,(91,31,24),(0,103),(256,103),1)
+        self._floor_cast(surf,"lava",105,1.0,(48,6,5))
         # Foreground basalt silhouettes.
         for i in range(7):
             x=int((i*47-self.scroll*.62)%330)-30
@@ -1328,35 +1551,30 @@ class Player:
     def draw(self,surf):
         if self.invuln>0 and int(self.invuln*14)%2==0:return
         x,y=int(self.x),int(self.y)
-        bank=int(self.bank*2)
-        # Multi-frame exhaust.
-        flame=6+(pygame.time.get_ticks()//55)%4
-        pygame.draw.polygon(surf,(142,45,48),[(x-9,y-2),(x-9-flame,y),(x-9,y+2)])
-        pygame.draw.polygon(surf,ORANGE,[(x-9,y-1),(x-10-flame//2,y),(x-9,y+1)])
-        safe_set(surf,x-11-flame//2,y,YELLOW)
-        # Dark underside silhouette.
-        pygame.draw.polygon(surf,(18,35,68),[(x-10,y-4-bank),(x-2,y-7-bank),(x+6,y-4),(x+12,y),(x+5,y+5),(x-4,y+7-bank),(x-10,y+4)])
-        # Main armored fuselage.
-        pygame.draw.polygon(surf,(45,105,150),[(x-8,y-3),(x-1,y-6),(x+7,y-3),(x+12,y),(x+5,y+3),(x-3,y+3)])
-        pygame.draw.polygon(surf,(86,193,210),[(x-4,y-3),(x+3,y-4),(x+9,y),(x+3,y+1),(x-4,y+1)])
-        # Wings.
-        pygame.draw.polygon(surf,(30,58,103),[(x-5,y+2),(x+2,y+6-bank),(x-7,y+8-bank),(x-11,y+3)])
-        pygame.draw.polygon(surf,(35,73,121),[(x-4,y-2),(x-1,y-7-bank),(x-8,y-8-bank),(x-10,y-3)])
-        # Cockpit canopy and highlights.
-        pygame.draw.polygon(surf,(66,160,199),[(x-1,y-4),(x+4,y-3),(x+6,y-1),(x+1,y-1)])
-        pygame.draw.line(surf,(177,247,255),(x,y-4),(x+3,y-3),1)
-        pygame.draw.rect(surf,WHITE,(x+5,y-1,3,2))
-        # Intentional pixel-cluster speculars / panel lines.
-        for px,py,c in [(-6,-2,(125,184,205)),(-2,2,(23,70,112)),(1,3,(109,150,180)),(-6,4,(73,108,146)),(7,1,(22,91,142))]:
-            safe_set(surf,x+px,y+py,c)
-        pygame.draw.line(surf,(18,45,82),(x-3,y+1),(x+4,y+2),1)
-        # Orbiters are proper mini craft.
+        # Palette-indexed authored ship sprite. Banking shifts the sprite by one
+        # pixel instead of deforming its silhouette with arbitrary polygons.
+        bank=int(round(self.bank))
+        pal={
+            '1':(10,27,57), '2':(25,61,104), '3':(43,107,151),
+            '4':(72,170,199), '5':(132,223,235), '6':WHITE,
+            '7':ORANGE, '8':(119,236,255),
+        }
+        draw_indexed_sprite(surf,PLAYER_PIXELS,x-15,y-6+bank,pal)
+        # Animated exhaust is a separate metasprite/effect layer.
+        flame=4+(pygame.time.get_ticks()//55)%4
+        for fx in range(flame):
+            col=YELLOW if fx<2 else ORANGE if fx<4 else (149,45,50)
+            safe_set(surf,x-14-fx,y,col)
+            if fx<3:safe_set(surf,x-13-fx,y+1,col)
+        # Canopy gleam and weapon hardpoint flash add sub-frame life.
+        safe_set(surf,x+2,y-3+bank,WHITE)
+        if self.fire_timer>0 and self.fire_timer<.045:
+            safe_set(surf,x+13,y,WHITE); safe_set(surf,x+14,y,CYAN)
         if self.weapon==7:
             for ox,oy in self.orbiter_positions():
                 ox,oy=int(ox),int(oy)
-                pygame.draw.polygon(surf,(26,75,90),[(ox-4,oy),(ox,oy-3),(ox+4,oy),(ox,oy+3)])
-                pygame.draw.line(surf,GREEN,(ox-1,oy),(ox+3,oy),1)
-                safe_set(surf,ox,oy-1,WHITE)
+                orb=["..1..",".232.","12321",".242.","..1.."]
+                draw_indexed_sprite(surf,orb,ox-2,oy-2,{'1':(11,45,61),'2':(43,142,150),'3':WHITE,'4':GREEN})
 
 # ---------------------------------------------------------------------------
 # Enemy archetypes and stage-local visual families
@@ -1454,73 +1672,39 @@ class Enemy:
         return False
 
     def draw(self,surf):
-        x,y=int(self.x),int(self.y); p=STAGES[self.stage-1].palette
-        dark,mid,accent,hot=p
-        # Core silhouette differs by tactical archetype.
-        if self.archetype=="interceptor":
-            pygame.draw.polygon(surf,dark,[(x-8,y),(x-2,y-6),(x+7,y-3),(x+9,y),(x+6,y+3),(x-2,y+6)])
-            pygame.draw.polygon(surf,mid,[(x-5,y),(x+1,y-4),(x+7,y),(x+1,y+3)])
-            pygame.draw.line(surf,accent,(x-3,y-3),(x+4,y-1),1)
-        elif self.archetype=="heavy":
-            pygame.draw.polygon(surf,dark,[(x-10,y-5),(x+5,y-7),(x+10,y-3),(x+10,y+4),(x+3,y+7),(x-10,y+5)])
-            pygame.draw.rect(surf,mid,(x-6,y-5,12,10))
-            pygame.draw.rect(surf,accent,(x-3,y-4,6,2))
-            pygame.draw.line(surf,dark,(x-8,y),(x+8,y),1)
-        elif self.archetype=="artillery":
-            pygame.draw.ellipse(surf,dark,(x-8,y-6,16,12))
-            pygame.draw.rect(surf,mid,(x-6,y-4,10,8))
-            pygame.draw.rect(surf,accent,(x-10,y-1,11,3))
-            pygame.draw.rect(surf,hot,(x-10,y,3,1))
+        x,y=int(self.x),int(self.y); theme=STAGES[self.stage-1].theme
+        p=STAGES[self.stage-1].palette
+        # Material-aware indexed palette. Stage 3 deliberately uses cool rim
+        # lighting and an almost-black obsidian outline so enemies never merge
+        # into the orange/red cavern texture.
+        if theme=='lava':
+            pal={'1':(3,5,14),'2':(30,24,36),'3':(61,43,52),'4':(101,166,190),'5':(184,231,235),'8':(255,119,34)}
+        elif theme=='water':
+            pal={'1':(1,21,35),'2':(6,58,76),'3':(13,104,117),'4':(43,178,181),'5':(150,255,235),'8':(82,224,255)}
+        elif theme=='ice':
+            pal={'1':(7,25,48),'2':(37,80,117),'3':(76,139,172),'4':(139,210,233),'5':WHITE,'8':(91,183,255)}
+        elif theme=='hive':
+            pal={'1':(28,7,30),'2':(73,18,64),'3':(123,34,91),'4':(177,58,118),'5':(142,255,177),'8':(72,231,137)}
+        elif theme=='veil':
+            pal={'1':(12,5,28),'2':(58,24,104),'3':(108,39,155),'4':(207,63,216),'5':(104,255,228),'8':WHITE}
+        elif theme=='omega':
+            pal={'1':(14,5,16),'2':(63,15,46),'3':(118,24,67),'4':(207,43,98),'5':(255,220,157),'8':RED}
         else:
-            pygame.draw.polygon(surf,dark,[(x-9,y),(x-3,y-7),(x+3,y-3),(x+9,y),(x+2,y+3),(x-4,y+7)])
-            pygame.draw.polygon(surf,mid,[(x-5,y),(x,y-5),(x+5,y),(x,y+4)])
-            pygame.draw.line(surf,accent,(x-6,y-2),(x+3,y+2),1)
-
-        # Stage-specific silhouette extensions and material clusters mean the
-        # tactical archetype is readable while each world still has its own art family.
-        theme=STAGES[self.stage-1].theme
-        if theme=="space":
-            pygame.draw.polygon(surf,(24,47,89),[(x-5,y-4),(x-10,y-8),(x-8,y-2)])
-            pygame.draw.polygon(surf,(24,47,89),[(x-5,y+4),(x-10,y+8),(x-8,y+2)])
-            safe_set(surf,x+2,y-2,WHITE); safe_set(surf,x-4,y+2,accent)
-        elif theme=="atmosphere":
-            pygame.draw.line(surf,accent,(x-6,y-5),(x+5,y-7),2); pygame.draw.line(surf,accent,(x-6,y+5),(x+5,y+7),2)
-            safe_set(surf,x+3,y-2,hot)
-        elif theme=="lava":
-            # Jagged basalt growths and luminous cracks.
-            pygame.draw.polygon(surf,dark,[(x-5,y-5),(x-2,y-10),(x+1,y-5)])
-            pygame.draw.polygon(surf,dark,[(x-4,y+5),(x-1,y+10),(x+2,y+5)])
-            pygame.draw.line(surf,LAVA,(x-4,y),(x+3,y+2),1); safe_set(surf,x,y-2,YELLOW)
-        elif theme=="water":
-            # Fins/membranes make the silhouette fluid and animal-like.
-            pygame.draw.polygon(surf,(18,102,112),[(x-3,y-4),(x+1,y-10),(x+4,y-4)])
-            pygame.draw.polygon(surf,(18,102,112),[(x-3,y+4),(x+1,y+10),(x+4,y+4)])
-            pygame.draw.arc(surf,accent,(x-8,y-6,16,12),.2,2.8,1); safe_set(surf,x+2,y-2,(175,255,236))
-        elif theme=="station":
-            # Modular brackets and warning lamp.
-            pygame.draw.rect(surf,(47,58,64),(x-7,y-8,4,5)); pygame.draw.rect(surf,(47,58,64),(x-7,y+4,4,5))
-            pygame.draw.rect(surf,hot,(x+2,y-1,2,2)); safe_set(surf,x-3,y+3,(120,130,135))
-        elif theme=="hive":
-            # Organic tendrils/chitin spines.
-            pygame.draw.line(surf,(100,25,78),(x-5,y-4),(x-10,y-9),2); pygame.draw.line(surf,(100,25,78),(x-5,y+4),(x-10,y+9),2)
-            pygame.draw.circle(surf,hot,(x+1,y),2); safe_set(surf,x-3,y-2,(187,64,124))
-        elif theme=="city":
-            # Military hardpoints / urban-war scarred plating.
-            pygame.draw.rect(surf,(48,45,48),(x-8,y-7,8,3)); pygame.draw.line(surf,(197,104,54),(x-8,y-6),(x-12,y-6),1)
-            pygame.draw.rect(surf,(104,44,36),(x-2,y+2,5,2)); safe_set(surf,x+4,y-2,YELLOW)
-        elif theme=="ice":
-            # Crystalline armor growths.
-            pygame.draw.polygon(surf,(99,180,211),[(x-4,y-4),(x,y-11),(x+2,y-4)])
-            pygame.draw.polygon(surf,(99,180,211),[(x-4,y+4),(x,y+11),(x+2,y+4)])
-            pygame.draw.line(surf,ICE,(x-5,y-3),(x+2,y+3),1); safe_set(surf,x+2,y-3,WHITE)
-        elif theme=="veil":
-            # Detached pieces suggest broken spatial continuity.
-            pygame.draw.rect(surf,(78,31,122),(x-12,y-5,3,3)); pygame.draw.rect(surf,(52,151,143),(x+9,y+4,3,3))
-            safe_set(surf,x-4,y-3,MAGENTA); safe_set(surf,x+4,y+3,(82,255,221))
-        elif theme=="omega":
-            # Living-machine filaments and exposed red core.
-            pygame.draw.line(surf,(112,24,64),(x-5,y-3),(x-11,y-7),2); pygame.draw.line(surf,(112,24,64),(x-5,y+3),(x-11,y+7),2)
-            pygame.draw.circle(surf,RED,(x,y),2); safe_set(surf,x-1,y-1,YELLOW)
+            pal={'1':(8,17,35),'2':p[0],'3':p[1],'4':p[2],'5':p[3],'8':ORANGE}
+        rows=ENEMY_PIXEL_BANK[self.archetype]
+        draw_indexed_sprite(surf,rows,x-len(rows[0])//2,y-len(rows)//2,pal,flip_x=self.from_rear)
+        # Stage-specific authored accents, kept sparse so silhouettes remain clean.
+        if theme=='atmosphere':
+            safe_set(surf,x-3,y-5,pal['5']); safe_set(surf,x+3,y+5,pal['4'])
+        elif theme=='lava':
+            safe_set(surf,x-5,y-4,pal['5']); safe_set(surf,x-4,y-3,pal['4'])
+            safe_set(surf,x,y,pal['8'])
+        elif theme=='station':
+            safe_set(surf,x-5,y+4,(255,177,67)); safe_set(surf,x+4,y-3,(128,231,243))
+        elif theme=='city':
+            safe_set(surf,x-4,y-4,(233,184,75)); safe_set(surf,x+2,y+3,(195,77,50))
+        elif theme=='veil':
+            safe_set(surf,x-8,y-6,pal['5']); safe_set(surf,x+8,y+6,pal['4'])
 
 # ---------------------------------------------------------------------------
 # Ten stage-specific bosses
@@ -1736,12 +1920,37 @@ class Boss:
 
     def draw(self,surf):
         getattr(self,f"draw_{self.profile.boss_kind}")(surf)
+        self._artist_detail_overlay(surf)
         if self.flash>0:
             # sparse white hit highlights without blanking the art
             x,y=int(self.x),int(self.y)
             pygame.draw.circle(surf,WHITE,(x-5,y-3),3,1)
         if self.teleport_flash>0:
             pygame.draw.circle(surf,(165,255,239),(int(self.x),int(self.y)),self.radius+6,1)
+
+    def _artist_detail_overlay(self,surf):
+        """Small authored material tiles and rim-light clusters shared by boss art.
+
+        Stage 2 is fully rebuilt as a metasprite; the other nine retain their
+        successful unique silhouettes but receive denser pixel-authored facial,
+        mechanical, or organic focal detail in this pass.
+        """
+        if self.profile.boss_kind=='bastion': return
+        tile=BOSS_DETAIL_TILES.get(self.profile.boss_kind)
+        if not tile:return
+        x,y=int(self.x),int(self.y)
+        theme=self.profile.theme
+        if theme=='lava': pal={'1':(12,5,6),'2':(86,23,14),'3':LAVA,'4':YELLOW}
+        elif theme=='water': pal={'1':(2,28,39),'2':(10,91,103),'3':(59,205,198),'4':WHITE}
+        elif theme=='ice': pal={'1':(10,31,55),'2':(55,114,151),'3':ICE,'4':WHITE}
+        elif theme in ('hive','omega'): pal={'1':(27,7,25),'2':(102,25,73),'3':(223,59,119),'4':(179,255,191)}
+        elif theme=='veil': pal={'1':(17,7,37),'2':(86,29,132),'3':MAGENTA,'4':(103,255,225)}
+        else: pal={'1':(12,21,34),'2':(54,82,101),'3':self.profile.palette[2],'4':WHITE}
+        draw_indexed_sprite(surf,tile,x-2,y-2,pal)
+        # Directional rim highlight changes with stage lighting.
+        rim=pal['4'] if self.stage in (3,4,8,9) else self.profile.palette[2]
+        for ox,oy in [(-self.radius+3,-7),(-self.radius+4,-6),(-self.radius+5,10)]:
+            safe_set(surf,x+ox,y+oy,rim)
 
     def _damage_fx(self,surf,points):
         ratio=self.health/self.max_health
@@ -1768,17 +1977,37 @@ class Boss:
 
     def draw_bastion(self,surf):
         x,y=int(self.x),int(self.y)
-        pygame.draw.ellipse(surf,(28,39,54),(x-29,y-20,58,40))
-        pygame.draw.ellipse(surf,(83,106,124),(x-25,y-17,50,34))
-        # turbines
-        for ox in (-22,22):
-            pygame.draw.circle(surf,(30,48,66),(x+ox,y),10); pygame.draw.circle(surf,(154,194,207),(x+ox,y),7,1)
-            for a in range(0,360,90):
-                aa=math.radians(a+self.age*100); pygame.draw.line(surf,(105,151,168),(x+ox,y),(x+ox+int(math.cos(aa)*6),y+int(math.sin(aa)*6)),1)
-        pygame.draw.rect(surf,(50,70,90),(x-10,y-23,20,46)); pygame.draw.circle(surf,YELLOW,(x-5,y-2),5)
-        pygame.draw.line(surf,WHITE,(x-7,y-4),(x-4,y-5),1)
-        pygame.draw.rect(surf,(171,107,45),(x-15,y+15,30,4))
-        self._damage_fx(surf,[(-17,-6),(14,10),(2,-18),(-7,16)])
+        # Hand-authored metasprite fortress. It faces left: cannon/nose at left,
+        # command tower above, lift turbines around the hull, engines at right.
+        pal={'1':(10,18,29),'2':(27,45,61),'3':(54,78,94),'4':(91,125,139),
+             '5':(149,189,200),'6':(218,235,235),'7':(225,159,55),'8':(71,205,238)}
+        hx=x-33; hy=y-7
+        # Structural trusses visibly connect the lift pods to the armored hull.
+        for ax,ay,bx,by in ((x-8,y-6,x-8,y-17),(x+13,y-5,x+14,y-13),(x-8,y+7,x-8,y+16),(x+13,y+6,x+14,y+13)):
+            pygame.draw.line(surf,pal['1'],(ax,ay),(bx,by),5)
+            pygame.draw.line(surf,pal['4'],(ax,ay),(bx,by),2)
+        draw_indexed_sprite(surf,BASTION_HULL,hx,hy,pal)
+        draw_indexed_sprite(surf,BASTION_TOWER,x-4,y-22,pal)
+        turbine=BASTION_TURBINE_A if int(self.age*8)%2==0 else BASTION_TURBINE_B
+        for ox,oy in ((-8,-22),(14,-18),(-8,13),(14,9)):
+            draw_indexed_sprite(surf,turbine,x+ox-6,y+oy-5,pal)
+        # Main rail cannon with visible barrel and muzzle capacitor.
+        cannon=["11111111111111","12222223333447","11111111111111"]
+        draw_indexed_sprite(surf,cannon,x-44,y-1,pal)
+        safe_set(surf,x-45,y,WHITE if int(self.age*5)%2 else pal['7'])
+        # Rear engines and downward lift exhaust.
+        for ey in (-4,3):
+            pygame.draw.line(surf,pal['8'],(x+23,y+ey),(x+30,y+ey),2)
+            safe_set(surf,x+31,y+ey,WHITE)
+        for ox in (-8,14):
+            safe_set(surf,x+ox,y+20,pal['8']); safe_set(surf,x+ox,y+21,(54,113,154))
+        # Lightning rods / antenna mast make the military-platform silhouette obvious.
+        pygame.draw.line(surf,pal['5'],(x+2,y-22),(x+2,y-31),1)
+        pygame.draw.line(surf,pal['5'],(x+9,y-20),(x+12,y-27),1)
+        safe_set(surf,x+2,y-32,WHITE if int(self.age*6)%3==0 else pal['8'])
+        # Warning lamps/windows.
+        for wx in (-12,-5,2,9): safe_set(surf,x+wx,y-3,pal['7'])
+        self._damage_fx(surf,[(-22,-5),(11,9),(2,-20),(-7,14)])
 
     def draw_pyroclast(self,surf):
         x,y=int(self.x),int(self.y); crust=(55,20,13) if not self.shell else (45,38,34)
@@ -1942,7 +2171,7 @@ class Game:
         self.enemies=[]; self.player_bullets=[]; self.enemy_bullets=[]; self.pickups=[]; self.explosions=[]; self.hazards=[]
         self.boss=None; self.wave_serial=0; self.waves={}; self.spawn_timer=1.0; self.hazard_timer=3.0; self.boss_warning=0.0
         self.reward_pending=False; self.reward_timer=0.0; self.weapon_notice=""; self.notice_timer=0.0
-        self.clean_waves=0; self.stage_deaths=0; self.last_enemy_label=""
+        self.clean_waves=0; self.stage_deaths=0; self.last_enemy_label=""; self.health_drop_timer=10.0; self.health_pity=0
 
     def stage_distance_goal(self): return 2200+(self.stage-1)*190
 
@@ -1953,7 +2182,7 @@ class Game:
         self.stage=stage; self.stage_distance=0; self.stage_goal=self.stage_distance_goal()
         self.enemies.clear(); self.player_bullets.clear(); self.enemy_bullets.clear(); self.pickups.clear(); self.explosions.clear(); self.hazards.clear()
         self.boss=None; self.waves.clear(); self.spawn_timer=.9; self.hazard_timer=2.5; self.boss_warning=0
-        self.reward_pending=False; self.reward_timer=0; self.weapon_notice=""; self.notice_timer=0; self.stage_deaths=0
+        self.reward_pending=False; self.reward_timer=0; self.weapon_notice=""; self.notice_timer=0; self.stage_deaths=0; self.health_drop_timer=9.0; self.health_pity=0
         self.state="stage_intro"; self.state_timer=2.6; self.player.reset_position(); self.audio.play_stage(stage-1)
 
     def begin_play(self): self.state="play"; self.state_timer=0
@@ -2008,15 +2237,17 @@ class Game:
         if data["kills"]>=data["total"]:
             if not data["failed"]:
                 self.clean_waves+=1
-                # Clean-wave reward: standard green cross, occasionally upgraded.
+                self.health_pity+=1
+                # Clean play can accelerate recovery and still produces rare
+                # premium rewards, but normal health no longer depends on a
+                # flawless wave.
                 roll=random.random()
-                if roll<.018:
-                    kind="life"
-                elif roll<.115:
-                    kind="major_health"
-                else:
-                    kind="health"
-                self.pickups.append(Pickup(x,y,kind))
+                if roll<.012:
+                    self.pickups.append(Pickup(x,y,"life"))
+                elif roll<.070:
+                    self.pickups.append(Pickup(x,y,"major_health"))
+                elif self.health_pity>=2 and self.player.health<82:
+                    self.pickups.append(Pickup(x,y,"health")); self.health_pity=0; self.health_drop_timer=max(self.health_drop_timer,8.0)
             del self.waves[wid]
 
     def wave_enemy_escaped(self,wid):
@@ -2108,6 +2339,23 @@ class Game:
     def update_play(self,dt):
         keys=pygame.key.get_pressed(); self.player.update(dt,keys,self); self.background.update(dt,self.stage)
         self.notice_timer=max(0,self.notice_timer-dt)
+
+        # Recovery cadence / pity system. Standard +30 HP crosses periodically
+        # enter from the right even if the player misses a perfect wave. Low HP
+        # accelerates the cadence; existing recovery items suppress duplicates.
+        if self.boss is None and self.stage_distance < self.stage_goal*.94:
+            self.health_drop_timer-=dt
+            active_recovery=any(p.life>0 and p.kind in ("health","major_health") for p in self.pickups)
+            threshold=42 if self.player.health<=38 else 72 if self.player.health<=65 else 88
+            if self.health_drop_timer<=0 and self.player.health<threshold and not active_recovery:
+                kind="major_health" if self.player.health<=24 and random.random()<.30 else "health"
+                self.pickups.append(Pickup(NATIVE_W+8,random.randint(55,185),kind,-28,0,10))
+                self.health_drop_timer=random.uniform(11.0,15.0) if self.player.health>45 else random.uniform(7.5,10.5)
+                self.health_pity=0
+            elif self.health_drop_timer<=0:
+                # Healthy players still get another check soon instead of losing
+                # the recovery opportunity for the remainder of the stage.
+                self.health_drop_timer=5.0
 
         if self.boss is None:
             self.stage_distance+=dt*(82+self.stage*4)
@@ -2241,18 +2489,18 @@ class Game:
 
     def draw_title(self):
         self.background.draw_space(self.canvas,1)
-        # Larger polished hero ship presentation.
-        x,y=82,119
-        pygame.draw.polygon(self.canvas,(17,32,64),[(x-42,y-8),(x-6,y-25),(x+31,y-14),(x+52,y),(x+29,y+16),(x-8,y+25),(x-42,y+9)])
-        pygame.draw.polygon(self.canvas,(39,100,147),[(x-34,y-5),(x-3,y-19),(x+29,y-10),(x+45,y),(x+25,y+10),(x-6,y+18),(x-34,y+5)])
-        pygame.draw.polygon(self.canvas,(72,194,211),[(x-18,y-6),(x+13,y-12),(x+39,y),(x+11,y+6),(x-18,y+4)])
-        pygame.draw.polygon(self.canvas,(30,63,111),[(x-17,y+5),(x+4,y+21),(x-26,y+26),(x-39,y+9)])
-        pygame.draw.line(self.canvas,(184,251,255),(x-4,y-12),(x+9,y-10),2); pygame.draw.rect(self.canvas,WHITE,(x+26,y-2,6,3))
+        # Hero presentation uses the same authored sprite language as gameplay.
+        hero_pal={'1':(8,23,50),'2':(22,57,99),'3':(41,105,151),'4':(76,176,202),
+                  '5':(138,225,235),'6':WHITE,'7':ORANGE,'8':(124,240,255)}
+        draw_indexed_sprite(self.canvas,PLAYER_PIXELS,53,100,hero_pal,scale=2)
+        # Layered engine plume behind the large title ship.
+        for i,col in enumerate(((255,229,91),ORANGE,(153,48,54),(76,35,70))):
+            pygame.draw.line(self.canvas,col,(51-i*3,112),(44-i*5,112),max(1,4-i))
         draw_text(self.canvas,"OMEGA HORIZON",38,49,CYAN,2,True)
-        draw_text(self.canvas,"V8 STAGE IDENTITY",76,76,YELLOW)
+        draw_text(self.canvas,"V8.1 ARTIST PASS",79,76,YELLOW)
         draw_text(self.canvas,"ENTER TO START",83,158,WHITE)
         draw_text(self.canvas,"MOVE WASD  FIRE Z",74,178,(170,210,230)); draw_text(self.canvas,"WEAPON Q E  PAUSE P",67,189,(170,210,230))
-        draw_text(self.canvas,"BUILD V8",103,207,(75,128,160))
+        draw_text(self.canvas,"BUILD V8.1 ARTIST",82,207,(75,128,160))
 
     def draw(self):
         if self.state=="title":self.draw_title()
@@ -2286,7 +2534,7 @@ def packaged_smoke_test():
     """Exercise every stage renderer, all archetypes, all bosses and stereo SFX."""
     g=Game()
     try:
-        assert BUILD_ID=="V8-STAGE-IDENTITY"
+        assert BUILD_ID=="V8.1-ARTIST-PASS"
         assert WEAPON_NAMES[4]=="HOMING ROCKET"
         assert g.player.unlocked==[True]+[False]*9
         assert len({(p.music_style,p.bpm,p.key) for p in STAGES})==10

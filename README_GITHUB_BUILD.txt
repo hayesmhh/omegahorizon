@@ -1,98 +1,51 @@
-OMEGA HORIZON V8 - STAGE IDENTITY & PROGRESSION OVERHAUL
-========================================================
+OMEGA HORIZON V8.1 - ARTIST PASS & PLAYABILITY POLISH
+======================================================
 
-BUILD ID
---------
-V8-STAGE-IDENTITY
+PURPOSE
+-------
+V8.1 is the first dedicated craftsmanship pass after V8 established the ten
+stage identities, weapon progression, enemy roles, unique bosses, and true
+stereo soundtrack architecture.
 
-This package replaces V7. Upload/replace the files in your existing GitHub
-repository, commit them to the default branch, then run:
+THE BIG VISUAL CHANGE
+---------------------
+Finished combat sprites are moving away from runtime polygon silhouettes and
+into authored indexed pixel matrices/metasprites stored directly in the Python
+source. The game remains a single-file procedural/no-external-art project, but
+its art is now constructed more like actual 16-bit sprite work.
 
-    Build Omega Horizon V8 for Windows
-
-The successful artifact is deliberately named:
-
-    OmegaHorizon-Windows-x64-V8-STAGE-IDENTITY
-
-WHAT V8 CHANGES
----------------
-- Ten visually distinct environments rather than one repeated background.
-- Stage 1 deep space.
-- Stage 2 atmospheric planetary descent.
-- Stage 3 underground magma caverns.
-- Stage 4 underwater/pelagic ruins.
-- Stage 5 orbital space station.
-- Stage 6 biomechanical alien hive.
-- Stage 7 ruined future megacity.
-- Stage 8 frozen moon/ice trenches.
-- Stage 9 reality-warped alien ringworld.
-- Stage 10 Omega's living machine core.
-
-- Four tactical enemy archetypes: Interceptor, Heavy, Artillery, Ambusher.
-- Stage-local names, colors/materials and behavior variants.
-- Tactical weapon strengths without arbitrary hard immunity.
-- Ten separate stage bosses with unique art, movement, attacks and weaknesses.
-- Bosses visually reflect their stages, including Pyroclast in the magma
-  caverns and Abyssal Leviathan on the water world.
-- Visible boss damage effects.
-- Player starts with Plasma Repeater only.
-- One new weapon reward per boss through Stage 9.
-- Weapon #05 is officially HOMING ROCKET.
-- Standard green +30 health cross.
-- Rare major +65 health core.
-- Rare extra-life pickup.
-- Skill-earned extra-life opportunities on selected no-death boss clears.
-- Stage-specific environmental hazards.
-- More detailed original procedural pixel-art player, enemies and bosses.
-- Weapon-specific projectile art.
-
-TRUE STEREO AUDIO OVERHAUL
---------------------------
-V8 no longer generates one mono song and duplicates it to L/R.
-
-The music engine now mixes independently panned voices into a stereo bus:
-- bass
-- percussion
-- pads/chords
-- lead
-- arpeggiator/counterline
-- stage-dependent instrumentation
-- unequal left/right feedback delay
-
-All ten stages use different BPM/key/style data AND different melodic/rhythmic
-arrangements. Boss battles receive intensified stage-specific arrangements.
-
-Every weapon now has its own layered procedural firing sound. There are three
-micro-variants per weapon to reduce repetition, and weapon/explosion/pickup
-sounds are stereo-positioned according to their screen X coordinate.
-
-CLOUD TESTING
--------------
-GitHub performs both:
-1. Source-level regression tests across all ten stage renderers, enemy types,
-   bosses, weapon progression and true stereo sample data.
-2. A smoke test of the ACTUAL packaged OmegaHorizon.exe before upload.
+V8.1 specifically includes:
+- Rebuilt authored pixel-matrix player ship.
+- Rebuilt authored enemy archetype sprites with stage-specific material ramps.
+- Stage 3 Magma Caverns enemy readability correction using dark obsidian forms,
+  cool rim lighting, brighter focal pixels, and a less noisy lava field.
+- Completely rebuilt Stage 2 Tempest Bastion metasprite. It now has an obvious
+  side-view airborne-fortress silhouette, main cannon, command tower, four
+  animated lift turbines, engines, antennae, warning lights and damage effects.
+- Additional hand-authored focal-detail tiles and lighting on the other bosses.
+- Richer shaded pixel-cloud treatment in Stage 2.
+- Cleaner, broader basalt/lava structures in Stage 3.
+- Dependable periodic +30 HP recovery cadence/pity system, accelerated at low
+  health, while preserving rare Major Health and Extra Life pickups.
+- 12-bar stage arrangements with B-section counter-melodies, additional
+  synthesized instrument colors, and section-end percussion fills.
 
 BUILD
 -----
-1. Extract this ZIP.
-2. Replace/upload ALL files into your existing repository.
-3. Make sure .github/workflows/build-windows-exe.yml is replaced.
-4. Commit to the default branch.
-5. Open Actions.
-6. Select "Build Omega Horizon V8 for Windows".
-7. Run workflow.
-8. Wait for every step to turn green, especially:
-       Smoke-test the PACKAGED V8 EXE
-9. Download ONLY:
-       OmegaHorizon-Windows-x64-V8-STAGE-IDENTITY
-10. Delete/rename older EXEs before extracting the V8 artifact.
+Replace the files in your existing GitHub repository, including the workflow,
+commit them, then run:
 
-SUCCESS OUTPUT
---------------
-OmegaHorizon.exe
-OmegaHorizon_V8_SHA256.txt
-OmegaHorizon_V8_Windows_x64.zip
+    Build Omega Horizon V8.1 for Windows
 
-The finished EXE is standalone and does not require Python/Pygame/NumPy on
-the computer that runs it.
+Wait for both regression testing and:
+
+    Smoke-test the PACKAGED V8.1 EXE
+
+to turn green.
+
+Download ONLY the artifact:
+
+    OmegaHorizon-Windows-x64-V8.1-ARTIST-PASS
+
+The running window title contains V8.1-ARTIST-PASS so it is easy to distinguish
+from older builds.
