@@ -1,4 +1,4 @@
-name: Build Omega Horizon for Windows
+name: Build Omega Horizon V7 for Windows
 
 on:
   workflow_dispatch:
@@ -8,12 +8,12 @@ permissions:
 
 jobs:
   build-windows:
-    name: Build standalone Windows EXE
+    name: Build and test V7 standalone Windows EXE
     runs-on: windows-2022
     timeout-minutes: 20
 
     steps:
-      - name: Check out game source
+      - name: Check out V7 source
         uses: actions/checkout@v4
 
       - name: Set up 64-bit Python 3.13
@@ -24,40 +24,20 @@ jobs:
           cache: 'pip'
           cache-dependency-path: requirements-build.txt
 
-      - name: Show build environment
-        shell: pwsh
-        run: |
-          python --version
-          python -c "import platform; print('Architecture:', platform.architecture()[0])"
-
       - name: Install pinned build dependencies
         shell: pwsh
         run: |
           python -m pip install --upgrade pip
           python -m pip install --only-binary=:all: -r requirements-build.txt
 
-      - name: Verify imports
+      - name: Verify repository really contains V7 audio fix
         shell: pwsh
         run: |
-          @'
-          import sys
-          import pygame
-          import numpy
-          import PyInstaller
-          print("Python:", sys.version)
-          print("pygame:", pygame.version.ver)
-          print("NumPy:", numpy.__version__)
-          print("PyInstaller:", PyInstaller.__version__)
-          print("DEPENDENCIES_OK")
-          '@ | Set-Content -Encoding UTF8 verify_build.py
-          python verify_build.py
+          python -c "import omega_horizon_shmup as g; assert g.BUILD_ID == 'V7-STEREO-AUDIOFIX'; print(g.BUILD_ID)"
+          $stereoFix = Select-String -Path "omega_horizon_shmup.py" -Pattern "np.repeat\(mono\[:, None\], channels, axis=1\)"
+          if (-not $stereoFix) { throw "V7 stereo conversion code not found" }
 
-      - name: Syntax-check the game
-        shell: pwsh
-        run: |
-          python -m py_compile omega_horizon_shmup.py
-
-      - name: Runtime smoke test including stereo audio
+      - name: Source runtime smoke test including stereo audio
         shell: pwsh
         env:
           SDL_VIDEODRIVER: dummy
@@ -65,7 +45,12 @@ jobs:
         run: |
           python runtime_smoke_test.py
 
-      - name: Build OmegaHorizon.exe
+      - name: Syntax-check the game
+        shell: pwsh
+        run: |
+          python -m py_compile omega_horizon_shmup.py
+
+      - name: Build V7 OmegaHorizon.exe
         shell: pwsh
         run: |
           python -m PyInstaller --noconfirm --clean OmegaHorizon.spec
@@ -73,28 +58,44 @@ jobs:
             throw "PyInstaller completed without creating dist\OmegaHorizon.exe"
           }
 
+      - name: Smoke-test the PACKAGED EXE itself
+        shell: pwsh
+        env:
+          SDL_VIDEODRIVER: dummy
+          SDL_AUDIODRIVER: dummy
+        run: |
+          $p = Start-Process `
+            -FilePath "$PWD\dist\OmegaHorizon.exe" `
+            -ArgumentList "--smoke-test" `
+            -Wait `
+            -PassThru
+          if ($p.ExitCode -ne 0) {
+            throw "Packaged OmegaHorizon.exe smoke test failed with exit code $($p.ExitCode)"
+          }
+          Write-Host "PACKAGED_V7_EXE_SMOKE_TEST_OK"
+
       - name: Create SHA-256 checksum
         shell: pwsh
         run: |
           $hash = (Get-FileHash "dist\OmegaHorizon.exe" -Algorithm SHA256).Hash
-          Set-Content -Path "dist\OmegaHorizon_SHA256.txt" -Value $hash -Encoding ASCII
+          Set-Content -Path "dist\OmegaHorizon_V7_SHA256.txt" -Value $hash -Encoding ASCII
           Write-Host "OmegaHorizon.exe SHA-256: $hash"
 
-      - name: Create release ZIP
+      - name: Create V7 release ZIP
         shell: pwsh
         run: |
           Compress-Archive `
-            -Path "dist\OmegaHorizon.exe","dist\OmegaHorizon_SHA256.txt" `
-            -DestinationPath "dist\OmegaHorizon_Windows_x64.zip" `
+            -Path "dist\OmegaHorizon.exe","dist\OmegaHorizon_V7_SHA256.txt" `
+            -DestinationPath "dist\OmegaHorizon_V7_Windows_x64.zip" `
             -Force
 
-      - name: Upload finished Windows build
+      - name: Upload tested V7 Windows build
         uses: actions/upload-artifact@v4
         with:
-          name: OmegaHorizon-Windows-x64
+          name: OmegaHorizon-Windows-x64-V7-AUDIOFIX
           path: |
             dist/OmegaHorizon.exe
-            dist/OmegaHorizon_SHA256.txt
-            dist/OmegaHorizon_Windows_x64.zip
+            dist/OmegaHorizon_V7_SHA256.txt
+            dist/OmegaHorizon_V7_Windows_x64.zip
           if-no-files-found: error
           retention-days: 30
