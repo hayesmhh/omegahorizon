@@ -1,4 +1,4 @@
-name: Build Omega Horizon V8.1 for Windows
+name: Build Omega Horizon V8.2 for Windows
 
 on:
   workflow_dispatch:
@@ -8,12 +8,12 @@ permissions:
 
 jobs:
   build-windows:
-    name: Build and test V8.1 artist-pass Windows EXE
+    name: Build and test V8.2 boss-art systems Windows EXE
     runs-on: windows-2022
-    timeout-minutes: 35
+    timeout-minutes: 40
 
     steps:
-      - name: Check out V8.1 source
+      - name: Check out V8.2 source
         uses: actions/checkout@v4
 
       - name: Set up 64-bit Python 3.13
@@ -30,12 +30,12 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install --only-binary=:all: -r requirements-build.txt
 
-      - name: Verify V8.1 artist-pass source
+      - name: Verify V8.2 source identity and authored boss assets
         shell: pwsh
         run: |
-          python -c "import omega_horizon_shmup as g; assert g.BUILD_ID == 'V8.1-ARTIST-PASS'; assert g.WEAPON_NAMES[4] == 'HOMING ROCKET'; assert len(g.BASTION_HULL) >= 12; print(g.BUILD_ID)"
+          python -c "import omega_horizon_shmup as g; assert g.BUILD_ID == 'V8.2-BOSS-ART-SYSTEMS'; assert g.WEAPON_NAMES[4] == 'HOMING ROCKET'; assert len(g.PYRO_HEAD) >= 15; assert len(g.CARRIER_BODY) >= 12; assert len(g.LEVIATHAN_HEAD) >= 16; print(g.BUILD_ID)"
 
-      - name: Source regression test - art, stereo music, health cadence
+      - name: Source regression test - art, audio, saves, settings, test mode
         shell: pwsh
         env:
           SDL_VIDEODRIVER: dummy
@@ -48,7 +48,7 @@ jobs:
         run: |
           python -m py_compile omega_horizon_shmup.py runtime_smoke_test.py
 
-      - name: Build V8.1 OmegaHorizon.exe
+      - name: Build V8.2 OmegaHorizon.exe
         shell: pwsh
         run: |
           python -m PyInstaller --noconfirm --clean OmegaHorizon.spec
@@ -56,44 +56,46 @@ jobs:
             throw "PyInstaller completed without creating dist\OmegaHorizon.exe"
           }
 
-      - name: Smoke-test the PACKAGED V8.1 EXE
+      - name: Smoke-test the PACKAGED V8.2 EXE
         shell: pwsh
         env:
           SDL_VIDEODRIVER: dummy
           SDL_AUDIODRIVER: dummy
+          LOCALAPPDATA: ${{ runner.temp }}\OmegaHorizonV82
         run: |
+          New-Item -ItemType Directory -Force -Path $env:LOCALAPPDATA | Out-Null
           $p = Start-Process `
             -FilePath "$PWD\dist\OmegaHorizon.exe" `
             -ArgumentList "--smoke-test" `
             -Wait `
             -PassThru
           if ($p.ExitCode -ne 0) {
-            throw "Packaged OmegaHorizon.exe V8.1 smoke test failed with exit code $($p.ExitCode)"
+            throw "Packaged OmegaHorizon.exe V8.2 smoke test failed with exit code $($p.ExitCode)"
           }
-          Write-Host "PACKAGED_V81_EXE_SMOKE_TEST_OK"
+          Write-Host "PACKAGED_V82_EXE_SMOKE_TEST_OK"
 
       - name: Create SHA-256 checksum
         shell: pwsh
         run: |
           $hash = (Get-FileHash "dist\OmegaHorizon.exe" -Algorithm SHA256).Hash
-          Set-Content -Path "dist\OmegaHorizon_V81_SHA256.txt" -Value $hash -Encoding ASCII
-          Write-Host "OmegaHorizon V8.1 SHA-256: $hash"
+          Set-Content -Path "dist\OmegaHorizon_V82_SHA256.txt" -Value $hash -Encoding ASCII
+          Write-Host "OmegaHorizon V8.2 SHA-256: $hash"
 
-      - name: Create V8.1 release ZIP
+      - name: Create V8.2 release ZIP
         shell: pwsh
         run: |
           Compress-Archive `
-            -Path "dist\OmegaHorizon.exe","dist\OmegaHorizon_V81_SHA256.txt" `
-            -DestinationPath "dist\OmegaHorizon_V81_Windows_x64.zip" `
+            -Path "dist\OmegaHorizon.exe","dist\OmegaHorizon_V82_SHA256.txt" `
+            -DestinationPath "dist\OmegaHorizon_V82_Windows_x64.zip" `
             -Force
 
-      - name: Upload tested V8.1 Windows build
+      - name: Upload tested V8.2 Windows build
         uses: actions/upload-artifact@v4
         with:
-          name: OmegaHorizon-Windows-x64-V8.1-ARTIST-PASS
+          name: OmegaHorizon-Windows-x64-V8.2-BOSS-ART-SYSTEMS
           path: |
             dist/OmegaHorizon.exe
-            dist/OmegaHorizon_V81_SHA256.txt
-            dist/OmegaHorizon_V81_Windows_x64.zip
+            dist/OmegaHorizon_V82_SHA256.txt
+            dist/OmegaHorizon_V82_Windows_x64.zip
           if-no-files-found: error
           retention-days: 30
