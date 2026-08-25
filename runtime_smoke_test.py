@@ -1,8 +1,8 @@
-"""Omega Horizon V8.6 source-level regression smoke test."""
+"""Omega Horizon V8.7 source-level regression smoke test."""
 import os
 import tempfile
 
-_tmp = tempfile.mkdtemp(prefix="omega_horizon_v86_")
+_tmp = tempfile.mkdtemp(prefix="omega_horizon_v87_")
 os.environ["LOCALAPPDATA"] = _tmp
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
@@ -11,9 +11,9 @@ import pygame
 import numpy as np
 import omega_horizon_shmup as game
 
-assert game.BUILD_ID == "V8.6-SPRITE-ART"
-assert game.DISPLAY_VERSION == "V8.6"
-assert game.DISPLAY_SUBTITLE == "FULL SPRITE ART"
+assert game.BUILD_ID == "V8.7-MASTER-ART"
+assert game.DISPLAY_VERSION == "V8.7"
+assert game.DISPLAY_SUBTITLE == "MASTER ART PASS"
 assert len(game.STAGES) == 10
 assert len(game.WEAPON_NAMES) == 10
 assert game.WEAPON_NAMES[4] == "HOMING ROCKET"
@@ -22,7 +22,7 @@ assert game.DIFFICULTY_ORDER == ("EASY","HARDER","DIFFICULT","INSANE")
 assert game.DIFFICULTY_PROFILES["INSANE"]["damage"] == 1.0
 assert len({(s.theme, s.music_style, s.bpm, s.key) for s in game.STAGES}) == 10
 
-# V8.6 hero/enemy art and material-specific readability assets.
+# V8.7 master-art, material readability and shield assets.
 assert len(game.PLAYER_PIXELS) >= 15
 assert max(map(len, game.PLAYER_PIXELS)) >= 35
 assert all(a in game.ENEMY_PIXEL_BANK for a in game.ARCHETYPES)
@@ -30,6 +30,10 @@ assert all(len(game.ENEMY_PIXEL_BANK[a]) >= 11 for a in game.ARCHETYPES)
 assert set(game.ENEMY_MATERIAL_PARTS) >= {"lava","water","station","hive","city","ice","veil","omega"}
 assert callable(game.draw_material_readability)
 assert callable(game.draw_enemy_material_parts)
+assert set(game.V87_SCENE_CHUNKS) == {"space","atmosphere","lava","water","station","hive","city","ice","veil","omega"}
+assert set(game.V87_SHIELD_PIXELS) == set(game.SHIELD_ORDER)
+assert game.SHIELD_DATA["AEGIS"]["energy"] >= 60
+assert game.SHIELD_DATA["REFLECTOR"]["charges"] >= 6
 for art in (game.SPACE_WRECK_V86, game.ATMOS_RIDGE_V86, game.LAVA_COLUMN_V86,
             game.WATER_ARCH_V86, game.STATION_CONDUIT_V86, game.HIVE_RIB_V86,
             game.CITY_FACADE_V86, game.ICE_CLIFF_V86, game.VEIL_GATE_V86, game.OMEGA_RIB_V86):
@@ -60,6 +64,7 @@ g = game.Game()
 assert g.difficulty == "INSANE"
 bg = g.background
 assert "ice" in bg.v86_tiles and "city" in bg.v86_tiles and "omega" in bg.v86_tiles
+assert set(bg.v87_tiles) == {"space","atmosphere","lava","water","station","hive","city","ice","veil","omega"}
 assert "lava_flip" in bg.v86_tiles
 v86_ids={k:id(v) for k,v in bg.v86_tiles.items()}
 bg.scroll = 255.9
@@ -91,12 +96,22 @@ before=len(g.pickups); g.update_play(game.FIXED_DT)
 assert len(g.pickups) > before
 for p in g.pickups:p.draw(g.canvas)
 
+# Temporary shield mechanics and visual pickup paths.
+g.player.activate_shield("AEGIS",g); g.player.invuln=0; hp=g.player.health; energy=g.player.shield_energy
+g.player.hit(12,g); assert g.player.health==hp and g.player.shield_energy<energy
+g.player.activate_shield("PHASE",g); g.player.invuln=0; hp=g.player.health; g.player.hit(80,g); assert g.player.health==hp
+g.player.activate_shield("REFLECTOR",g); b=game.Bullet(g.player.x,g.player.y,-100,0,10,"enemy","normal",2,2); before=len(g.player_bullets); assert g.player.shield_projectile(b,g); assert len(g.player_bullets)==before+1
+g.player.activate_shield("INTERCEPTOR",g); assert g.player.shield_charges>0
+for sk in game.SHIELD_ORDER:
+    p=game.Pickup(100,100,"shield_"+sk.lower()); p.draw(g.canvas)
+
 # Save/load + settings + developer test workflow remain intact.
 g.difficulty="HARDER"; g.difficulty_index=game.DIFFICULTY_ORDER.index("HARDER")
 g.stage=4; g.score=23456; g.player.lives=5; g.player.health=57
-g.player.unlocked[:5]=[True]*5; g.player.weapon=4
-assert g.save_game(); g.score=1; g.player.health=3; g.player.weapon=0
+g.player.unlocked[:5]=[True]*5; g.player.weapon=4; g.player.activate_shield("AEGIS",g); saved_shield=g.player.shield_energy
+assert g.save_game(); g.score=1; g.player.health=3; g.player.weapon=0; g.player.clear_shield()
 assert g.load_game(); assert g.stage==4 and g.score==23456 and int(g.player.health)==57 and g.difficulty=="HARDER"
+assert g.player.shield_kind=="AEGIS" and g.player.shield_energy==saved_shield
 g.activate_test_mode(); g.test_stage=10; g.test_spawn_boss(10)
 assert g.boss is not None and g.boss.stage==10
 g.unlock_all_test_weapons(); assert all(g.player.unlocked)
@@ -110,4 +125,4 @@ for _ in range(8): g.update(game.FIXED_DT)
 g.draw()
 
 g.audio.stop_music(); pygame.quit()
-print("OMEGA_V86_SOURCE_SMOKE_TEST_OK")
+print("OMEGA_V87_SOURCE_SMOKE_TEST_OK")

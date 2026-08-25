@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-OMEGA HORIZON V8.6 - FULL SPRITE ART / MATERIAL READABILITY
+OMEGA HORIZON V8.7 - MASTER ART PASS / BEAUTY & SHIELDS
 =========================================================
 Single-file procedural Pygame shooter designed around a 256x224 SNES-like
 canvas, software perspective rendering, original artist-directed pixel art,
@@ -23,7 +23,7 @@ Controls:
 Developer code:
     Type TERMINUS on the title screen to enable TEST MODE.
 
-Build identity: V8.6-SPRITE-ART
+Build identity: V8.7-MASTER-ART
 """
 
 import json
@@ -51,11 +51,21 @@ FIXED_DT = 1.0 / FPS
 HUD_H = 21
 HORIZON_Y = 104
 AUDIO_RATE = 44100
-BUILD_ID = "V8.6-SPRITE-ART"
-DISPLAY_VERSION = "V8.6"
-DISPLAY_SUBTITLE = "FULL SPRITE ART"
+BUILD_ID = "V8.7-MASTER-ART"
+DISPLAY_VERSION = "V8.7"
+DISPLAY_SUBTITLE = "MASTER ART PASS"
 
 DIFFICULTY_ORDER=("EASY","HARDER","DIFFICULT","INSANE")
+SHIELD_ORDER=("AEGIS","REFLECTOR","PHASE","INTERCEPTOR")
+SHIELD_DROP_MULT={"EASY":.72,"HARDER":.82,"DIFFICULT":.92,"INSANE":1.0}
+SHIELD_DURATION_MULT={"EASY":1.30,"HARDER":1.18,"DIFFICULT":1.08,"INSANE":1.0}
+SHIELD_DATA={
+    "AEGIS":{"duration":18.0,"energy":65.0,"charges":0,"abbr":"AEG","color":(86,214,255)},
+    "REFLECTOR":{"duration":16.0,"energy":0.0,"charges":8,"abbr":"REF","color":(221,236,255)},
+    "PHASE":{"duration":7.5,"energy":0.0,"charges":0,"abbr":"PHS","color":(210,90,255)},
+    "INTERCEPTOR":{"duration":15.0,"energy":0.0,"charges":22,"abbr":"INT","color":(104,255,176)},
+}
+
 DIFFICULTY_PROFILES={
     "EASY":{"enemy_hp":.62,"boss_hp":.65,"bullet_speed":.72,"bullet_density":.62,"damage":.55,"spawn_interval":1.48,"hazard_interval":1.42,"pickup_interval":.58,"enemy_speed":.88,"starting_lives":5},
     "HARDER":{"enemy_hp":.77,"boss_hp":.80,"bullet_speed":.82,"bullet_density":.76,"damage":.72,"spawn_interval":1.27,"hazard_interval":1.25,"pickup_interval":.74,"enemy_speed":.94,"starting_lives":4},
@@ -1902,6 +1912,202 @@ WEAPON_VS_ARCHETYPE = {
 # True stereo procedural audio engine
 # ---------------------------------------------------------------------------
 
+
+# ---------------------------------------------------------------------------
+# V8.7 MASTER ART PASS - authored beauty chunks / shield sprites
+# ---------------------------------------------------------------------------
+# These are deliberately larger, irregular palette-indexed chunks.  They are
+# pre-rendered once and layered at different parallax depths; no runtime
+# primitive is responsible for the identity of the scene.
+V87_SCENE_CHUNKS={
+'space':[
+"..................111111................",
+"..............11112222221111............",
+"..........111122233333332222111.........",
+"......111223333444455444433322211.......",
+"...1122333444555555555554443332211.....",
+"112233344455566666666665554443332211...",
+"1223344455566667777666665554443332211..",
+".122334455566677777776665554443332211..",
+"...12233445566667777666554443332211....",
+"......11223344555555554443332211........",
+"..........111223333333222211............",
+"...............11111111.................",
+],
+'atmosphere':[
+"........................111111111.............",
+"....................111122222222111...........",
+"...............1111222333333333222111.........",
+"..........11112233334444444444333322211.......",
+".....111223333444455555555554444333322211.....",
+"..1122333444455556666666665555444433332211...",
+"11223344455566666667776666665555444433332211.",
+"122334445556666677777776666655554443333322211",
+".122334445555666666666666655554443333322211..",
+"...1122334444555555555555544443333222211.....",
+"......111223333444444444433332222111.........",
+"...........111122233333332222111.............",
+"................1111111111....................",
+],
+'lava':[
+"11111.........................111111",
+"1222111.....................11122221",
+"123332211.................1122333321",
+"12344433211.............112334444321",
+"1234555443211.........11234455544321",
+"123456655443211.....1123445666554321",
+"12345676655443211.112344567766554321",
+"123456776655443211123445677776554321",
+"123456766655443211123445667766554321",
+"123455665544332111123344566655443321",
+"12344455443322111112233345554433221.",
+"12233344332211....1112223344433221..",
+"111222332211.........111223332211...",
+"...111111.................111111.....",
+],
+'water':[
+".................111111.................",
+".............11112222221111.............",
+"..........11222333333333322211..........",
+".......112233444444444443332211.........",
+"......1223344555555555554433221.........",
+".....12344556666666666665544321.........",
+".....12345667777777777776654321.........",
+".....12345667776666677776654321.........",
+".....12345667776688677776654321.........",
+".....12344556666666666665544321.........",
+"......123344555555555555443321..........",
+".......11223344444444444332211..........",
+"..........112223333333332211............",
+".............1111222221111...............",
+".................11111...................",
+],
+'station':[
+"1111111111111111111111111111111111111111",
+"1222222222222222222222222222222222222221",
+"1233333333111114444444411111333333333321",
+"1234444444122224555555422221444444444321",
+"1234555554123334566665433321455555554321",
+"1234566654123444567765444321456666654321",
+"1234566654123444567765444321456666654321",
+"1234555554123334566665433321455555554321",
+"1234444444122224555555422221444444444321",
+"1233333333111114444444411111333333333321",
+"1222222222222222222222222222222222222221",
+"1111111111111111111111111111111111111111",
+],
+'hive':[
+"........111...............111........",
+".....111222111.........111222111.....",
+"...1122333332211.....1122333332211...",
+"..123344555433321...123344555433321..",
+".1234556666544321...1234556666544321.",
+"12345667777654321...12345667777654321",
+"123456778887654321.123456778887654321",
+"12345667777654321112345667777654321.",
+".1234556666544321111234556666544321..",
+"..123344555433321...123344555433321...",
+"...1122333332211.....1122333332211....",
+".....111222111.........111222111.......",
+"........111...............111..........",
+],
+ 'city':[
+"...........11...........",
+"..........1221..........",
+"......111122221111......",
+"......122233332221......",
+"....1112334444332111....",
+"....1223445555443221....",
+"....1234556666544321....",
+"....12345.777.654321....",
+"....12345.7.7.654321....",
+"....12345.777.654321....",
+"....12345.7.7.654321....",
+"....12345.777.654321....",
+"....12345.7.7.654321....",
+"....12345.777.654321....",
+"....12345.7.7.654321....",
+"....12345.777.654321....",
+"....12345.7.7.654321....",
+"....1234556666544321....",
+"..11123445555554432111..",
+"..12223344444444332221..",
+"111111111111111111111111",
+],
+'ice':[
+".........................11.....................................",
+".......................11221...........................11........",
+".....................11233211.......................11221.......",
+"..............11...112344433211..................112333211......",
+"............11221112345554433211..............1123444433211.....",
+"..........112333223456666554433211....11....112345555443321.....",
+".......11234444434566777666554433221112211123456666655433211...",
+"....112345555556778887776655443332223333234567777766655443321..",
+"..112345666666778888877766554444455544345678888777665544433321.",
+"11234566777777788888877766555556665545678888887777665554443321.",
+"12345667777777788888877776666667776656788888887777666555443321.",
+"12345667777777788888877776666667776656788888887777666555443321.",
+"12345566777777788888777766555556665545677788877776665544333221.",
+"1123445566666677777766665544444555443456667776666555443322211..",
+"..112334455555566666655555443333344433234555666555544332211....",
+".....1122334444444555544443322222333221234444555444332211.......",
+"........11122233333334443332211112221111233334443332211...........",
+"............1111112222221111...........111222221111...............",
+],
+'veil':[
+"..................11..................",
+"..............1111221111..............",
+"..........111122334433221111..........",
+"......111223344566665443322211........",
+"...11223344566777777665544332211......",
+"112233445667788888877665544332211.....",
+"123344566778888888887776655443321.....",
+"123445677888887777888887766554321.....",
+"123344566778888888887776655443321.....",
+"112233445667788888877665544332211.....",
+"...11223344566777777665544332211......",
+"......111223344566665443322211........",
+"..........111122334433221111..........",
+"..............1111221111..............",
+"..................11..................",
+],
+'omega':[
+".....................11111.....................",
+".................1111222221111.................",
+".............11122333344443332211...............",
+".........112233445555666655544332211............",
+"......1123344556677777777665544332211...........",
+"...11233455667778888888776655443332211..........",
+"11233455667788999999887766554433322211.........",
+"123445667788999AAAAA9998877665544333221.........",
+"123456778899AAAABBAAAA99887766554433221.........",
+"123456778899AABBCCBBAA99887766554433221.........",
+"123456778899AAAABBAAAA99887766554433221.........",
+"123445667788999AAAAA9998877665544333221.........",
+"11233455667788999999887766554433322211.........",
+"...11233455667778888888776655443332211..........",
+"......1123344556677777777665544332211...........",
+".........112233445555666655544332211............",
+".............11122333344443332211...............",
+".................1111222221111.................",
+".....................11111.....................",
+],
+}
+
+V87_SHIELD_PIXELS={
+'AEGIS':["..111..",".12221.","1234321","1245421","1234321",".12221.","..111.."],
+'REFLECTOR':["1.....1",".12.21.","..343..",".34543.","..343..",".12.21.","1.....1"],
+'PHASE':["...1...",".12.21.","..343..","1454541","..343..",".12.21.","...1..."],
+'INTERCEPTOR':["..111..",".12221.","1234321","1345431","1234321",".12221.","..111.."],
+}
+
+V87_PICKUP_SHIELD_PALETTES={
+'AEGIS':{'1':(4,24,55),'2':(15,80,132),'3':(53,151,203),'4':(105,224,255),'5':WHITE},
+'REFLECTOR':{'1':(20,27,42),'2':(75,95,126),'3':(146,177,209),'4':(225,242,255),'5':WHITE},
+'PHASE':{'1':(24,5,48),'2':(77,18,126),'3':(146,44,205),'4':(228,91,255),'5':WHITE},
+'INTERCEPTOR':{'1':(4,37,29),'2':(15,101,70),'3':(43,178,117),'4':(112,255,179),'5':WHITE},
+}
+
 class AudioSynth:
     """Original SNES-inspired stereo music/SFX synthesizer.
 
@@ -2108,6 +2314,22 @@ class AudioSynth:
         self.sfx["hit"]=self._sound_from_stereo(self.pan_mono(hit,0))
         frag=self._noise(.10,.16,812)+self.voice(360,.10,"square",.08,decay=.08)
         self.sfx["flak_split"]=self._sound_from_stereo(self.pan_mono(frag,0))
+
+        # V8.7 shield pickup / activation / impact identities.
+        shield_defs={
+            "shield_aegis":(280,520,.22),
+            "shield_reflector":(610,1220,.18),
+            "shield_phase":(190,980,.28),
+            "shield_interceptor":(430,1540,.20),
+            "shield_hit":(170,760,.12),
+            "shield_break":(110,1320,.24),
+        }
+        for key,(f0,f1,dur) in shield_defs.items():
+            n=int(dur*AUDIO_RATE); t=np.arange(n)/AUDIO_RATE
+            sweep=np.sin(2*np.pi*(f0*t+(f1-f0)/(2*dur)*t*t))*np.exp(-t*(8 if "phase" in key else 13))
+            shimmer=.32*np.sin(2*np.pi*(f1*1.51)*t)*np.exp(-t*18)
+            mono=(.18*sweep+.07*shimmer).astype(np.float32)
+            self.sfx[key]=self._sound_from_stereo(self.pan_mono(mono,0))
 
     def _play_positioned(self, sound, x=NATIVE_W/2, volume=1.0):
         if not self.enabled or sound is None:
@@ -2497,6 +2719,7 @@ class Background:
         # requires thousands of per-pixel set_at calls every frame.
         self.v84_tiles=self._build_v84_art_tiles()
         self.v86_tiles=self._build_v86_art_tiles()
+        self.v87_tiles=self._build_v87_art_tiles()
 
     def _build_v84_art_tiles(self):
         icepal={'1':(18,45,78),'2':(34,78,118),'3':(62,118,158),'4':(91,157,190),'5':(207,239,248),'6':(121,207,231)}
@@ -2552,6 +2775,118 @@ class Background:
             'veil':make_indexed_surface(VEIL_GATE_V86,palettes['veil']),
             'omega':make_indexed_surface(OMEGA_RIB_V86,palettes['omega']),
         }
+
+
+    def _build_v87_art_tiles(self):
+        palettes={
+            'space':{'1':(10,14,29),'2':(23,32,55),'3':(42,55,80),'4':(69,85,112),'5':(102,123,151),'6':(137,166,191),'7':(177,208,224)},
+            'atmosphere':{'1':(39,69,80),'2':(62,97,105),'3':(91,128,132),'4':(125,158,158),'5':(159,185,179),'6':(195,211,198),'7':(229,237,225)},
+            'lava':{'1':(18,4,5),'2':(43,9,8),'3':(74,16,10),'4':(115,27,12),'5':(171,42,13),'6':(235,72,16),'7':(255,146,29),'8':(255,221,92)},
+            'water':{'1':(1,21,37),'2':(3,42,58),'3':(7,67,79),'4':(13,95,103),'5':(29,128,130),'6':(67,168,160),'7':(118,209,193),'8':(185,241,218)},
+            'station':{'1':(6,12,18),'2':(19,30,38),'3':(36,51,60),'4':(58,76,84),'5':(84,104,110),'6':(120,143,146),'7':(176,195,194),'8':(77,225,238)},
+            'hive':{'1':(20,3,22),'2':(48,8,44),'3':(78,14,62),'4':(113,22,79),'5':(151,34,98),'6':(198,49,122),'7':(101,226,150),'8':(200,249,211)},
+            'city':{'1':(12,15,24),'2':(25,30,40),'3':(43,48,57),'4':(67,67,71),'5':(94,80,72),'6':(125,94,74),'7':(44,170,198),'8':(239,88,109)},
+            'ice':{'1':(11,29,54),'2':(22,52,82),'3':(38,79,111),'4':(58,108,143),'5':(85,142,175),'6':(119,181,205),'7':(166,220,235),'8':(226,247,251)},
+            'veil':{'1':(9,3,24),'2':(29,9,52),'3':(55,16,86),'4':(88,25,122),'5':(129,36,158),'6':(177,49,190),'7':(77,236,213),'8':(231,80,227),'9':WHITE},
+            'omega':{'1':(9,2,11),'2':(28,5,25),'3':(51,9,39),'4':(78,14,53),'5':(111,20,67),'6':(151,28,80),'7':(196,39,95),'8':(242,65,120),'9':(255,145,149),'A':(255,204,170),'B':(255,229,190),'C':WHITE},
+        }
+        result={}
+        for theme,rows in V87_SCENE_CHUNKS.items():
+            result[theme]=make_indexed_surface(rows,palettes[theme],1)
+        return result
+
+    def draw_v87_beauty_layer(self,surf,stage):
+        """Master-art composition pass: painterly pixel chunks, atmospheric depth and stage lighting."""
+        theme=STAGES[stage-1].theme; tile=self.v87_tiles.get(theme); sc=self.scroll; t=self.time
+        if tile is None:return
+        if theme=='space':
+            # Huge derelict chunks at slow parallax plus a soft ringed-planet arc.
+            for i in range(3):
+                x=int((i*154-sc*(.035+i*.008))%500)-130; y=55+i*54
+                surf.blit(tile,(x,y))
+            px=int((205-t*.65)%390)-55
+            pygame.draw.circle(surf,(19,28,58),(px,69),27)
+            pygame.draw.arc(surf,(88,118,155),(px-38,54,76,28),2.9,6.05,2)
+            pygame.draw.arc(surf,(139,184,205),(px-37,53,74,26),3.05,5.88,1)
+        elif theme=='atmosphere':
+            for i in range(4):
+                x=int((i*100-sc*.08)%420)-80; y=91-tile.get_height()+(i%2)*7
+                surf.blit(tile,(x,y))
+            # Sunlit breaks / haze bands.
+            for y in (58,65,72):
+                pygame.draw.line(surf,(153,184,190),(0,y),(NATIVE_W,y),1)
+        elif theme=='lava':
+            for i in range(5):
+                x=int((i*79-sc*.14)%390)-55
+                y=43 if i%2==0 else 150
+                surf.blit(tile,(x,y if i%2==0 else y-tile.get_height()//2))
+            # Heat-light pools under combat plane.
+            for i in range(3):
+                cx=35+i*91+int(math.sin(t*.4+i)*10)
+                pygame.draw.ellipse(surf,(82,19,10),(cx,105,54,15),1)
+                pygame.draw.line(surf,(196,48,12),(cx+9,112),(cx+44,112),1)
+        elif theme=='water':
+            for i in range(5):
+                x=int((i*87-sc*.12)%420)-70; base=104+(i%2)*5
+                surf.blit(tile,(x,base-tile.get_height()))
+            # Caustic shafts are broken pixel ribbons rather than solid beams.
+            if self.fx_level:
+                for i in range(5):
+                    x=18+i*55+int(math.sin(t*.7+i)*7)
+                    for yy in range(35,102,6):
+                        if (yy//6+i)%3!=1: pygame.draw.line(surf,(61,144,162),(x,yy),(x+5,yy+8),1)
+        elif theme=='station':
+            for i in range(4):
+                x=int((i*111-sc*.18)%440)-90
+                surf.blit(tile,(x,40+(i%2)*28))
+            # Narrow illuminated vanishing rails.
+            for i in range(6):
+                pygame.draw.line(surf,(50,90,99),(128,105),(10+i*48,220),1)
+        elif theme=='hive':
+            for i in range(5):
+                x=int((i*84-sc*.14)%420)-65; y=43+(i%2)*30
+                surf.blit(tile,(x,y))
+            for i in range(8):
+                x=int((i*39+t*4)%300)-20; y=58+(i*31)%129
+                if int(t*5+i)%4==0: pygame.draw.circle(surf,(70,176,117),(x,y),2,1)
+        elif theme=='city':
+            # Grounded skyline: authored towers always terminate at a shared horizon plinth.
+            base=116
+            for i in range(7):
+                x=int((i*61-sc*.16)%430)-60
+                surf.blit(tile,(x,base-tile.get_height()))
+                pygame.draw.line(surf,(7,10,16),(x-2,base),(x+tile.get_width()+2,base),2)
+            # Smoke silhouettes and tiny neon accents add lived-in scale.
+            for i in range(5):
+                x=int((i*73-t*(2+i*.3))%340)-40; y=46+(i*17)%47
+                pygame.draw.rect(surf,(31,31,40),(x,y,14+i%3*4,3))
+        elif theme=='ice':
+            # Three authored mountain planes with different parallax and vertical placement.
+            for depth,(spd,base,shade) in enumerate(((.055,84,0),(.10,102,1),(.17,116,2))):
+                for i in range(4):
+                    x=int((i*123-sc*spd)%520)-110
+                    surf.blit(tile,(x,base-tile.get_height()))
+            # Aurora ribbons / ice mist add color without cluttering the combat lane.
+            if self.fx_level:
+                for i,col in enumerate(((73,160,184),(73,118,182),(105,182,178))):
+                    y=38+i*8+int(math.sin(t*.35+i)*3)
+                    pygame.draw.line(surf,col,(0,y),(NATIVE_W,y),1)
+        elif theme=='veil':
+            for i in range(5):
+                x=int((i*95+math.sin(t*.29+i)*19)%430)-75; y=42+(i%3)*36
+                surf.blit(tile,(x,y))
+            if self.fx_level:
+                for i in range(7):
+                    x=(i*43+int(t*9))%NATIVE_W; pygame.draw.line(surf,(55,210,195),(x,44),(x-9,91),1)
+        elif theme=='omega':
+            # Bio-mechanical cathedral ribs frame rather than obscure the central combat lane.
+            for i in range(5):
+                x=int((i*82-sc*.11)%420)-72; y=35+(i%2)*38
+                surf.blit(tile,(x,y))
+            # Deep pulsating heart halo behind the boss region.
+            cx=211; cy=113; pulse=6+int((math.sin(t*2.2)+1)*3)
+            for r,col in ((38+pulse,(72,14,51)),(29+pulse,(116,21,68)),(19+pulse,(175,32,88))):
+                pygame.draw.circle(surf,col,(cx,cy),r,1)
 
     def _build_texture(self, theme, size):
         yy,xx=np.indices((size,size))
@@ -2668,6 +3003,7 @@ class Background:
         self.draw_artist_layer(surf,stage)
         self.draw_v84_scene_finish(surf,stage)
         self.draw_v86_scene_depth(surf,stage)
+        self.draw_v87_beauty_layer(surf,stage)
         self.draw_combat_color_math(surf,stage)
 
 
@@ -3250,6 +3586,12 @@ class Bullet:
 
     def draw(self,surf):
         x,y=int(self.x),int(self.y)
+        # V8.7 tiny motion streak behind fast projectiles adds polish without blur.
+        sp=math.hypot(self.vx,self.vy)
+        if sp>95 and self.age>.02:
+            ang=math.atan2(self.vy,self.vx); tx=x-int(math.cos(ang)*3); ty=y-int(math.sin(ang)*3)
+            trail=(92,62,92) if self.owner=="enemy" else (66,148,185)
+            safe_set(surf,tx,ty,trail)
         if self.owner=="enemy":
             if self.kind=="mine":
                 pygame.draw.circle(surf,(90,22,40),(x,y),5)
@@ -3346,6 +3688,10 @@ class Explosion:
             pygame.draw.circle(surf,cols[1],(x,y),max(1,int(r*(1-t*.65))))
             if t>.42:
                 pygame.draw.circle(surf,cols[3],(x+2,y+1),max(1,r//2),1)
+        # Bright secondary flash petals give explosions the layered SNES sprite-stack look.
+        if .18<t<.55:
+            for a in (0,math.pi/2,math.pi,math.pi*1.5):
+                rr=max(2,int(r*.58)); safe_set(surf,x+int(math.cos(a)*rr),y+int(math.sin(a)*rr),cols[0])
         # Eight deterministic fragments create a sprite-like irregular burst.
         for i in range(8):
             a=i*math.tau/8+.33
@@ -3401,6 +3747,16 @@ class Pickup:
             draw_indexed_sprite(surf,PICKUP_WEAPON_PIXELS,x-3,y-3,pal)
             pygame.draw.line(surf,WHITE,(x-3,y),(x+3,y),1)
             if flash:safe_set(surf,x,y,WHITE)
+        elif self.kind.startswith("shield_"):
+            sk=self.kind.split("_",1)[1].upper()
+            rows=V87_SHIELD_PIXELS.get(sk,V87_SHIELD_PIXELS["AEGIS"])
+            pal=V87_PICKUP_SHIELD_PALETTES.get(sk,V87_PICKUP_SHIELD_PALETTES["AEGIS"])
+            draw_indexed_sprite(surf,rows,x-3,y-3,pal)
+            rr=8+(1 if flash else 0)
+            pygame.draw.circle(surf,pal['4'],(x,y),rr,1)
+            for a in range(0,360,90):
+                aa=math.radians(a+self.phase*80)
+                safe_set(surf,x+int(math.cos(aa)*rr),y+int(math.sin(aa)*rr),pal['5'])
 
 
 
@@ -3517,6 +3873,7 @@ class Player:
         self.weapon=0; self.unlocked=[True]+[False]*9
         self.fire_timer=0.0; self.invuln=1.3; self.weapon_phase=0.0; self.orbit_phase=0.0
         self.bank=0.0; self.anim_time=0.0
+        self.shield_kind=None; self.shield_time=0.0; self.shield_energy=0.0; self.shield_charges=0; self.shield_flash=0.0
 
     def reset_position(self): self.x,self.y=43.0,136.0; self.invuln=1.7
     def rect(self): return pygame.Rect(int(self.x-7),int(self.y-5),14,10)
@@ -3536,6 +3893,69 @@ class Player:
         if fresh: self.weapon=index
         return fresh
 
+
+    def activate_shield(self,kind,game=None):
+        kind=str(kind).upper()
+        if kind not in SHIELD_DATA:return False
+        d=SHIELD_DATA[kind]; mult=SHIELD_DURATION_MULT.get(getattr(game,'difficulty','INSANE'),1.0) if game else 1.0
+        self.shield_kind=kind; self.shield_time=d['duration']*mult
+        self.shield_energy=d['energy']; self.shield_charges=d['charges']; self.shield_flash=.45
+        return True
+
+    def clear_shield(self):
+        self.shield_kind=None; self.shield_time=0.0; self.shield_energy=0.0; self.shield_charges=0
+
+    def shield_fraction(self):
+        if not self.shield_kind:return 0.0
+        d=SHIELD_DATA[self.shield_kind]
+        if self.shield_kind=='AEGIS': return clamp(self.shield_energy/max(1,d['energy']),0,1)
+        if self.shield_kind in ('REFLECTOR','INTERCEPTOR'): return clamp(self.shield_charges/max(1,d['charges']),0,1)
+        return clamp(self.shield_time/max(.01,d['duration']),0,1)
+
+    def shield_projectile(self,b,game):
+        """Return True when an enemy projectile was consumed by the active shield."""
+        if not self.shield_kind:return False
+        if self.shield_kind=='PHASE':
+            self.shield_flash=.22; game.audio.play_sfx('shield_hit',self.x,.42); return True
+        if self.shield_kind=='REFLECTOR' and self.shield_charges>0:
+            self.shield_charges-=1; self.shield_flash=.28
+            speed=max(110,math.hypot(b.vx,b.vy))
+            game.player_bullets.append(Bullet(self.x+9,self.y,-abs(b.vx) if b.vx>0 else abs(b.vx),-b.vy*.45,7,'player','micro',1.5,1.5,weapon_index=self.weapon))
+            game.audio.play_sfx('shield_hit',self.x,.65)
+            if self.shield_charges<=0:self.clear_shield(); game.audio.play_sfx('shield_break',self.x,.75)
+            return True
+        return False
+
+    def draw_shield(self,surf):
+        if not self.shield_kind:return
+        x,y=int(self.x),int(self.y); t=self.anim_time; flash=self.shield_flash>0
+        col=SHIELD_DATA[self.shield_kind]['color']
+        if self.shield_kind=='AEGIS':
+            # faceted blue shell with rotating highlight facets
+            pts=[]
+            for i in range(12):
+                a=i*math.tau/12+t*.8; rx=20+(1 if i%2 else 0); ry=13
+                pts.append((x+int(math.cos(a)*rx),y+int(math.sin(a)*ry)))
+            pygame.draw.lines(surf,col,True,pts,1)
+            for i in range(0,12,3): safe_set(surf,*pts[i],WHITE if flash else (167,241,255))
+        elif self.shield_kind=='REFLECTOR':
+            for i in range(6):
+                a=i*math.tau/6+t*.9; cx=x+int(math.cos(a)*19); cy=y+int(math.sin(a)*12)
+                pygame.draw.line(surf,(226,242,255),(cx-2,cy-2),(cx+2,cy+2),1)
+                pygame.draw.line(surf,(93,157,211),(cx+2,cy-2),(cx-2,cy+2),1)
+        elif self.shield_kind=='PHASE':
+            # offset cyan/magenta ghost silhouettes sell spatial displacement
+            for sign,c in ((-1,(69,234,245)),(1,(225,75,255))):
+                ox=sign*(2+int((math.sin(t*18)+1)))
+                pygame.draw.arc(surf,c,(x-21+ox,y-13,42,26),.2,2.8,1)
+                pygame.draw.arc(surf,c,(x-21-ox,y-13,42,26),3.3,5.9,1)
+        elif self.shield_kind=='INTERCEPTOR':
+            rr=17+int((math.sin(t*8)+1)*1.5)
+            for i in range(8):
+                a=i*math.tau/8-t*1.8; px=x+int(math.cos(a)*rr); py=y+int(math.sin(a)*rr*.72)
+                safe_set(surf,px,py,WHITE if i%3==0 else col)
+                if i%2==0:safe_set(surf,px+1,py,col)
+
     def update(self,dt,keys,game):
         dx=(1 if keys[pygame.K_RIGHT] or keys[pygame.K_d] else 0)-(1 if keys[pygame.K_LEFT] or keys[pygame.K_a] else 0)
         dy=(1 if keys[pygame.K_DOWN] or keys[pygame.K_s] else 0)-(1 if keys[pygame.K_UP] or keys[pygame.K_w] else 0)
@@ -3545,6 +3965,10 @@ class Player:
         self.x=clamp(self.x+dx*self.speed*dt,11,NATIVE_W-16)
         self.y=clamp(self.y+dy*self.speed*dt,HUD_H+9,NATIVE_H-11)
         self.fire_timer-=dt; self.invuln=max(0,self.invuln-dt); self.orbit_phase=(self.orbit_phase+dt*4.4)%(math.tau); self.anim_time+=dt
+        self.shield_flash=max(0,self.shield_flash-dt)
+        if self.shield_kind:
+            self.shield_time-=dt
+            if self.shield_time<=0:self.clear_shield()
         if (keys[pygame.K_SPACE] or keys[pygame.K_z]) and self.fire_timer<=0:
             Weapon.fire(self.weapon,self,game); self.fire_timer=Weapon.COOLDOWNS[self.weapon]
 
@@ -3552,8 +3976,17 @@ class Player:
         if getattr(game,"god_mode",False):
             self.invuln=max(self.invuln,.12)
             return
+        if self.shield_kind=='PHASE':
+            self.shield_flash=.25; game.audio.play_sfx('shield_hit',self.x,.42); return
         if self.invuln>0:return
-        self.health-=damage*game.diff("damage"); self.invuln=.88
+        scaled=damage*game.diff("damage")
+        if self.shield_kind=='AEGIS' and self.shield_energy>0:
+            absorbed=min(self.shield_energy,scaled); self.shield_energy-=absorbed; scaled-=absorbed
+            self.shield_flash=.30; game.audio.play_sfx('shield_hit',self.x,.58)
+            if self.shield_energy<=0:
+                self.clear_shield(); game.audio.play_sfx('shield_break',self.x,.80)
+            if scaled<=0:return
+        self.health-=scaled; self.invuln=.88
         game.audio.play_sfx("hit",self.x,.8)
         game.explosions.append(Explosion(self.x,self.y,.25,.25,10))
         if self.health<=0:
@@ -3566,7 +3999,8 @@ class Player:
                 self.health=self.max_health; self.reset_position(); game.enemy_bullets.clear()
 
     def draw(self,surf):
-        if self.invuln>0 and int(self.invuln*14)%2==0:return
+        # V8.7 keeps the hero visible during invulnerability; protection is shown
+        # through animated energy treatment instead of deleting every other frame.
         x,y=int(self.x),int(self.y)
         bank=int(round(self.bank))
         pal={
@@ -3614,6 +4048,11 @@ class Player:
                 orb=["..1..",".232.","12321",".242.","..1.."]
                 draw_indexed_sprite(surf,orb,ox-2,oy-2,{'1':(8,36,53),'2':(31,128,143),'3':WHITE,'4':GREEN})
                 safe_set(surf,ox+3,oy,(119,255,197))
+        # V8.7 beauty finish: panel seams, canopy gradient pixels and wing-root highlights.
+        pygame.draw.line(surf,(18,58,99),(x-7,y-2+bank),(x+7,y-1+bank),1)
+        safe_set(surf,x+4,y-3+bank,(205,248,255)); safe_set(surf,x+6,y-2+bank,(101,202,230))
+        safe_set(surf,x-1,y+4+bank,(77,147,179)); safe_set(surf,x+9,y+1+bank,(221,248,250))
+        self.draw_shield(surf)
 
 # ---------------------------------------------------------------------------
 # Enemy archetypes and stage-local visual families
@@ -3772,6 +4211,36 @@ class Enemy:
             safe_set(surf,x-5,y-5,WHITE); safe_set(surf,x+4,y+4,pal['4'])
         elif theme=='veil':
             safe_set(surf,x-8,y-6,pal['5']); safe_set(surf,x+8,y+6,pal['4'])
+        self.draw_v87_beauty_finish(surf,theme,pal,flip)
+
+    def draw_v87_beauty_finish(self,surf,theme,pal,flip=False):
+        x,y=int(self.x),int(self.y); direction=1 if flip else -1; anim=int(self.age*10)%2
+        # Deliberate focal points: cockpit/eye, plating seams, vents and material reflections.
+        if theme in ('space','atmosphere','station','city'):
+            safe_set(surf,x+direction*2,y-2,pal['5']); safe_set(surf,x+direction*3,y-2,WHITE)
+            pygame.draw.line(surf,pal['2'],(x-direction*5,y+2),(x+direction*4,y+2),1)
+            if self.archetype=='heavy':
+                pygame.draw.line(surf,pal['4'],(x-direction*5,y-6),(x+direction*4,y-6),1)
+                pygame.draw.line(surf,pal['1'],(x-direction*5,y+6),(x+direction*4,y+6),1)
+        elif theme=='lava':
+            # Obsidian shell with cool crystal optic, keeping enemy distinct from orange scenery.
+            safe_set(surf,x+direction*3,y-2,(189,245,250)); safe_set(surf,x+direction*4,y-2,WHITE)
+            pygame.draw.line(surf,(43,54,67),(x-5,y+3),(x+5,y+3),1)
+            if anim:safe_set(surf,x-1,y+1,(255,139,31))
+        elif theme=='water':
+            pygame.draw.arc(surf,(132,241,224),(x-8,y-6,15,12),3.4,5.7,1)
+            safe_set(surf,x+direction*3,y-2,WHITE)
+        elif theme=='hive':
+            safe_set(surf,x+direction*2,y-1,(181,255,199)); safe_set(surf,x-2,y+2,(226,78,150))
+            if anim:pygame.draw.line(surf,(104,217,147),(x-4,y-5),(x-6,y-8),1)
+        elif theme=='ice':
+            safe_set(surf,x+direction*2,y-3,WHITE); safe_set(surf,x+direction*4,y-1,(170,231,247))
+            pygame.draw.line(surf,(43,96,135),(x-5,y+4),(x+4,y+4),1)
+        elif theme=='veil':
+            safe_set(surf,x-2,y-2,(90,255,225)); safe_set(surf,x+2,y+2,(238,89,235))
+        elif theme=='omega':
+            safe_set(surf,x+direction*2,y-2,(255,226,173)); safe_set(surf,x+direction*3,y-2,WHITE)
+            pygame.draw.line(surf,(132,24,70),(x-5,y+3),(x+4,y+3),1)
 
 # ---------------------------------------------------------------------------
 # Ten stage-specific bosses
@@ -4009,6 +4478,7 @@ class Boss:
         self._artist_detail_overlay(surf)
         self._v84_boss_finish(surf)
         self._v86_boss_material_finish(surf)
+        self._v87_boss_spectacle(surf)
         if self.flash>0:
             # sparse white hit highlights without blanking the art
             x,y=int(self.x),int(self.y)
@@ -4016,6 +4486,74 @@ class Boss:
         if self.teleport_flash>0:
             pygame.draw.circle(surf,(165,255,239),(int(self.x),int(self.y)),self.radius+6,1)
 
+
+
+    def _v87_boss_spectacle(self,surf):
+        """Final craftsmanship layer: focal lighting, animated machinery/anatomy and stronger boss staging."""
+        x,y=int(self.x),int(self.y); kind=self.profile.boss_kind; pulse=(math.sin(self.age*4)+1)*.5
+        if kind=='carrier':
+            for oy in (-9,9):
+                pygame.draw.line(surf,(195,235,242),(x-30,y+oy),(x+20,y+oy),1)
+            safe_set(surf,x-8,y-15,WHITE); safe_set(surf,x+17,y+4,(255,170,68))
+        elif kind=='bastion':
+            # luminous turbine rings and command windows
+            for ox,oy in ((-8,-22),(14,-18),(-8,13),(14,9)):
+                pygame.draw.circle(surf,(106,222,237),(x+ox,y+oy),6,1)
+            for wx in (-4,0,4,8):safe_set(surf,x+wx,y-16,(204,244,248))
+        elif kind=='pyroclast':
+            # eye/brow/jaw silhouette is reinforced by contrasting obsidian and hot internal light
+            pygame.draw.line(surf,(35,17,20),(x-31,y-18),(x-17,y-23),2)
+            pygame.draw.line(surf,(255,194,83),(x-28,y-4),(x-14,y-2),1)
+            for i in range(5):safe_set(surf,x-27+i*3,y-1+(i%2),(255,234,155))
+            if not self.shell:
+                pygame.draw.circle(surf,(255,103,24),(x+4,y+4),7,1); safe_set(surf,x+3,y+3,YELLOW)
+        elif kind=='leviathan':
+            pygame.draw.line(surf,(174,250,232),(x-21,y-10),(x-5,y-15),1)
+            safe_set(surf,x-17,y-5,WHITE); safe_set(surf,x-16,y-5,(80,236,220))
+            for i in range(5):safe_set(surf,x+3+i*8,y-10+(i%2)*3,(83,218,205))
+        elif kind=='sentinel':
+            for ox in (-18,-9,8,17):pygame.draw.line(surf,(151,211,218),(x+ox,y-9),(x+ox+5,y-9),1)
+            pygame.draw.circle(surf,(111,230,238),(x,y),5,1)
+        elif kind=='mother':
+            # queen face, eye cluster and wet membrane highlights
+            for ox,oy in ((-17,-6),(-13,-10),(-9,-5)):safe_set(surf,x+ox,y+oy,(184,255,197))
+            pygame.draw.arc(surf,(231,97,169),(x-28,y-24,53,45),.25,2.55,1)
+        elif kind=='ares':
+            pygame.draw.line(surf,(218,172,104),(x-15,y-19),(x+7,y-19),1)
+            safe_set(surf,x-8,y-16,(255,91,53)); safe_set(surf,x-6,y-16,WHITE)
+            for oy in (-6,1,8):pygame.draw.line(surf,(77,118,130),(x+13,y+oy),(x+20,y+oy),1)
+        elif kind=='wyrm':
+            # glittering dorsal facets travel down the articulated body
+            for i in range(7):
+                sx=x+i*9; sy=y+int(math.sin(self.age*3.2-i*.62)*9)-5
+                safe_set(surf,sx,sy,WHITE if (i+int(self.age*5))%3==0 else (157,226,243))
+            safe_set(surf,x-19,y-5,WHITE)
+        elif kind=='sovereign':
+            rr=20+int(pulse*4)
+            for i in range(8):
+                a=i*math.tau/8+self.age*.35; px=x+int(math.cos(a)*rr); py=y+int(math.sin(a)*rr*.72)
+                safe_set(surf,px,py,(90,255,224) if i%2==0 else (235,78,232))
+        elif kind=='omega':
+            # OMEGA becomes a hostile cathedral-face: giant horn crown, mandible, living iris and phase halos.
+            phase=self.phase; horn=(188,37,87); hot=(255,164,150); bone=(255,224,190)
+            pygame.draw.line(surf,horn,(x-34,y-21),(x-52,y-38),4)
+            pygame.draw.line(surf,horn,(x+34,y-21),(x+52,y-38),4)
+            pygame.draw.line(surf,(110,18,61),(x-28,y+22),(x-14,y+38),3)
+            pygame.draw.line(surf,(110,18,61),(x+28,y+22),(x+14,y+38),3)
+            pygame.draw.arc(surf,bone,(x-20,y-15,40,30),.1,3.05,1)
+            iris=7+phase*2+int(pulse*2)
+            pygame.draw.circle(surf,hot,(x,y),iris,1); pygame.draw.circle(surf,(255,225,176),(x,y),max(2,iris-4),1)
+            pygame.draw.line(surf,WHITE,(x,y-iris+2),(x,y+iris-2),1)
+            # phase-dependent rotating halo blades greatly expand perceived scale
+            blades=10+phase*4; rr=44+phase*8
+            for i in range(blades):
+                a=i*math.tau/blades-self.age*(.12+.04*phase); px=x+int(math.cos(a)*rr); py=y+int(math.sin(a)*rr*.68)
+                col=bone if i%4==0 else hot if i%2 else horn
+                safe_set(surf,px,py,col)
+                if phase>=2:safe_set(surf,px+int(math.cos(a)*3),py+int(math.sin(a)*2),col)
+            if phase==3:
+                for i in range(7):
+                    yy=y-31+i*10; pygame.draw.line(surf,(118,22,70),(x-47,yy),(x-37,yy+2),1); pygame.draw.line(surf,(118,22,70),(x+47,yy),(x+37,yy+2),1)
 
     def _v86_boss_material_finish(self,surf):
         """Fine pixel clusters that reinforce material and anatomy without redefining silhouettes."""
@@ -4506,12 +5044,14 @@ class Game:
         self.boss=None; self.wave_serial=0; self.waves={}; self.spawn_timer=1.0; self.hazard_timer=3.0; self.boss_warning=0.0
         self.reward_pending=False; self.reward_timer=0.0; self.weapon_notice=""; self.notice_timer=0.0
         self.clean_waves=0; self.stage_deaths=0; self.last_enemy_label=""; self.health_drop_timer=10.0; self.health_pity=0
+        self.shield_drop_timer=18.0; self.shield_drop_serial=0
 
         # Menus / developer test tools.
         self.pause_index=0
         self.settings_index=0
         self.test_index=0
         self.test_stage=1
+        self.test_shield_index=0
         self.menu_message=""
         self.menu_message_timer=0.0
         self.settings_return_state="pause"
@@ -4602,6 +5142,10 @@ class Game:
             "weapon":int(clamp(self.player.weapon,0,9)),
             "unlocked":[bool(v) for v in self.player.unlocked[:10]],
             "difficulty":self.difficulty,
+            "shield_kind":self.player.shield_kind,
+            "shield_time":float(max(0,self.player.shield_time)),
+            "shield_energy":float(max(0,self.player.shield_energy)),
+            "shield_charges":int(max(0,self.player.shield_charges)),
         }
         try:
             with open(self.save_path,"w",encoding="utf-8") as f:
@@ -4632,6 +5176,13 @@ class Game:
             self.player.unlocked=unlocked
             weapon=int(clamp(int(data.get("weapon",0)),0,9))
             self.player.weapon=weapon if self.player.unlocked[weapon] else next(i for i,v in enumerate(self.player.unlocked) if v)
+            sk=data.get("shield_kind")
+            if sk in SHIELD_ORDER:
+                self.player.shield_kind=sk
+                self.player.shield_time=max(0,float(data.get("shield_time",0)))
+                self.player.shield_energy=max(0,float(data.get("shield_energy",0)))
+                self.player.shield_charges=max(0,int(data.get("shield_charges",0)))
+                if self.player.shield_time<=0:self.player.clear_shield()
             self.menu_message=f"LOADED STAGE {stage:02d} CHECKPOINT"; self.menu_message_timer=2.2
             return True
         except Exception:
@@ -4740,8 +5291,10 @@ class Game:
         elif self.test_index==4:self.unlock_all_test_weapons()
         elif self.test_index==5:self.test_refill()
         elif self.test_index==6:
+            sk=SHIELD_ORDER[self.test_shield_index]; self.player.activate_shield(sk,self); self.weapon_notice=f"TEST SHIELD: {sk}"; self.notice_timer=1.5
+        elif self.test_index==7:
             self.god_mode=not self.god_mode; self.weapon_notice="TEST: GOD MODE "+("ON" if self.god_mode else "OFF"); self.notice_timer=1.4
-        elif self.test_index==7:self.state=self.test_return_state
+        elif self.test_index==8:self.state=self.test_return_state
 
     def reset_new_game(self,difficulty=None):
         if difficulty in DIFFICULTY_ORDER:
@@ -4753,6 +5306,7 @@ class Game:
         self.enemies.clear(); self.player_bullets.clear(); self.enemy_bullets.clear(); self.pickups.clear(); self.explosions.clear(); self.hazards.clear()
         self.boss=None; self.waves.clear(); self.spawn_timer=.9; self.hazard_timer=2.5; self.boss_warning=0
         self.reward_pending=False; self.reward_timer=0; self.weapon_notice=""; self.notice_timer=0; self.stage_deaths=0; self.health_drop_timer=9.0*self.diff("pickup_interval"); self.health_pity=0
+        self.shield_drop_timer=random.uniform(15.0,21.0)*SHIELD_DROP_MULT[self.difficulty]
         self.state="stage_intro"; self.state_timer=2.6; self.player.reset_position(); self.audio.play_stage(stage-1)
 
     def begin_play(self): self.state="play"; self.state_timer=0
@@ -4816,6 +5370,9 @@ class Game:
                     self.pickups.append(Pickup(x,y,"life"))
                 elif roll<.070:
                     self.pickups.append(Pickup(x,y,"major_health"))
+                elif roll<.145 and not self.player.shield_kind:
+                    sk=SHIELD_ORDER[(self.stage+self.clean_waves+self.shield_drop_serial)%len(SHIELD_ORDER)]
+                    self.pickups.append(Pickup(x,y,"shield_"+sk.lower())); self.shield_drop_serial+=1
                 elif self.health_pity>=2 and self.player.health<82:
                     self.pickups.append(Pickup(x,y,"health")); self.health_pity=0; self.health_drop_timer=max(self.health_drop_timer,8.0)
             del self.waves[wid]
@@ -4846,6 +5403,12 @@ class Game:
         elif p.kind=="life":
             self.player.lives+=1; self.audio.play_sfx("life",p.x,1.0)
             self.explosions.append(Explosion(p.x,p.y,.48,.48,20,"green")); self.weapon_notice="EXTRA LIFE"; self.notice_timer=1.6
+        elif p.kind.startswith("shield_"):
+            sk=p.kind.split("_",1)[1].upper()
+            if self.player.activate_shield(sk,self):
+                self.audio.play_sfx("shield_"+sk.lower(),p.x,1.0)
+                self.explosions.append(Explosion(p.x,p.y,.42,.42,18,"void" if sk=="PHASE" else "green"))
+                self.weapon_notice=f"{sk} SHIELD ACTIVE"; self.notice_timer=1.8
         elif p.kind=="weapon":
             idx=p.weapon_index or 0
             fresh=self.player.unlock(idx); self.audio.play_sfx("weapon",p.x,1.0)
@@ -4891,7 +5454,9 @@ class Game:
         pr=self.player.rect()
         # Enemy bullets.
         for b in self.enemy_bullets:
-            if b.life>0 and self.circle_rect_collision(b,pr):b.life=0; self.player.hit(b.damage,self)
+            if b.life>0 and self.circle_rect_collision(b,pr):
+                b.life=0
+                if not self.player.shield_projectile(b,self):self.player.hit(b.damage,self)
         # Enemy bodies.
         for e in self.enemies:
             if not e.dead and e.rect().colliderect(pr):
@@ -4927,6 +5492,28 @@ class Game:
                 # Healthy players still get another check soon instead of losing
                 # the recovery opportunity for the remainder of the stage.
                 self.health_drop_timer=5.0*self.diff("pickup_interval")
+
+        # Controlled shield cadence: rarer than standard health, common enough to learn.
+        if self.boss is None and self.stage_distance < self.stage_goal*.92:
+            self.shield_drop_timer-=dt
+            active_shield_pickup=any(p.life>0 and p.kind.startswith("shield_") for p in self.pickups)
+            if self.shield_drop_timer<=0 and not self.player.shield_kind and not active_shield_pickup:
+                sk=SHIELD_ORDER[(self.stage+self.shield_drop_serial)%len(SHIELD_ORDER)]
+                self.shield_drop_serial+=1
+                self.pickups.append(Pickup(NATIVE_W+8,random.randint(55,183),"shield_"+sk.lower(),-27,0,10))
+                self.shield_drop_timer=random.uniform(18.0,26.0)*SHIELD_DROP_MULT[self.difficulty]
+            elif self.shield_drop_timer<=0:
+                self.shield_drop_timer=6.0*SHIELD_DROP_MULT[self.difficulty]
+
+        # Interceptor shield neutralizes nearby bullets with limited charges.
+        if self.player.shield_kind=='INTERCEPTOR' and self.player.shield_charges>0:
+            for b in self.enemy_bullets:
+                if b.life>0 and (b.x-self.player.x)**2+(b.y-self.player.y)**2 <= 19**2:
+                    b.life=0; self.player.shield_charges-=1; self.player.shield_flash=.16
+                    self.audio.play_sfx('shield_hit',b.x,.42)
+                    self.explosions.append(Explosion(b.x,b.y,.16,.16,5,'green'))
+                    if self.player.shield_charges<=0:
+                        self.player.clear_shield(); self.audio.play_sfx('shield_break',self.player.x,.75); break
 
         if self.boss is None:
             self.stage_distance+=dt*(82+self.stage*4)
@@ -5088,9 +5675,9 @@ class Game:
             if key in (pygame.K_ESCAPE,pygame.K_F1):
                 self.state=self.test_return_state
             elif key==pygame.K_UP:
-                self.test_index=(self.test_index-1)%8
+                self.test_index=(self.test_index-1)%9
             elif key==pygame.K_DOWN:
-                self.test_index=(self.test_index+1)%8
+                self.test_index=(self.test_index+1)%9
             elif key==pygame.K_LEFT and self.test_index==0:
                 self.test_stage=10 if self.test_stage<=1 else self.test_stage-1
             elif key==pygame.K_RIGHT and self.test_index==0:
@@ -5098,6 +5685,9 @@ class Game:
             elif key in (pygame.K_LEFT,pygame.K_RIGHT) and self.test_index==1:
                 step=-1 if key==pygame.K_LEFT else 1
                 self.difficulty_index=(self.difficulty_index+step)%len(DIFFICULTY_ORDER); self.difficulty=DIFFICULTY_ORDER[self.difficulty_index]
+            elif key in (pygame.K_LEFT,pygame.K_RIGHT) and self.test_index==6:
+                step=-1 if key==pygame.K_LEFT else 1
+                self.test_shield_index=(self.test_shield_index+step)%len(SHIELD_ORDER)
             elif key in (pygame.K_RETURN,pygame.K_SPACE):
                 self.test_action()
             return
@@ -5115,6 +5705,10 @@ class Game:
         draw_text(s,f"LIVES {max(0,self.player.lives)}",183,2,YELLOW)
         name=WEAPON_NAMES[self.player.weapon]
         draw_text(s,f"WEAPON: {name}",3,11,(180,240,255))
+        if self.player.shield_kind:
+            sk=self.player.shield_kind; col=SHIELD_DATA[sk]['color']; ab=SHIELD_DATA[sk]['abbr']
+            draw_text(s,ab,137,11,col)
+            frac=self.player.shield_fraction(); pygame.draw.rect(s,(8,15,23),(137,18,22,2)); pygame.draw.rect(s,col,(137,18,int(22*frac),2))
         bx,by,bw,bh=180,11,71,7; draw_text(s,"HP",164,11,WHITE)
         pygame.draw.rect(s,(13,18,28),(bx,by,bw,bh)); pygame.draw.rect(s,(91,108,126),(bx,by,bw,bh),1)
         fill=int((bw-2)*max(0,self.player.health)/self.player.max_health)
@@ -5205,14 +5799,16 @@ class Game:
             "SPAWN BOSS",
             "UNLOCK ALL WEAPONS",
             "REFILL HEALTH LIVES",
+            "SHIELD "+SHIELD_ORDER[self.test_shield_index],
             "GOD MODE "+("ON" if self.god_mode else "OFF"),
             "BACK",
         ]
-        self.draw_menu_box("TEST MODE",items,self.test_index,35,18,186)
+        self.draw_menu_box("TEST MODE",items,self.test_index,35,8,186)
         p=STAGES[self.test_stage-1]
-        draw_text(self.canvas,p.title,(NATIVE_W-text_width(p.title))//2,157,MAGENTA)
-        draw_text(self.canvas,"LEFT RIGHT CHOOSE STAGE",60,188,(119,178,197))
-        draw_text(self.canvas,"F1 CLOSE",101,199,(119,178,197))
+        draw_text(self.canvas,p.title,(NATIVE_W-text_width(p.title))//2,178,MAGENTA)
+        hint="LEFT RIGHT STAGE/SHIELD" if self.test_index in (0,6) else "ENTER SELECT"
+        draw_text(self.canvas,hint,(NATIVE_W-text_width(hint))//2,191,(119,178,197))
+        draw_text(self.canvas,"F1 CLOSE",101,203,(119,178,197))
 
     def draw_menu_message(self):
         if self.menu_message_timer<=0 or not self.menu_message:return
@@ -5312,13 +5908,13 @@ class Game:
 # ---------------------------------------------------------------------------
 
 def packaged_smoke_test():
-    """Exercise V8.6 sprite art, material readability, difficulty, saves and stereo audio."""
+    """Exercise V8.7 master art, temporary shields, difficulty, saves and stereo audio."""
     g=Game()
     assert DIFFICULTY_ORDER==("EASY","HARDER","DIFFICULT","INSANE")
     assert g.difficulty=="INSANE"
     assert DIFFICULTY_PROFILES["INSANE"]["damage"]==1.0
     try:
-        assert BUILD_ID=="V8.6-SPRITE-ART"
+        assert BUILD_ID=="V8.7-MASTER-ART"
         assert WEAPON_NAMES[4]=="HOMING ROCKET"
         assert g.player.unlocked==[True]+[False]*9
         assert FIXED_DT==1.0/FPS
@@ -5328,7 +5924,10 @@ def packaged_smoke_test():
                     WYRM_HEAD,SOVEREIGN_FACE,OMEGA_MASK):
             assert len(art)>=7
         assert len(CARRIER_BODY)>=12 and len(LEVIATHAN_HEAD)>=16 and len(BASTION_HULL)>=12
-        # V8.6 full-sprite/material art assets must survive PyInstaller collection.
+        # V8.7 master-art and shield assets must survive PyInstaller collection.
+        assert set(V87_SCENE_CHUNKS)=={"space","atmosphere","lava","water","station","hive","city","ice","veil","omega"}
+        assert set(V87_SHIELD_PIXELS)==set(SHIELD_ORDER)
+        assert SHIELD_DATA["AEGIS"]["energy"]>=60 and SHIELD_DATA["REFLECTOR"]["charges"]>=6
         assert len(PLAYER_PIXELS)>=15 and max(map(len,PLAYER_PIXELS))>=35
         assert all(len(ENEMY_PIXEL_BANK[a])>=11 for a in ARCHETYPES)
         assert set(ENEMY_MATERIAL_PARTS)>={"lava","water","station","hive","city","ice","veil","omega"}
@@ -5371,6 +5970,9 @@ def packaged_smoke_test():
         g.activate_test_mode(); assert g.test_mode
         g.test_spawn_boss(8); assert g.boss and g.boss.stage==8
         g.unlock_all_test_weapons(); assert all(g.player.unlocked)
+        g.god_mode=False; g.player.activate_shield("AEGIS",g); before=g.player.shield_energy; g.player.invuln=0; g.player.hit(10,g); assert g.player.shield_energy<before and g.player.health>0
+        g.player.activate_shield("PHASE",g); hp=g.player.health; g.player.invuln=0; g.player.hit(99,g); assert g.player.health==hp
+        g.player.activate_shield("INTERCEPTOR",g); assert g.player.shield_kind=="INTERCEPTOR"
         g.god_mode=True; hp=g.player.health; g.player.invuln=0; g.player.hit(99,g); assert g.player.health==hp
 
         # Menu render paths and several fixed simulation frames.
