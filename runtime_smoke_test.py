@@ -1,8 +1,8 @@
-"""Omega Horizon V8.9 source-level regression smoke test."""
+"""Omega Horizon V9.0 source-level regression smoke test."""
 import os
 import tempfile
 
-_tmp = tempfile.mkdtemp(prefix="omega_horizon_v89_")
+_tmp = tempfile.mkdtemp(prefix="omega_horizon_v90_")
 os.environ["LOCALAPPDATA"] = _tmp
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
@@ -11,20 +11,20 @@ import pygame
 import numpy as np
 import omega_horizon_shmup as game
 
-assert game.BUILD_ID == "V8.9-LATE-SNES-CONVERGENCE"
-assert game.DISPLAY_VERSION == "V8.9"
-assert game.DISPLAY_SUBTITLE == "LATE-SNES CONVERGENCE"
+assert game.BUILD_ID == "V9.0-LATE-SNES-CONVERGENCE"
+assert game.DISPLAY_VERSION == "V9.0"
+assert game.DISPLAY_SUBTITLE == "SUPERNOVA BEAUTY PASS"
 assert len(game.STAGES) == 10
 assert len(game.WEAPON_NAMES) == 10
 assert game.WEAPON_NAMES[4] == "HOMING ROCKET"
 assert game.FIXED_DT == 1.0/game.FPS
 assert game.DIFFICULTY_ORDER == ("EASY","HARDER","DIFFICULT","INSANE")
 assert game.DIFFICULTY_PROFILES["INSANE"]["damage"] == 1.0
-assert set(game.V89_SCENE_CHUNKS) == set(game.V88_SCENE_CHUNKS)
-assert set(game.V89_SHIELD_PIXELS) == set(game.SHIELD_ORDER)
+assert set(game.V90_SCENE_CHUNKS) == set(game.V89_SCENE_CHUNKS)
+assert set(game.V90_SHIELD_PIXELS) == set(game.SHIELD_ORDER)
 assert len({(s.theme, s.music_style, s.bpm, s.key) for s in game.STAGES}) == 10
 
-# V8.9 convergence assets.
+# V9.0 convergence assets.
 assert len(game.PLAYER_PIXELS) >= 15
 assert max(map(len, game.PLAYER_PIXELS)) >= 35
 assert all(a in game.ENEMY_PIXEL_BANK for a in game.ARCHETYPES)
@@ -60,6 +60,9 @@ for stage_index in (2, 7, 9):
     snd = audio.generate_boss_stinger(stage_index)
     arr = pygame.sndarray.array(snd)
     assert np.any(arr[:,0] != arr[:,1])
+ending = audio.generate_ending_theme()
+arr = pygame.sndarray.array(ending)
+assert arr.ndim == 2 and arr.shape[1] == 2
 
 # Continuous fixed-step rendering and cached authored tile/surface allocations.
 g = game.Game()
@@ -121,10 +124,12 @@ g.test_refill(); assert g.player.lives>=9 and g.player.health==g.player.max_heal
 g.god_mode=True; g.player.invuln=0; hp=g.player.health; g.player.hit(500,g); assert g.player.health==hp
 assert not g.save_game()
 
+g.win_game(); assert g.state=="ending"
+g.draw(); g.state="victory"; g.draw()
 g.state="pause"; g.draw(); g.open_settings("pause"); g.draw(); g.open_test_menu("settings"); g.draw()
 g.state="play"
 for _ in range(8): g.update(game.FIXED_DT)
 g.draw()
 
 g.audio.stop_music(); pygame.quit()
-print("OMEGA_V881_SOURCE_SMOKE_TEST_OK")
+print("OMEGA_V900_SOURCE_SMOKE_TEST_OK")
