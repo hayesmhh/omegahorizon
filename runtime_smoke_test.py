@@ -1,8 +1,8 @@
-"""Omega Horizon V8.3 source-level regression smoke test."""
+"""Omega Horizon V8.4 source-level regression smoke test."""
 import os
 import tempfile
 
-_tmp = tempfile.mkdtemp(prefix="omega_horizon_v83_")
+_tmp = tempfile.mkdtemp(prefix="omega_horizon_v84_")
 os.environ["LOCALAPPDATA"] = _tmp
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
@@ -11,7 +11,7 @@ import pygame
 import numpy as np
 import omega_horizon_shmup as game
 
-assert game.BUILD_ID == "V8.3-VISUAL-FIDELITY"
+assert game.BUILD_ID == "V8.4-PIXEL-ART-OVERHAUL"
 assert len(game.STAGES) == 10
 assert len(game.WEAPON_NAMES) == 10
 assert game.WEAPON_NAMES[4] == "HOMING ROCKET"
@@ -22,6 +22,10 @@ assert all(a in game.ENEMY_PIXEL_BANK for a in game.ARCHETYPES)
 for asset in (game.PYRO_PROFILE_HEAD, game.SENTINEL_CHASSIS, game.MOTHER_ABDOMEN,
               game.ARES_TORSO, game.WYRM_HEAD, game.SOVEREIGN_FACE, game.OMEGA_MASK):
     assert len(asset) >= 7
+for art in (game.ICE_RIDGE_V84_A, game.ICE_RIDGE_V84_B, game.ICE_RIDGE_V84_C, game.ICE_RIDGE_V84_D,
+            game.LAVA_ARCH_V84, game.WATER_RUIN_V84, game.STATION_MACHINE_V84,
+            game.HIVE_ARCH_V84, game.CITY_TOWER_V84_A, game.VEIL_MONOLITH_V84, game.OMEGA_COLUMN_V84):
+    assert len(art) >= 20
 
 pygame.mixer.quit()
 pygame.mixer.init(frequency=game.AUDIO_RATE, size=-16, channels=2, buffer=512)
@@ -45,6 +49,8 @@ for stage_index in (2, 7, 9):
 # Render-stability regression: old camera wrap at 256 must never return.
 g = game.Game()
 bg = g.background
+assert len(bg.v84_tiles['ice_far']) == 4 and len(bg.v84_tiles['ice_near']) == 3
+tile_ids = [id(x) for x in bg.v84_tiles['ice_far']]
 bg.scroll = 255.9
 bg.update(game.FIXED_DT, 3)
 assert bg.scroll > 255.9
@@ -52,6 +58,8 @@ bg.draw(g.canvas,3)
 ids_before = {k:id(v) for k,v in bg._floor_surfaces.items()}
 bg.draw(g.canvas,3)
 assert ids_before == {k:id(v) for k,v in bg._floor_surfaces.items()}
+bg.draw(g.canvas,8)
+assert tile_ids == [id(x) for x in bg.v84_tiles['ice_far']]
 
 # Every environment, archetype and artist-pass boss must render.
 for stage in range(1, 11):
@@ -94,4 +102,4 @@ for _ in range(8): g.update(game.FIXED_DT)
 g.draw()
 
 g.audio.stop_music(); pygame.quit()
-print("OMEGA_V83_SOURCE_SMOKE_TEST_OK")
+print("OMEGA_V84_SOURCE_SMOKE_TEST_OK")

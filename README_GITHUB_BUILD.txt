@@ -1,79 +1,37 @@
-OMEGA HORIZON V8.3 - FULL VISUAL FIDELITY PASS
-===============================================
+OMEGA HORIZON - GITHUB WINDOWS BUILD V8.4
+========================================
 
-V8.3 continues the broad late-16-bit visual overhaul rather than limiting the
-artist pass to one or two bosses.
+V8.4 is the Pixel Art Production Overhaul. It preserves the V8.3 fixed-step /
+continuous-scroll stability work and moves stage scenery further away from
+primitive runtime geometry toward reusable authored pixel-art chunks.
 
-PRIMARY V8.3 CHANGES
---------------------
-- Full artist/metasprite redraws for the previously abstract boss designs:
-  Pyroclast, Citadel Sentinel, Mother Null, Ares-IX, Cryon Wyrm,
-  Parallax Sovereign and OMEGA.
-- Pyroclast is now a side-profile horned lava beast with head/jaw, torso,
-  forelimb/claw, legs, tail and magma channels rather than a circular golem.
-- Ares-IX now reads as an articulated siege mech with legs, head/visor,
-  torso, primary cannon, secondary arm, shoulder weapons and reactor spine.
-- Cryon Wyrm now has a jawed head and a long chain of authored serpent armor
-  segments and ice fins.
-- Broad environment art pass: more detailed city buildings, station
-  bulkheads, hive pods/ribs, glacier ridges, reality monoliths and Omega
-  machinery/depth structures.
-- Normal enemy archetypes receive animated hardpoints, propulsion cues and
-  stronger stage-material detailing.
-- Player-ship lighting/engine effects and invulnerability presentation are
-  upgraded.
-- Explosions are layered flash/fire/smoke/debris-style effects rather than
-  primarily expanding outline circles.
-- HUD receives a smaller beveled stage-accented presentation.
+VISUAL BENCHMARK
+----------------
+Stage 8 is the lead benchmark for this release. The old triangle-like ice
+mountains are replaced by four multi-shade authored ridge families with snow
+shelves, faceted light/shadow planes, fracture veins, atmospheric mist, a
+separate 2x midground ridge layer, and cropped foreground glacier masses.
 
-SCREEN JUMP / REPEAT FIX
-------------------------
-V8.2 periodically wrapped Background.scroll at exactly 256 even though the
-software perspective sampler multiplied that camera value by 1.8 and 0.23.
-255.9 -> 0 therefore did NOT represent an equivalent texture position and
-could cause the whole floor/background to visibly snap or appear to repeat.
+Other stages gain authored reusable environmental chunks as well: volcanic
+arches, underwater ruin towers, station machinery, hive arches, damaged city
+towers, dimensional monoliths and Omega bio-machine columns.
 
-V8.3 keeps camera scroll continuous and performs wrapping only when texture
-indices are sampled.
+Bosses receive a second material/articulation finish pass with persistent
+damage scars, stronger silhouettes, more lighting cues and stage-specific
+animated details.
 
-V8.3 also:
-- uses one exact 1/60 simulation step per presented frame;
-- deliberately avoids multi-step catch-up after a stall, preventing catch-up jumps;
-- uses tick_busy_loop for steadier desktop pacing;
-- reuses NumPy floor buffers and SDL floor surfaces rather than allocating new
-  floor surfaces every frame.
+TESTING
+-------
+Type TERMINUS on the title screen, then press F1 to use Test Mode.
 
-AUDIO V8.3
-----------
-- Existing distinct 16-bar stage compositions remain.
-- Additional FM-like, pulse-lead and harp timbres are used by selected stages.
-- Final-section melodic hook reprises strengthen loop identity.
-- Every stage has its own synthesized stereo boss-entry stinger.
-- True stereo music, positional SFX and all unique weapon sounds remain.
+BUILD
+-----
+Upload/replace all files in the existing GitHub repository, then run:
 
-TEST MODE / SAVE / SETTINGS
----------------------------
-All V8.2 systems remain:
-- Type TERMINUS on the title screen, then F1, for the developer test menu.
-- Jump directly to any stage or spawn any stage boss.
-- Unlock all weapons, refill health/lives, toggle God Mode.
-- F5 quick-save / F9 quick-load.
-- Pause menu and settings for music, SFX, fullscreen, scale and effects.
+    Build Omega Horizon V8.4 for Windows
 
-GITHUB BUILD
-------------
-1. Replace the files in your existing GitHub repository with this package.
-2. Commit to the default branch.
-3. Open Actions.
-4. Run: Build Omega Horizon V8.3 for Windows
-5. Wait for every check to turn green, especially:
-       Smoke-test the PACKAGED V8.3 EXE
-6. Download only:
-       OmegaHorizon-Windows-x64-V8.3-VISUAL-FIDELITY
-7. Run the new OmegaHorizon.exe.
+Download only:
 
-The window title must contain:
-    V8.3-VISUAL-FIDELITY
+    OmegaHorizon-Windows-x64-V8.4-PIXEL-ART-OVERHAUL
 
-The finished EXE is standalone and does not require Python/Pygame/NumPy on
-machines that only run the game.
+The packaged EXE is smoke-tested on the Windows runner before upload.
