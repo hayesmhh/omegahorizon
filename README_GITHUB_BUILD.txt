@@ -1,52 +1,44 @@
-OMEGA HORIZON V9.1 - AUTHORED ART FOUNDATION
+OMEGA HORIZON V9.2 - AUTHORED WORLD EXPANSION
 =============================================
 
-V9.1 begins the new visual-production pipeline requested after the V9.0 playtest.
-Major visual elements now start moving out of runtime-drawn geometry and into shipped,
-original PNG sprite sheets and background plates.
+V9.2 expands the asset-pipeline transition begun in V9.1. Major scene and enemy art
+is progressively becoming shipped authored PNG artwork rather than runtime-built geometry.
 
-FIRST TRUE AUTHORED-ASSET WAVE
-------------------------------
-- Adds assets/player_ship_v91.png: a 5-frame player-ship sprite sheet with neutral,
-  bank-up, bank-down, firing and damage artwork.
-- Adds assets/pyroclast_v91.png: a 4-frame cohesive Pyroclast boss sheet covering
-  molten/cooled shell and jaw states.
-- Adds assets/stage09_nebula_v91.png: a full 256-pixel-wide far-background plate.
-  The nebula is now a huge horizon-spanning cosmic structure rather than small
-  midground nebula blobs.
-- PyInstaller now bundles the assets directory into the standalone EXE.
-
-VISUAL CORRECTIONS
+V9.2 MAJOR CHANGES
 ------------------
-- Terminus Veil bypasses the older procedural line/arc overlay stack when rendering
-  the new authored background plate.
-- Veil floor texture replaces its old straight grid with a mottled cosmic surface.
-- Eclipse Engine removes the unexplained full-width aurora lines and reduces the
-  ruler-straight ice-floor ray pattern into recognizable branching cracks.
-- The player ship runtime now displays the authored frames directly.
-- Pyroclast runtime now displays the authored cohesive boss frames directly.
+- Adds a dedicated title/intro theme derived from the ending melody: mysterious and
+  anticipatory at the title screen, then resolved heroically in the ending.
+- Slows the post-OMEGA story scroll from 19 px/sec to 15 px/sec.
+- Rebuilds ending composition so the hero ship stays behind the prose.
+- Clips the story to a protected reading region, preventing overlap with the fixed header.
+- Narrows ending copy to a 202-native-pixel maximum line width for more comfortable reading.
+- Strengthens spherical shield depth with three rotating, depth-sorted great-circle bands,
+  travelling shimmer segments, depth-scaled nodes and a moving specular crescent.
 
-SPHERICAL SHIELD V3
--------------------
-The shield renderer now uses projected 3D great-circle mathematics rather than a
-flat oval. Back-hemisphere rings/nodes render before the ship and front-hemisphere
-rings/nodes render afterward, so energy visibly rotates behind and in front of the
-craft. The outer silhouette is circular, translucent, flickering, and hit-reactive.
+AUTHORED WORLD EXPANSION
+------------------------
+New shipped PNG assets in V9.2:
+- assets/stage01_space_v92.png      Full Stage 1 space background plate.
+- assets/stage05_station_v92.png    Stage 5 orbital-station upper background plate.
+- assets/stage08_ice_v92.png        Stage 8 twin-moon ice-sky / mountain plate.
+- assets/enemy_stage01_v92.png      Stage 1 four-archetype, two-frame enemy sheet.
+- assets/enemy_stage09_v92.png      Stage 9 four-archetype, two-frame Veil enemy sheet.
 
-ENDING FIX
-----------
-- Ending narration is dynamically wrapped against a strict 218-pixel text width.
-- The ending is now a standalone presentation state and no longer draws the gameplay
-  HUD underneath the scrolling story.
-- Story lines remain centered and inside the 256x224 native canvas.
-- The original V9.0 heroic ending theme is retained.
+V9.1 authored assets remain authoritative for:
+- player ship (five frames)
+- Pyroclast (four frames)
+- Stage 9 panoramic nebula
+
+Stage 1, 5, 8 and 9 now bypass older line-heavy beautification overlays so authored
+composition remains visually authoritative instead of being covered by procedural clutter.
 
 BUILD
 -----
-1. Replace the repository contents with this package, including the assets folder.
-2. Commit to the default branch.
-3. Actions -> Build Omega Horizon V9.1 for Windows -> Run workflow.
-4. Wait for source regression, syntax, packaged-EXE smoke test and packaging to pass.
-5. Download artifact: OmegaHorizon-Windows-x64-V9.1-AUTHORED-ART-FOUNDATION
+1. Replace all files in the existing GitHub repository with this package.
+2. Keep the complete assets/ directory at repository root.
+3. Commit to the default branch.
+4. Actions -> Build Omega Horizon V9.2 for Windows -> Run workflow.
+5. Wait for source regression and packaged-EXE smoke tests to pass.
+6. Download artifact: OmegaHorizon-Windows-x64-V9.2-AUTHORED-WORLD-EXPANSION
 
-The running window title contains V9.1-AUTHORED-ART-FOUNDATION.
+The running window title contains V9.2-AUTHORED-WORLD-EXPANSION.
