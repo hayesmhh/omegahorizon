@@ -1,4 +1,4 @@
-name: Build Omega Horizon V8.3 for Windows
+name: Build Omega Horizon V8.4 for Windows
 
 on:
   workflow_dispatch:
@@ -8,12 +8,12 @@ permissions:
 
 jobs:
   build-windows:
-    name: Build and test V8.3 visual-fidelity Windows EXE
+    name: Build and test V8.4 pixel-art-overhaul Windows EXE
     runs-on: windows-2022
     timeout-minutes: 45
 
     steps:
-      - name: Check out V8.3 source
+      - name: Check out V8.4 source
         uses: actions/checkout@v4
 
       - name: Set up 64-bit Python 3.13
@@ -30,10 +30,10 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install --only-binary=:all: -r requirements-build.txt
 
-      - name: Verify V8.3 identity and full artist-pass assets
+      - name: Verify V8.4 identity and full artist-pass assets
         shell: pwsh
         run: |
-          python -c "import omega_horizon_shmup as g; assert g.BUILD_ID == 'V8.3-VISUAL-FIDELITY'; assert g.WEAPON_NAMES[4] == 'HOMING ROCKET'; assert g.FIXED_DT == 1.0/g.FPS; assert len(g.ARES_TORSO) >= 10; assert len(g.WYRM_HEAD) >= 10; assert len(g.OMEGA_MASK) >= 10; print(g.BUILD_ID)"
+          python -c "import omega_horizon_shmup as g; assert g.BUILD_ID == 'V8.4-PIXEL-ART-OVERHAUL'; assert g.WEAPON_NAMES[4] == 'HOMING ROCKET'; assert g.FIXED_DT == 1.0/g.FPS; assert len(g.ARES_TORSO) >= 10; assert len(g.WYRM_HEAD) >= 10; assert len(g.OMEGA_MASK) >= 10; assert len(g.ICE_RIDGE_V84_A) >= 25; print(g.BUILD_ID)"
 
       - name: Source regression test - art, render stability, audio and systems
         shell: pwsh
@@ -48,7 +48,7 @@ jobs:
         run: |
           python -m py_compile omega_horizon_shmup.py runtime_smoke_test.py
 
-      - name: Build V8.3 OmegaHorizon.exe
+      - name: Build V8.4 OmegaHorizon.exe
         shell: pwsh
         run: |
           python -m PyInstaller --noconfirm --clean OmegaHorizon.spec
@@ -56,12 +56,12 @@ jobs:
             throw "PyInstaller completed without creating dist\OmegaHorizon.exe"
           }
 
-      - name: Smoke-test the PACKAGED V8.3 EXE
+      - name: Smoke-test the PACKAGED V8.4 EXE
         shell: pwsh
         env:
           SDL_VIDEODRIVER: dummy
           SDL_AUDIODRIVER: dummy
-          LOCALAPPDATA: ${{ runner.temp }}\OmegaHorizonV83
+          LOCALAPPDATA: ${{ runner.temp }}\OmegaHorizonV84
         run: |
           New-Item -ItemType Directory -Force -Path $env:LOCALAPPDATA | Out-Null
           $p = Start-Process `
@@ -70,32 +70,32 @@ jobs:
             -Wait `
             -PassThru
           if ($p.ExitCode -ne 0) {
-            throw "Packaged OmegaHorizon.exe V8.3 smoke test failed with exit code $($p.ExitCode)"
+            throw "Packaged OmegaHorizon.exe V8.4 smoke test failed with exit code $($p.ExitCode)"
           }
-          Write-Host "PACKAGED_V83_EXE_SMOKE_TEST_OK"
+          Write-Host "PACKAGED_V84_EXE_SMOKE_TEST_OK"
 
       - name: Create SHA-256 checksum
         shell: pwsh
         run: |
           $hash = (Get-FileHash "dist\OmegaHorizon.exe" -Algorithm SHA256).Hash
-          Set-Content -Path "dist\OmegaHorizon_V83_SHA256.txt" -Value $hash -Encoding ASCII
-          Write-Host "OmegaHorizon V8.3 SHA-256: $hash"
+          Set-Content -Path "dist\OmegaHorizon_V84_SHA256.txt" -Value $hash -Encoding ASCII
+          Write-Host "OmegaHorizon V8.4 SHA-256: $hash"
 
-      - name: Create V8.3 release ZIP
+      - name: Create V8.4 release ZIP
         shell: pwsh
         run: |
           Compress-Archive `
-            -Path "dist\OmegaHorizon.exe","dist\OmegaHorizon_V83_SHA256.txt" `
-            -DestinationPath "dist\OmegaHorizon_V83_Windows_x64.zip" `
+            -Path "dist\OmegaHorizon.exe","dist\OmegaHorizon_V84_SHA256.txt" `
+            -DestinationPath "dist\OmegaHorizon_V84_Windows_x64.zip" `
             -Force
 
-      - name: Upload tested V8.3 Windows build
+      - name: Upload tested V8.4 Windows build
         uses: actions/upload-artifact@v4
         with:
-          name: OmegaHorizon-Windows-x64-V8.3-VISUAL-FIDELITY
+          name: OmegaHorizon-Windows-x64-V8.4-PIXEL-ART-OVERHAUL
           path: |
             dist/OmegaHorizon.exe
-            dist/OmegaHorizon_V83_SHA256.txt
-            dist/OmegaHorizon_V83_Windows_x64.zip
+            dist/OmegaHorizon_V84_SHA256.txt
+            dist/OmegaHorizon_V84_Windows_x64.zip
           if-no-files-found: error
           retention-days: 30
