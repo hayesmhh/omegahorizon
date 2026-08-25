@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-OMEGA HORIZON V8.4 - PIXEL ART PRODUCTION OVERHAUL
+OMEGA HORIZON V8.5 - SCENE READABILITY / OMEGA / DIFFICULTY
 =========================================================
 Single-file procedural Pygame shooter designed around a 256x224 SNES-like
 canvas, software perspective rendering, original artist-directed pixel art,
@@ -23,7 +23,7 @@ Controls:
 Developer code:
     Type TERMINUS on the title screen to enable TEST MODE.
 
-Build identity: V8.4-PIXEL-ART-OVERHAUL
+Build identity: V8.5-SCENE-READABILITY
 """
 
 import json
@@ -51,7 +51,17 @@ FIXED_DT = 1.0 / FPS
 HUD_H = 21
 HORIZON_Y = 104
 AUDIO_RATE = 44100
-BUILD_ID = "V8.4-PIXEL-ART-OVERHAUL"
+BUILD_ID = "V8.5-SCENE-READABILITY"
+DISPLAY_VERSION = "V8.5"
+DISPLAY_SUBTITLE = "SCENE READABILITY"
+
+DIFFICULTY_ORDER=("EASY","HARDER","DIFFICULT","INSANE")
+DIFFICULTY_PROFILES={
+    "EASY":{"enemy_hp":.62,"boss_hp":.65,"bullet_speed":.72,"bullet_density":.62,"damage":.55,"spawn_interval":1.48,"hazard_interval":1.42,"pickup_interval":.58,"enemy_speed":.88,"starting_lives":5},
+    "HARDER":{"enemy_hp":.77,"boss_hp":.80,"bullet_speed":.82,"bullet_density":.76,"damage":.72,"spawn_interval":1.27,"hazard_interval":1.25,"pickup_interval":.74,"enemy_speed":.94,"starting_lives":4},
+    "DIFFICULT":{"enemy_hp":.90,"boss_hp":.92,"bullet_speed":.92,"bullet_density":.90,"damage":.88,"spawn_interval":1.11,"hazard_interval":1.10,"pickup_interval":.88,"enemy_speed":.98,"starting_lives":3},
+    "INSANE":{"enemy_hp":1.0,"boss_hp":1.0,"bullet_speed":1.0,"bullet_density":1.0,"damage":1.0,"spawn_interval":1.0,"hazard_interval":1.0,"pickup_interval":1.0,"enemy_speed":1.0,"starting_lives":3},
+}
 
 BLACK = (4, 5, 12)
 WHITE = (236, 246, 255)
@@ -185,6 +195,27 @@ def draw_indexed_sprite(surface, rows, x, y, palette, flip_x=False, scale=1):
                 safe_set(surface,x+gx,y+gy,col)
             else:
                 pygame.draw.rect(surface,col,(x+gx*scale,y+gy*scale,scale,scale))
+
+
+_OUTLINE_CACHE={}
+def draw_indexed_outline(surface, rows, x, y, color, flip_x=False, scale=1):
+    """Draw a cached one-pixel rim that follows the actual sprite silhouette."""
+    key=(tuple(rows),bool(flip_x))
+    outline=_OUTLINE_CACHE.get(key)
+    if outline is None:
+        pixels=set()
+        for gy,row in enumerate(rows):
+            iterable=row[::-1] if flip_x else row
+            for gx,ch in enumerate(iterable):
+                if ch!='.':pixels.add((gx,gy))
+        pts=set()
+        for gx,gy in pixels:
+            for ox,oy in ((-1,0),(1,0),(0,-1),(0,1)):
+                if (gx+ox,gy+oy) not in pixels:pts.add((gx+ox,gy+oy))
+        outline=tuple(pts); _OUTLINE_CACHE[key]=outline
+    for gx,gy in outline:
+        if scale==1:safe_set(surface,x+gx,y+gy,color)
+        else:pygame.draw.rect(surface,color,(x+gx*scale,y+gy*scale,scale,scale))
 
 
 def draw_pixel_cloud(surface, x, y, scale=1, light=(194,211,218), mid=(142,169,181), shadow=(88,121,137)):
@@ -1453,6 +1484,9 @@ def draw_city_building(surface,x,base,w,h,seed,far=False):
     if not far and seed%5==0:
         # broken corner silhouette
         pygame.draw.polygon(surface,(12,13,21),[(x+w-8,base-h),(x+w,base-h),(x+w,base-h+14),(x+w-4,base-h+10)])
+    # Foundation/plinth explicitly anchors the structure to the road plane.
+    pygame.draw.rect(surface,(12,14,20),(x-1,base-3,w+2,3))
+    pygame.draw.line(surface,(77,66,60),(x,base-4),(x+w-1,base-4),1)
 
 
 def draw_ice_peak(surface,x,base,w,h,seed):
@@ -2152,6 +2186,7 @@ class Background:
         self.time=0.0
         self.rng=random.Random(1337)
         self.fx_level=2
+        self.readability_surface=pygame.Surface((NATIVE_W,NATIVE_H),pygame.SRCALPHA)
         self.stars=[]
         for count,speed,bright in [(46,.16,90),(34,.40,150),(24,.82,230)]:
             pts=[(self.rng.randrange(NATIVE_W),self.rng.randrange(HUD_H+2,NATIVE_H-8),self.rng.randrange(1,3)) for _ in range(count)]
@@ -2310,6 +2345,17 @@ class Background:
         fn(surf,stage)
         self.draw_artist_layer(surf,stage)
         self.draw_v84_scene_finish(surf,stage)
+        self.draw_combat_color_math(surf,stage)
+
+    def draw_combat_color_math(self,surf,stage):
+        """SNES-style color math keeps rich scenery behind readable combat sprites."""
+        theme=STAGES[stage-1].theme
+        alpha={'space':8,'atmosphere':12,'lava':24,'water':18,'station':20,'hive':26,'city':28,'ice':18,'veil':30,'omega':32}.get(theme,16)
+        tint={'lava':(8,4,9),'water':(0,12,20),'station':(4,8,12),'hive':(12,2,13),'city':(5,7,13),'ice':(3,10,18),'veil':(8,1,18),'omega':(10,0,8)}.get(theme,(0,3,10))
+        ov=self.readability_surface; ov.fill((0,0,0,0))
+        pygame.draw.rect(ov,(*tint,alpha),(0,HUD_H,NATIVE_W,NATIVE_H-HUD_H))
+        pygame.draw.rect(ov,(*tint,min(55,alpha+8)),(0,HUD_H+30,NATIVE_W,70))
+        surf.blit(ov,(0,0))
 
     def draw_v84_scene_finish(self,surf,stage):
         """Dense authored foreground/midground layer and stage-specific light pass."""
@@ -2376,7 +2422,10 @@ class Background:
             towers=self.v84_tiles['city']
             for i in range(5):
                 tile=towers[i%2]; x=int((i*62-sc*.37)%360)-45
-                surf.blit(tile,(x,57+(i%2)*12))
+                base=113+(i%2)*2; yy=base-tile.get_height()
+                surf.blit(tile,(x,yy))
+                pygame.draw.line(surf,(14,16,20),(x-2,base),(x+tile.get_width()+2,base),2)
+                pygame.draw.line(surf,(104,79,58),(x,base-2),(x+tile.get_width(),base-2),1)
             # near broken skybridge
             off=int((-sc*.71)%310)-35
             pygame.draw.line(surf,(26,28,34),(off,151),(off+90,137),6)
@@ -2639,7 +2688,7 @@ class Background:
     def draw_city(self,surf,stage):
         self._gradient(surf,(9,9,22),(63,34,36),HUD_H,107)
         # Three hand-detailed skyline layers rather than anonymous rectangles.
-        layers=[(5,(0),98,True),(12,100,108,True),(23,200,118,False)]
+        layers=[(5,0,110,True),(12,100,112,True),(23,200,118,False)]
         for layer,(spd,seedbase,base,far) in enumerate(layers):
             for i in range(8):
                 x=int((i*47-self.time*spd)%(NATIVE_W+100))-50
@@ -3131,7 +3180,7 @@ class Player:
             self.invuln=max(self.invuln,.12)
             return
         if self.invuln>0:return
-        self.health-=damage; self.invuln=.88
+        self.health-=damage*game.diff("damage"); self.invuln=.88
         game.audio.play_sfx("hit",self.x,.8)
         game.explosions.append(Explosion(self.x,self.y,.25,.25,10))
         if self.health<=0:
@@ -3236,7 +3285,7 @@ class Enemy:
                 self.x-=abs(self.speed)*.65*dt
                 self.y+=(game.player.y-self.y)*dt*1.15
 
-        self.fire_timer-=dt
+        self.fire_timer-=dt*game.diff("bullet_density")
         if self.fire_timer<=0 and 4<self.x<NATIVE_W-8 and game.state=="play":
             self.fire_timer={"interceptor":1.5,"heavy":1.15,"artillery":.82,"ambusher":1.35}[self.archetype]-min(.35,self.stage*.025)+random.random()*.35
             self.fire(game)
@@ -3245,18 +3294,19 @@ class Enemy:
             self.dead=True; self.escaped=True; game.wave_enemy_escaped(self.wave_id)
 
     def fire(self,game):
-        sp=60+self.stage*4.5
+        sp=(60+self.stage*4.5)*game.diff("bullet_speed")
         if self.archetype=="interceptor":
             a=angle_to(game.player.x-self.x,game.player.y-self.y)
             game.enemy_bullets.append(Bullet(self.x,self.y,math.cos(a)*sp,math.sin(a)*sp,8,"enemy","normal",2,5))
         elif self.archetype=="heavy":
             base=angle_to(game.player.x-self.x,game.player.y-self.y)
-            for d in (-.16,0,.16):
+            spreads=(-.16,0,.16); n=game.difficulty_count(len(spreads)); start=(len(spreads)-n)//2
+            for d in spreads[start:start+n]:
                 a=base+d; game.enemy_bullets.append(Bullet(self.x,self.y,math.cos(a)*sp*.82,math.sin(a)*sp*.82,10,"enemy","normal",2.5,5))
         elif self.archetype=="artillery":
             # Stage-specific artillery: water/station use mines, later stages track.
             if self.stage in (4,5,6):
-                game.enemy_bullets.append(Bullet(self.x-5,self.y,-34,math.sin(self.age)*8,12,"enemy","mine",4,5))
+                game.enemy_bullets.append(Bullet(self.x-5,self.y,-34*game.diff("bullet_speed"),math.sin(self.age)*8*game.diff("bullet_speed"),12,"enemy","mine",4,5))
             else:
                 a=angle_to(game.player.x-self.x,game.player.y-self.y)
                 kind="tracking" if self.stage>=7 else "normal"
@@ -3298,7 +3348,10 @@ class Enemy:
             pal={'1':(7,15,31),'2':p[0],'3':p[1],'4':p[2],'5':p[3],'8':ORANGE}
         rows=ENEMY_PIXEL_BANK[self.archetype]
         flip=self.from_rear
-        draw_indexed_sprite(surf,rows,x-len(rows[0])//2,y-len(rows)//2,pal,flip_x=flip)
+        sx=x-len(rows[0])//2; sy=y-len(rows)//2
+        rim={'lava':(117,210,235),'water':(182,255,239),'station':(125,226,238),'hive':(177,255,194),'city':(119,213,235),'ice':(232,250,255),'veil':(126,255,230),'omega':(255,185,195)}.get(theme,(117,191,226))
+        draw_indexed_outline(surf,rows,sx,sy,rim,flip_x=flip)
+        draw_indexed_sprite(surf,rows,sx,sy,pal,flip_x=flip)
         anim=int(self.age*9)%2
         direction=1 if flip else -1
         # Distinct archetype hardpoints/animation so types are recognizable in motion.
@@ -3349,7 +3402,7 @@ class Boss:
         self.x=218.0; self.y=116.0; self.age=0.0; self.intro=1.8; self.dead=False
         self.phase=1; self.timer_a=.8; self.timer_b=1.8; self.timer_c=2.8
         self.flash=0.0; self.shell=False; self.teleport_flash=0.0
-        self.radius=[28,30,31,31,29,31,34,33,30,38][stage-1]
+        self.radius=[28,30,31,31,29,31,34,33,30,52][stage-1]
         self.max_health=[520,660,760,820,900,1020,1160,1280,1450,2500][stage-1]
         self.health=float(self.max_health)
         self.no_death_bonus=True
@@ -3367,7 +3420,7 @@ class Boss:
         if self.stage==7:return pygame.Rect(int(self.x-25),int(self.y-30),56,61)
         if self.stage==8:return pygame.Rect(int(self.x-31),int(self.y-29),98,58)
         if self.stage==9:return pygame.Rect(int(self.x-42),int(self.y-34),84,68)
-        if self.stage==10:return pygame.Rect(int(self.x-50),int(self.y-38),100,76)
+        if self.stage==10:return pygame.Rect(int(self.x-67),int(self.y-49),132,98)
         return pygame.Rect(int(self.x-r),int(self.y-r),int(r*2),int(r*2))
 
     def damage_multiplier(self,weapon_index):
@@ -3399,16 +3452,25 @@ class Boss:
 
     def _bullet(self,game,a,speed=80,damage=10,kind="normal",radius=2.5,origin=None):
         ox,oy=origin if origin else (self.x-self.radius*.45,self.y)
+        speed*=game.diff("bullet_speed")
         game.enemy_bullets.append(Bullet(ox,oy,math.cos(a)*speed,math.sin(a)*speed,damage,"enemy",kind,radius,7))
 
     def aimed(self,game,count=3,spread=.15,speed=85,kind="normal",origin=None):
+        count=game.difficulty_count(count)
         base=angle_to(game.player.x-self.x,game.player.y-self.y); mid=(count-1)/2
         for i in range(count):self._bullet(game,base+(i-mid)*spread,speed,10,kind,2.5,origin)
 
     def ring(self,game,count=12,speed=65,offset=0,kind="normal"):
+        count=game.difficulty_count(count)
         for i in range(count):self._bullet(game,offset+i*math.tau/count,speed,9,kind,2.3,(self.x,self.y))
 
     def fan(self,game,angles,speed=75,kind="normal"):
+        angles=list(angles); n=game.difficulty_count(len(angles))
+        if n<len(angles):
+            if n==1:angles=[angles[len(angles)//2]]
+            else:
+                idxs=[round(i*(len(angles)-1)/(n-1)) for i in range(n)]
+                angles=[angles[i] for i in idxs]
         for a in angles:self._bullet(game,a,speed,10,kind)
 
     def update(self,dt,game):
@@ -3417,7 +3479,8 @@ class Boss:
             self.intro-=dt; self.x+=(190-self.x)*min(1,dt*2.2); return
         ratio=self.health/self.max_health
         self.phase=1 if ratio>.66 else 2 if ratio>.33 else 3
-        self.timer_a-=dt; self.timer_b-=dt; self.timer_c-=dt
+        attack_dt=dt*game.diff("bullet_density")
+        self.timer_a-=attack_dt; self.timer_b-=attack_dt; self.timer_c-=attack_dt
         getattr(self,f"update_{self.profile.boss_kind}")(dt,game)
 
     # 1: carrier - horizontal/vertical maneuver + fighter launches + missile fans.
@@ -3941,47 +4004,42 @@ class Boss:
 
     def draw_omega(self,surf):
         x,y=int(self.x),int(self.y)
-        pal={'1':(8,3,10),'2':(31,8,27),'3':(65,12,47),'4':(105,18,65),
-             '5':(157,25,82),'6':(220,38,105),'7':(255,126,136),'8':(255,231,172)}
-        # A colossal masked machine-organism: wings/shell first, then face/core.
-        wing_open=3+self.phase*3+int(math.sin(self.age*1.5)*2)
-        draw_indexed_sprite(surf,OMEGA_WING,x-40-wing_open,y-12,pal)
-        draw_indexed_sprite(surf,OMEGA_WING,x+25+wing_open,y-12,pal,flip_x=True)
-        draw_indexed_sprite(surf,OMEGA_MASK,x-15,y-7,pal)
-        # Phase 1 retains six armor petals; later phases peel them away.
-        petal_count=6 if self.phase==1 else 4 if self.phase==2 else 2
+        pal={'1':(5,1,7),'2':(26,5,23),'3':(62,9,45),'4':(112,15,65),'5':(177,25,89),'6':(232,42,112),'7':(255,129,151),'8':(255,235,182)}
+        wing_open=5+self.phase*4+int(math.sin(self.age*1.3)*2)
+        draw_indexed_sprite(surf,OMEGA_WING,x-59-wing_open,y-24,pal,scale=2)
+        draw_indexed_sprite(surf,OMEGA_WING,x+31+wing_open,y-24,pal,flip_x=True,scale=2)
+        draw_indexed_sprite(surf,OMEGA_MASK,x-29,y-15,pal,scale=2)
+        for sign in (-1,1):
+            hx=x+sign*(22+self.phase*4)
+            for j in range(8+self.phase*2):
+                safe_set(surf,hx+sign*(j//2),y-21-j,pal['7'] if j%3 else pal['8'])
+                if j<6:safe_set(surf,hx-sign,y-21-j,pal['4'])
+        eye_scale=1 if self.phase==1 else 2
+        draw_indexed_sprite(surf,OMEGA_EYE,x-(5*eye_scale),y-(4*eye_scale),pal,scale=eye_scale)
+        pupil=4+self.phase*2
+        pygame.draw.circle(surf,pal['1'],(x,y),pupil+2); pygame.draw.circle(surf,pal['6'],(x,y),pupil)
+        pygame.draw.rect(surf,pal['8'],(x-1,y-pupil+1,2,max(2,pupil*2-2)))
+        petal_count=8 if self.phase==1 else 6 if self.phase==2 else 4
         for i in range(petal_count):
-            a=self.age*.18+i*math.tau/petal_count
-            rr=29+self.phase*2
-            px=x+int(math.cos(a)*rr); py=y+int(math.sin(a)*rr*.78)
+            a=-self.age*.22+i*math.tau/petal_count; rr=43+self.phase*5
+            px=x+int(math.cos(a)*rr); py=y+int(math.sin(a)*rr*.70)
             draw_indexed_sprite(surf,OMEGA_PETAL,px-4,py-3,pal,flip_x=(i%2==1))
-        # Central eye/intelligence grows as armor is lost.
-        eye_scale=1
-        draw_indexed_sprite(surf,OMEGA_EYE,x-5,y-4,pal,scale=eye_scale)
-        pygame.draw.circle(surf,pal['1'],(x,y),4+self.phase)
-        pygame.draw.circle(surf,pal['7'],(x,y),2+self.phase)
-        safe_set(surf,x-1,y-1,pal['8'])
-        # Organic conduits emerge in phase 2, then sever into free-floating nodes.
+            if self.phase>=2:pygame.draw.line(surf,pal['4'],(x,y),(px,py),1)
         if self.phase>=2:
-            for i in range(6):
-                a=i*math.tau/6+self.age*.42
-                ex=x+int(math.cos(a)*(35+self.phase*3)); ey=y+int(math.sin(a)*(24+self.phase*2))
-                pygame.draw.line(surf,pal['3'],(x,y),(ex,ey),3)
-                pygame.draw.line(surf,pal['6'],(x,y),(ex,ey),1)
-                if self.phase==3:
-                    draw_indexed_sprite(surf,OMEGA_PETAL,ex-4,ey-3,pal)
+            for i in range(8):
+                a=i*math.tau/8+self.age*.37
+                ex=x+int(math.cos(a)*(48+self.phase*5)); ey=y+int(math.sin(a)*(31+self.phase*3))
+                pygame.draw.line(surf,pal['3'],(x,y),(ex,ey),3); pygame.draw.line(surf,pal['6'],(x,y),(ex,ey),1); safe_set(surf,ex,ey,pal['8'])
         if self.phase==3:
-            # final reality-break corona uses discontinuous authored pixels, not circles
-            for i in range(24):
-                a=self.age*.7+i*math.tau/24
-                rr=41+(i%3)*4
+            for i in range(32):
+                a=self.age*.55+i*math.tau/32; rr=58+(i%4)*4
                 px=x+int(math.cos(a)*rr); py=y+int(math.sin(a)*rr*.72)
                 safe_set(surf,px,py,pal['8'] if i%4==0 else pal['6'])
-        self._damage_fx(surf,[(-19,-15),(17,18),(-27,7),(21,-13),(0,24)])
-
-# ---------------------------------------------------------------------------
-# Main game state machine
-# ---------------------------------------------------------------------------
+                if i%5==0:safe_set(surf,px+int(math.cos(a)*3),py+int(math.sin(a)*2),pal['7'])
+            for i in range(-4,5):
+                tx=x+i*4; length=4+(abs(i)%3)*2
+                pygame.draw.line(surf,pal['7'],(tx,y+16),(tx,y+16+length),1); safe_set(surf,tx,y+17+length,pal['8'])
+        self._damage_fx(surf,[(-30,-20),(24,21),(-38,7),(34,-16),(0,30)])
 
 class Game:
     def __init__(self):
@@ -4031,6 +4089,17 @@ class Game:
         self.test_code_buffer=""
         self.test_mode=False
         self.god_mode=False
+        self.difficulty="INSANE"
+        self.difficulty_index=DIFFICULTY_ORDER.index(self.difficulty)
+
+    def diff(self,key): return DIFFICULTY_PROFILES[self.difficulty][key]
+    def difficulty_count(self,count):
+        if count<=1:return count
+        return min(count,max(1,int(round(count*self.diff("bullet_density")))))
+    def apply_enemy_difficulty(self,e):
+        e.max_health*=self.diff("enemy_hp"); e.health=e.max_health; e.speed*=self.diff("enemy_speed"); return e
+    def apply_boss_difficulty(self,b):
+        b.max_health*=self.diff("boss_hp"); b.health=float(b.max_health); return b
 
     def stage_distance_goal(self): return 2200+(self.stage-1)*190
 
@@ -4102,6 +4171,7 @@ class Game:
             "max_health":float(self.player.max_health),
             "weapon":int(clamp(self.player.weapon,0,9)),
             "unlocked":[bool(v) for v in self.player.unlocked[:10]],
+            "difficulty":self.difficulty,
         }
         try:
             with open(self.save_path,"w",encoding="utf-8") as f:
@@ -4121,6 +4191,9 @@ class Game:
             unlocked=list(data.get("unlocked",[True]+[False]*9))
             if len(unlocked)!=10: raise ValueError("bad unlock list")
             unlocked=[bool(v) for v in unlocked]; unlocked[0]=True
+            diff=str(data.get("difficulty","INSANE")).upper()
+            if diff not in DIFFICULTY_ORDER:diff="INSANE"
+            self.difficulty=diff; self.difficulty_index=DIFFICULTY_ORDER.index(diff)
             self.start_stage(stage)
             self.score=max(0,int(data.get("score",0)))
             self.player.lives=max(1,int(data.get("lives",3)))
@@ -4136,6 +4209,12 @@ class Game:
             return False
 
     # ------------------------ menu / test mode -------------------------
+
+    def open_difficulty_menu(self):
+        self.difficulty_index=DIFFICULTY_ORDER.index(self.difficulty); self.state="difficulty_select"
+
+    def choose_difficulty(self):
+        self.difficulty=DIFFICULTY_ORDER[self.difficulty_index]; self.reset_new_game(self.difficulty)
 
     def pause_items(self):
         items=["RESUME","SAVE GAME","LOAD GAME","SETTINGS"]
@@ -4180,7 +4259,7 @@ class Game:
         self.player.health=self.player.max_health; self.player.lives=max(self.player.lives,5)
         self.enemies.clear(); self.waves.clear(); self.enemy_bullets.clear(); self.hazards.clear(); self.pickups.clear()
         self.stage_distance=self.stage_goal; self.boss_warning=2.0
-        self.boss=Boss(stage); self.boss.intro=.45
+        self.boss=Boss(stage); self.apply_boss_difficulty(self.boss); self.boss.intro=.45
         self.weapon_notice=f"TEST BOSS: {STAGES[stage-1].boss_name}"; self.notice_timer=2.0
         self.audio.play_boss(stage-1)
 
@@ -4223,24 +4302,27 @@ class Game:
 
     def test_action(self):
         if self.test_index==0:return
-        if self.test_index==1:self.test_jump_stage(self.test_stage)
-        elif self.test_index==2:self.test_spawn_boss(self.test_stage)
-        elif self.test_index==3:self.unlock_all_test_weapons()
-        elif self.test_index==4:self.test_refill()
-        elif self.test_index==5:
-            self.god_mode=not self.god_mode
-            self.menu_message="GOD MODE ON" if self.god_mode else "GOD MODE OFF"; self.menu_message_timer=2.0
-        elif self.test_index==6:self.state=self.test_return_state
+        elif self.test_index==1:
+            self.difficulty_index=(self.difficulty_index+1)%len(DIFFICULTY_ORDER); self.difficulty=DIFFICULTY_ORDER[self.difficulty_index]
+            self.menu_message=f"TEST DIFFICULTY {self.difficulty}"; self.menu_message_timer=1.5
+        elif self.test_index==2:self.test_jump_stage(self.test_stage)
+        elif self.test_index==3:self.test_spawn_boss(self.test_stage)
+        elif self.test_index==4:self.unlock_all_test_weapons()
+        elif self.test_index==5:self.test_refill()
+        elif self.test_index==6:
+            self.god_mode=not self.god_mode; self.weapon_notice="TEST: GOD MODE "+("ON" if self.god_mode else "OFF"); self.notice_timer=1.4
+        elif self.test_index==7:self.state=self.test_return_state
 
-
-    def reset_new_game(self):
-        self.player=Player(); self.score=0; self.stage=1; self.start_stage(1)
+    def reset_new_game(self,difficulty=None):
+        if difficulty in DIFFICULTY_ORDER:
+            self.difficulty=difficulty; self.difficulty_index=DIFFICULTY_ORDER.index(difficulty)
+        self.player=Player(); self.player.lives=int(self.diff("starting_lives")); self.score=0; self.stage=1; self.start_stage(1)
 
     def start_stage(self,stage):
         self.stage=stage; self.stage_distance=0; self.stage_goal=self.stage_distance_goal()
         self.enemies.clear(); self.player_bullets.clear(); self.enemy_bullets.clear(); self.pickups.clear(); self.explosions.clear(); self.hazards.clear()
         self.boss=None; self.waves.clear(); self.spawn_timer=.9; self.hazard_timer=2.5; self.boss_warning=0
-        self.reward_pending=False; self.reward_timer=0; self.weapon_notice=""; self.notice_timer=0; self.stage_deaths=0; self.health_drop_timer=9.0; self.health_pity=0
+        self.reward_pending=False; self.reward_timer=0; self.weapon_notice=""; self.notice_timer=0; self.stage_deaths=0; self.health_drop_timer=9.0*self.diff("pickup_interval"); self.health_pity=0
         self.state="stage_intro"; self.state_timer=2.6; self.player.reset_position(); self.audio.play_stage(stage-1)
 
     def begin_play(self): self.state="play"; self.state_timer=0
@@ -4278,14 +4360,14 @@ class Game:
             else: yy=center+math.sin(i*1.35)*spacing
             yy=clamp(yy,34,NATIVE_H-24)
             xx=-18-i*8 if rear else NATIVE_W+14+i*10
-            e=Enemy(xx,yy,self.stage,wid,i,archetype,formation,rear); enemies.append(e); self.enemies.append(e)
+            e=Enemy(xx,yy,self.stage,wid,i,archetype,formation,rear); self.apply_enemy_difficulty(e); enemies.append(e); self.enemies.append(e)
         self.waves[wid]={"total":count,"kills":0,"failed":False,"last":(NATIVE_W-20,112)}
 
     def spawn_boss_add(self,archetype,x,y):
         # Adds do not belong to a normal reward wave.
         self.wave_serial+=1; wid=self.wave_serial
         e=Enemy(x,y,self.stage,wid,0,archetype,"sine",False)
-        e.health*=.72; e.max_health=e.health
+        self.apply_enemy_difficulty(e); e.health*=.72; e.max_health=e.health
         self.enemies.append(e); self.waves[wid]={"total":1,"kills":0,"failed":True,"last":(x,y)}
 
     def wave_enemy_destroyed(self,wid,x,y,archetype):
@@ -4409,29 +4491,29 @@ class Game:
             if self.health_drop_timer<=0 and self.player.health<threshold and not active_recovery:
                 kind="major_health" if self.player.health<=24 and random.random()<.30 else "health"
                 self.pickups.append(Pickup(NATIVE_W+8,random.randint(55,185),kind,-28,0,10))
-                self.health_drop_timer=random.uniform(11.0,15.0) if self.player.health>45 else random.uniform(7.5,10.5)
+                self.health_drop_timer=(random.uniform(11.0,15.0) if self.player.health>45 else random.uniform(7.5,10.5))*self.diff("pickup_interval")
                 self.health_pity=0
             elif self.health_drop_timer<=0:
                 # Healthy players still get another check soon instead of losing
                 # the recovery opportunity for the remainder of the stage.
-                self.health_drop_timer=5.0
+                self.health_drop_timer=5.0*self.diff("pickup_interval")
 
         if self.boss is None:
             self.stage_distance+=dt*(82+self.stage*4)
             self.spawn_timer-=dt
-            interval=max(.70,2.10-(self.stage-1)*.115)
+            interval=max(.70,2.10-(self.stage-1)*.115)*self.diff("spawn_interval")
             if self.spawn_timer<=0 and self.stage_distance<self.stage_goal:
                 self.spawn_wave(); self.spawn_timer=interval
             # Stage hazards only after stage 1 and outside final approach.
             if self.stage>=2 and self.stage_distance<self.stage_goal*.92:
                 self.hazard_timer-=dt
                 if self.hazard_timer<=0:
-                    self.hazards.append(Hazard(self.stage)); self.hazard_timer=max(2.5,5.2-self.stage*.18)+random.random()*1.4
+                    self.hazards.append(Hazard(self.stage)); self.hazard_timer=(max(2.5,5.2-self.stage*.18)+random.random()*1.4)*self.diff("hazard_interval")
             if self.stage_distance>=self.stage_goal:
                 self.boss_warning+=dt
                 if self.boss_warning>1.35:
                     self.enemies.clear(); self.waves.clear(); self.enemy_bullets.clear(); self.hazards.clear()
-                    self.boss=Boss(self.stage)
+                    self.boss=Boss(self.stage); self.apply_boss_difficulty(self.boss)
                     self.weapon_notice=f"BOSS: {STAGES[self.stage-1].boss_name}"
                     self.notice_timer=2.0
                     self.audio.play_boss(self.stage-1)
@@ -4515,7 +4597,7 @@ class Game:
                 if self.test_code_buffer.endswith("TERMINUS"):
                     self.activate_test_mode()
             if key in (pygame.K_RETURN,pygame.K_SPACE):
-                self.reset_new_game()
+                self.open_difficulty_menu()
             elif key==pygame.K_l:
                 self.load_game()
             elif key==pygame.K_F2:
@@ -4523,8 +4605,15 @@ class Game:
             return
 
         if self.state in ("game_over","victory"):
-            if key in (pygame.K_RETURN,pygame.K_SPACE): self.reset_new_game()
+            if key in (pygame.K_RETURN,pygame.K_SPACE): self.open_difficulty_menu()
             elif key==pygame.K_ESCAPE: self.state="title"
+            return
+
+        if self.state=="difficulty_select":
+            if key==pygame.K_ESCAPE:self.state="title"
+            elif key in (pygame.K_UP,pygame.K_w):self.difficulty_index=(self.difficulty_index-1)%len(DIFFICULTY_ORDER)
+            elif key in (pygame.K_DOWN,pygame.K_s):self.difficulty_index=(self.difficulty_index+1)%len(DIFFICULTY_ORDER)
+            elif key in (pygame.K_RETURN,pygame.K_SPACE):self.choose_difficulty()
             return
 
         if self.state=="stage_intro":
@@ -4569,13 +4658,16 @@ class Game:
             if key in (pygame.K_ESCAPE,pygame.K_F1):
                 self.state=self.test_return_state
             elif key==pygame.K_UP:
-                self.test_index=(self.test_index-1)%7
+                self.test_index=(self.test_index-1)%8
             elif key==pygame.K_DOWN:
-                self.test_index=(self.test_index+1)%7
+                self.test_index=(self.test_index+1)%8
             elif key==pygame.K_LEFT and self.test_index==0:
                 self.test_stage=10 if self.test_stage<=1 else self.test_stage-1
             elif key==pygame.K_RIGHT and self.test_index==0:
                 self.test_stage=1 if self.test_stage>=10 else self.test_stage+1
+            elif key in (pygame.K_LEFT,pygame.K_RIGHT) and self.test_index==1:
+                step=-1 if key==pygame.K_LEFT else 1
+                self.difficulty_index=(self.difficulty_index+step)%len(DIFFICULTY_ORDER); self.difficulty=DIFFICULTY_ORDER[self.difficulty_index]
             elif key in (pygame.K_RETURN,pygame.K_SPACE):
                 self.test_action()
             return
@@ -4610,6 +4702,13 @@ class Game:
 
     def draw_gameplay(self):
         self.background.draw(self.canvas,self.stage)
+        if self.stage==10 and self.boss and not self.boss.dead:
+            phase=self.boss.phase; pulse=int((math.sin(self.boss.age*3)+1)*2)
+            for yy in range(HUD_H+12,NATIVE_H-8,24):
+                col=(89+phase*20,17,57+phase*11)
+                pygame.draw.line(self.canvas,col,(0,yy),(20+phase*3+pulse,yy),1)
+                pygame.draw.line(self.canvas,col,(NATIVE_W-1,yy),(NATIVE_W-22-phase*3-pulse,yy),1)
+            if phase==3 and int(self.boss.age*8)%7==0:pygame.draw.line(self.canvas,(255,75,129),(0,HUD_H+2),(NATIVE_W,HUD_H+2),1)
         for p in self.pickups:p.draw(self.canvas)
         for h in self.hazards:h.draw(self.canvas)
         for e in self.enemies:e.draw(self.canvas)
@@ -4644,9 +4743,16 @@ class Game:
                 pygame.draw.rect(self.canvas,(85,174,199),(x+6,yy-3,w-12,12),1)
             draw_text(self.canvas,label,x+12,yy,YELLOW if i==selected else WHITE)
 
+    def draw_difficulty_menu(self):
+        items=list(DIFFICULTY_ORDER); self.draw_menu_box("SELECT DIFFICULTY",items,self.difficulty_index,39,47,178)
+        name=DIFFICULTY_ORDER[self.difficulty_index]
+        notes={"EASY":"5 LIVES  LIGHTER FIRE","HARDER":"4 LIVES  LOWER PRESSURE","DIFFICULT":"3 LIVES  TOUGH CAMPAIGN","INSANE":"ORIGINAL V8.4 BALANCE"}
+        draw_text(self.canvas,notes[name],(NATIVE_W-text_width(notes[name]))//2,145,RED if name=="INSANE" else YELLOW)
+        draw_text(self.canvas,"UP DOWN  ENTER SELECT",64,193,(119,178,197))
+
     def draw_pause_menu(self):
         self.draw_menu_box("PAUSE MENU",self.pause_items(),self.pause_index,47,38,162)
-        draw_text(self.canvas,"F5 SAVE  F9 LOAD",77,204,(119,178,197))
+        draw_text(self.canvas,f"{self.difficulty}  F5 SAVE  F9 LOAD",(NATIVE_W-text_width(f"{self.difficulty}  F5 SAVE  F9 LOAD"))//2,204,(119,178,197))
 
     def draw_settings_menu(self):
         fx_names=("LOW","MED","HIGH")
@@ -4664,6 +4770,7 @@ class Game:
     def draw_test_menu(self):
         items=[
             f"STAGE {self.test_stage:02d}",
+            "DIFFICULTY "+self.difficulty,
             "JUMP TO STAGE",
             "SPAWN BOSS",
             "UNLOCK ALL WEAPONS",
@@ -4671,7 +4778,7 @@ class Game:
             "GOD MODE "+("ON" if self.god_mode else "OFF"),
             "BACK",
         ]
-        self.draw_menu_box("TEST MODE",items,self.test_index,35,27,186)
+        self.draw_menu_box("TEST MODE",items,self.test_index,35,18,186)
         p=STAGES[self.test_stage-1]
         draw_text(self.canvas,p.title,(NATIVE_W-text_width(p.title))//2,157,MAGENTA)
         draw_text(self.canvas,"LEFT RIGHT CHOOSE STAGE",60,188,(119,178,197))
@@ -4701,7 +4808,7 @@ class Game:
         for i,col in enumerate(((255,229,91),ORANGE,(153,48,54),(76,35,70))):
             pygame.draw.line(self.canvas,col,(51-i*3,112),(44-i*5,112),max(1,4-i))
         draw_text(self.canvas,"OMEGA HORIZON",38,45,CYAN,2,True)
-        draw_text(self.canvas,"V8.3 VISUAL FIDELITY",67,72,YELLOW)
+        draw_text(self.canvas, f"{DISPLAY_VERSION} {DISPLAY_SUBTITLE}", (NATIVE_W-text_width(f"{DISPLAY_VERSION} {DISPLAY_SUBTITLE}"))//2, 72, YELLOW)
         draw_text(self.canvas,"ENTER NEW GAME",84,154,WHITE)
         draw_text(self.canvas,"L LOAD  F2 SETTINGS",70,168,(170,210,230))
         draw_text(self.canvas,"MOVE WASD  FIRE Z",74,181,(170,210,230))
@@ -4709,12 +4816,14 @@ class Game:
         if self.test_mode:
             draw_text(self.canvas,"TEST MODE ENABLED  F1",68,204,MAGENTA)
         else:
-            draw_text(self.canvas,"BUILD V8.3",100,207,(75,128,160))
+            draw_text(self.canvas, f"BUILD {DISPLAY_VERSION}", (NATIVE_W-text_width(f"BUILD {DISPLAY_VERSION}"))//2, 207, (75,128,160))
         self.draw_menu_message()
 
     def draw(self):
         if self.state=="title":
             self.draw_title()
+        elif self.state=="difficulty_select":
+            self.draw_title(); self.draw_difficulty_menu(); self.draw_menu_message()
         elif self.state=="settings" and self.settings_return_state=="title":
             self.draw_title(); self.draw_settings_menu(); self.draw_menu_message()
         elif self.state=="test_menu" and self.test_return_state=="title":
@@ -4724,6 +4833,8 @@ class Game:
             if self.state=="stage_intro":
                 p=STAGES[self.stage-1]
                 self.draw_overlay_center(f"STAGE {self.stage:02d}",p.title,CYAN,p.subtitle)
+                dcol=RED if self.difficulty=="INSANE" else YELLOW
+                draw_text(self.canvas,self.difficulty,(NATIVE_W-text_width(self.difficulty))//2,143,dcol)
             elif self.state=="stage_clear":
                 reward=STAGES[self.stage-1].reward_weapon
                 sub=f"SCORE {self.score:07d}" if reward is None else f"NEW: {WEAPON_NAMES[reward]}"
@@ -4771,10 +4882,13 @@ class Game:
 # ---------------------------------------------------------------------------
 
 def packaged_smoke_test():
-    """Exercise V8.3 art, rendering stability, menus, saves and stereo audio."""
+    """Exercise V8.5 art, readability, difficulty, menus, saves and stereo audio."""
     g=Game()
+    assert DIFFICULTY_ORDER==("EASY","HARDER","DIFFICULT","INSANE")
+    assert g.difficulty=="INSANE"
+    assert DIFFICULTY_PROFILES["INSANE"]["damage"]==1.0
     try:
-        assert BUILD_ID=="V8.4-PIXEL-ART-OVERHAUL"
+        assert BUILD_ID=="V8.5-SCENE-READABILITY"
         assert WEAPON_NAMES[4]=="HOMING ROCKET"
         assert g.player.unlocked==[True]+[False]*9
         assert FIXED_DT==1.0/FPS

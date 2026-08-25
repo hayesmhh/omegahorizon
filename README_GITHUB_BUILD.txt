@@ -1,7 +1,7 @@
-OMEGA HORIZON - GITHUB WINDOWS BUILD V8.4
+OMEGA HORIZON - GITHUB WINDOWS BUILD V8.4.1
 ========================================
 
-V8.4 is the Pixel Art Production Overhaul. It preserves the V8.3 fixed-step /
+V8.4.1 is the Pixel Art Production Overhaul. It preserves the V8.3 fixed-step /
 continuous-scroll stability work and moves stage scenery further away from
 primitive runtime geometry toward reusable authored pixel-art chunks.
 
@@ -28,10 +28,22 @@ BUILD
 -----
 Upload/replace all files in the existing GitHub repository, then run:
 
-    Build Omega Horizon V8.4 for Windows
+    Build Omega Horizon V8.4.1 for Windows
 
 Download only:
 
-    OmegaHorizon-Windows-x64-V8.4-PIXEL-ART-OVERHAUL
+    OmegaHorizon-Windows-x64-V8.4.1-PIXEL-ART-OVERHAUL
 
 The packaged EXE is smoke-tested on the Windows runner before upload.
+
+
+VISIBLE VERSION HOTFIX
+----------------------
+V8.4.1 fixes two stale title-screen strings that still displayed V8.3 even
+though the executable itself was V8.4. Visible version text is now derived
+from centralized DISPLAY_VERSION / DISPLAY_SUBTITLE constants, and the cloud
+workflow asserts those values before packaging.
+
+
+V8.5 adds EASY / HARDER / DIFFICULT / INSANE; INSANE preserves V8.4 balance.
+It also grounds city scenery, applies stage-specific color-math/readability separation, adds silhouette rims to enemies, and substantially enlarges/reworks OMEGA.

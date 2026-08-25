@@ -1,8 +1,8 @@
-"""Omega Horizon V8.4 source-level regression smoke test."""
+"""Omega Horizon V8.5 source-level regression smoke test."""
 import os
 import tempfile
 
-_tmp = tempfile.mkdtemp(prefix="omega_horizon_v84_")
+_tmp = tempfile.mkdtemp(prefix="omega_horizon_v85_")
 os.environ["LOCALAPPDATA"] = _tmp
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
@@ -11,7 +11,7 @@ import pygame
 import numpy as np
 import omega_horizon_shmup as game
 
-assert game.BUILD_ID == "V8.4-PIXEL-ART-OVERHAUL"
+assert game.BUILD_ID == "V8.5-SCENE-READABILITY"
 assert len(game.STAGES) == 10
 assert len(game.WEAPON_NAMES) == 10
 assert game.WEAPON_NAMES[4] == "HOMING ROCKET"
@@ -48,6 +48,9 @@ for stage_index in (2, 7, 9):
 
 # Render-stability regression: old camera wrap at 256 must never return.
 g = game.Game()
+assert g.difficulty == "INSANE"
+assert game.DIFFICULTY_PROFILES["INSANE"]["boss_hp"] == 1.0
+assert game.DIFFICULTY_PROFILES["INSANE"]["bullet_speed"] == 1.0
 bg = g.background
 assert len(bg.v84_tiles['ice_far']) == 4 and len(bg.v84_tiles['ice_near']) == 3
 tile_ids = [id(x) for x in bg.v84_tiles['ice_far']]
@@ -82,10 +85,11 @@ assert len(g.pickups) > before
 assert any(p.kind in ("health","major_health") for p in g.pickups)
 
 # Save/load + settings + developer test workflow.
+g.difficulty="HARDER"; g.difficulty_index=game.DIFFICULTY_ORDER.index("HARDER")
 g.stage=4; g.score=23456; g.player.lives=5; g.player.health=57
 g.player.unlocked[:5]=[True]*5; g.player.weapon=4
 assert g.save_game(); g.score=1; g.player.health=3; g.player.weapon=0
-assert g.load_game(); assert g.stage==4 and g.score==23456 and int(g.player.health)==57
+assert g.load_game(); assert g.stage==4 and g.score==23456 and int(g.player.health)==57 and g.difficulty=="HARDER"
 g.settings["music_volume"]=.4; g.settings["sfx_volume"]=.5; g.settings["effects"]=0
 g.apply_settings(); assert g.canvas.get_size()==(game.NATIVE_W,game.NATIVE_H)
 g.activate_test_mode(); g.test_stage=10; g.test_spawn_boss(10)
@@ -102,4 +106,7 @@ for _ in range(8): g.update(game.FIXED_DT)
 g.draw()
 
 g.audio.stop_music(); pygame.quit()
-print("OMEGA_V84_SOURCE_SMOKE_TEST_OK")
+print("OMEGA_V85_SOURCE_SMOKE_TEST_OK")
+
+assert game.DIFFICULTY_ORDER == ("EASY","HARDER","DIFFICULT","INSANE")
+assert game.DIFFICULTY_PROFILES["INSANE"]["enemy_hp"] == 1.0
