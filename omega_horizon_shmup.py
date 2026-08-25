@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-OMEGA HORIZON V9.2 - AUTHORED WORLD EXPANSION
+OMEGA HORIZON V9.3 - CINEMATIC ART ESCALATION
 =========================================================
 Pygame shooter designed around a 256x224 SNES-like canvas with software
 perspective rendering, shipped authored pixel-art assets, original procedural support art,
@@ -23,7 +23,7 @@ Controls:
 Developer code:
     Type TERMINUS on the title screen to enable TEST MODE.
 
-Build identity: V9.2-AUTHORED-WORLD-EXPANSION
+Build identity: V9.3-CINEMATIC-ART-ESCALATION
 """
 
 import json
@@ -51,9 +51,9 @@ FIXED_DT = 1.0 / FPS
 HUD_H = 21
 HORIZON_Y = 104
 AUDIO_RATE = 44100
-BUILD_ID = "V9.2-AUTHORED-WORLD-EXPANSION"
-DISPLAY_VERSION = "V9.2"
-DISPLAY_SUBTITLE = "AUTHORED WORLD EXPANSION"
+BUILD_ID = "V9.3-CINEMATIC-ART-ESCALATION"
+DISPLAY_VERSION = "V9.3"
+DISPLAY_SUBTITLE = "CINEMATIC ART ESCALATION"
 ENDING_SCROLL_SPEED = 15.0
 ENDING_STORY_TOP = 48
 ENDING_STORY_BOTTOM = 202
@@ -196,18 +196,20 @@ def resource_path(relative_path):
     return os.path.join(base,relative_path)
 
 
-def load_v92_art_assets():
+def load_v93_art_assets():
     if ART_ASSETS:
         return ART_ASSETS
     specs={
         "player_ship_sheet":("assets/player_ship_v91.png",True),
         "pyroclast_sheet":("assets/pyroclast_v91.png",True),
         "stage09_nebula":("assets/stage09_nebula_v91.png",False),
-        "stage01_space":("assets/stage01_space_v92.png",False),
-        "stage05_station":("assets/stage05_station_v92.png",False),
-        "stage08_ice":("assets/stage08_ice_v92.png",False),
-        "enemy_stage01_sheet":("assets/enemy_stage01_v92.png",True),
-        "enemy_stage09_sheet":("assets/enemy_stage09_v92.png",True),
+        "stage01_space":("assets/stage01_space_v93.png",False),
+        "stage05_station":("assets/stage05_station_v93.png",False),
+        "stage08_ice":("assets/stage08_ice_v93.png",False),
+        "enemy_stage01_sheet":("assets/enemy_stage01_v93.png",True),
+        "enemy_stage09_sheet":("assets/enemy_stage09_v93.png",True),
+        "title_screen":("assets/title_screen_v93.png",False),
+        "bosses_v93_sheet":("assets/bosses_v93.png",True),
     }
     for key,(rel,alpha) in specs.items():
         surf=pygame.image.load(resource_path(rel))
@@ -221,6 +223,11 @@ def load_v92_art_assets():
         frames=[es.subsurface((i*32,0,32,24)).copy() for i in range(8)]
         ART_ASSETS[stage_key+"_frames"]=frames
         ART_ASSETS[stage_key+"_frames_flipped"]=[pygame.transform.flip(fr,True,False) for fr in frames]
+    bs=ART_ASSETS["bosses_v93_sheet"]
+    ART_ASSETS["boss_v93_frames"]=[
+        [bs.subsurface((anim*96,stage*72,96,72)).copy() for anim in range(2)]
+        for stage in range(10)
+    ]
     return ART_ASSETS
 
 
@@ -2225,6 +2232,8 @@ V91_SCENE_CHUNKS=V90_SCENE_CHUNKS
 V91_SHIELD_PIXELS=V90_SHIELD_PIXELS
 V92_SCENE_CHUNKS=V91_SCENE_CHUNKS
 V92_SHIELD_PIXELS=V91_SHIELD_PIXELS
+V93_SCENE_CHUNKS=V92_SCENE_CHUNKS
+V93_SHIELD_PIXELS=V92_SHIELD_PIXELS
 
 V87_PICKUP_SHIELD_PALETTES={
 'AEGIS':{'1':(4,24,55),'2':(15,80,132),'3':(53,151,203),'4':(105,224,255),'5':WHITE},
@@ -2833,21 +2842,23 @@ class AudioSynth:
                 self.add_stereo(mix,start,self.pan_mono(sig,-.54+i*.54))
             bass=self.instrument("bass",root+deg,1.42,.042)
             self.add_stereo(mix,start,self.pan_mono(bass,0))
-        # Recognizable variation of the ending melody, initially fragmented and later complete.
+        # Recognizable variation of the ending melody. V9.3 removes the old
+        # independent FM/arpeggio phrase that fought the main pulse.
         motif=[12,14,17,19,21,19,17,14]
-        for pass_no,start_bar in enumerate((1,5,9)):
+        for pass_no,start_bar in enumerate((1,9)):
             for i,noff in enumerate(motif):
                 st=start_bar*2.0+i*(beat*.72)
                 if st>=dur: break
-                inst="glass" if pass_no==0 else "fmlead" if pass_no==1 else "brass"
-                sig=self.instrument(inst,root+noff,beat*.58,.036+.008*pass_no)
-                self.add_stereo(mix,st,self.pan_mono(sig,math.sin((i+pass_no)*.72)*.46))
-        # Slow starfield arpeggio; no aggressive percussion on the title screen.
-        arp=[0,7,12,16,19,16,12,7]
-        for i in range(int(dur/(beat/2))):
-            st=i*(beat/2); note=root+12+arp[i%len(arp)]
-            sig=self.instrument("pluck",note,beat*.32,.018)
-            self.add_stereo(mix,st,self.pan_mono(sig,-.62 if i%2==0 else .62))
+                inst="glass" if pass_no==0 else "brass"
+                sig=self.instrument(inst,root+noff,beat*.60,.038+.012*pass_no)
+                self.add_stereo(mix,st,self.pan_mono(sig,math.sin((i+pass_no)*.60)*.34))
+        # Sparse high root/fifth glints support the harmony without becoming
+        # a second tune or slipping against the beat.
+        for bar in range(12):
+            st=bar*2.0+beat*1.5
+            note=root+24+(7 if bar%2 else 0)
+            sig=self.instrument("glass",note,beat*.30,.014)
+            self.add_stereo(mix,st,self.pan_mono(sig,-.42 if bar%2 else .42))
         for bi in range(int(dur/beat)):
             st=bi*beat
             if bi%4==0:self.add_stereo(mix,st,self.pan_mono(self._kick(.10,.07),0))
@@ -4448,6 +4459,17 @@ class Enemy:
             use_frames=frames if self.from_rear else ART_ASSETS.get(stage_key+"_frames_flipped",frames)
             sprite=use_frames[ai*2+anim]
             surf.blit(sprite,(x-16,y-12))
+            direction=1 if self.from_rear else -1
+            glint=(210,246,250) if self.stage==1 else (126,255,232)
+            engine=(255,128,43) if self.stage==1 else (230,61,224)
+            if self.archetype=="heavy":
+                safe_set(surf,x+direction*8,y-5,glint); safe_set(surf,x+direction*8,y+5,glint)
+            elif self.archetype=="artillery":
+                pygame.draw.line(surf,glint,(x+direction*5,y),(x+direction*11,y),1)
+            else:
+                safe_set(surf,x+direction*7,y-3,glint); safe_set(surf,x+direction*7,y+3,glint)
+            safe_set(surf,x-direction*11,y,engine)
+            if anim:safe_set(surf,x-direction*13,y,WHITE if self.stage==9 else (255,206,91))
             if self.health<self.max_health*.45 and int(self.age*10)%3==0:
                 safe_set(surf,x-2,y-4,(255,209,92)); safe_set(surf,x+2,y+3,(255,89,58))
             return
@@ -4773,11 +4795,19 @@ class Boss:
     # -------------------------- boss art ------------------------------
 
     def draw(self,surf):
-        getattr(self,f"draw_{self.profile.boss_kind}")(surf)
-        self._artist_detail_overlay(surf)
-        self._v84_boss_finish(surf)
-        self._v86_boss_material_finish(surf)
-        self._v87_boss_spectacle(surf)
+        frames=ART_ASSETS.get("boss_v93_frames")
+        if frames and 1<=self.stage<=10:
+            frame=frames[self.stage-1][int(self.age*5.0)%2]
+            x,y=int(self.x),int(self.y)
+            surf.blit(frame,(x-48,y-36))
+            self._v93_boss_finish(surf)
+            self._v87_boss_spectacle(surf)
+        else:
+            getattr(self,f"draw_{self.profile.boss_kind}")(surf)
+            self._artist_detail_overlay(surf)
+            self._v84_boss_finish(surf)
+            self._v86_boss_material_finish(surf)
+            self._v87_boss_spectacle(surf)
         if self.flash>0:
             # sparse white hit highlights without blanking the art
             x,y=int(self.x),int(self.y)
@@ -4786,6 +4816,24 @@ class Boss:
             pygame.draw.circle(surf,(165,255,239),(int(self.x),int(self.y)),self.radius+6,1)
 
 
+
+    def _v93_boss_finish(self,surf):
+        """Damage-state and focal-light finish for shipped authored boss sprites."""
+        x,y=int(self.x),int(self.y); ratio=max(0.0,self.health/max(1.0,self.max_health))
+        theme=self.profile.theme
+        light=(225,249,251) if theme in ("water","ice") else (255,222,157) if theme in ("lava","omega") else self.profile.palette[2]
+        for ox,oy in ((-31,-18),(-23,-23),(18,-20),(31,-7)):
+            if (int(self.age*7)+ox+oy)%3==0:safe_set(surf,x+ox,y+oy,light)
+        if ratio<.75:
+            count=1 if ratio>.5 else 3 if ratio>.25 else 5
+            scars=[(-19,-8),(13,10),(-4,18),(22,-15),(-27,13)]
+            for i,(ox,oy) in enumerate(scars[:count]):
+                scar=(255,115,46) if theme not in ("water","ice","veil") else (132,235,243)
+                pygame.draw.line(surf,scar,(x+ox-2,y+oy-2),(x+ox+2,y+oy+2),1)
+                if i%2==0:safe_set(surf,x+ox+1,y+oy-3,WHITE)
+        if ratio<.25 and int(self.age*8)%2==0:
+            pygame.draw.circle(surf,(255,77,53),(x+8,y-5),3,1)
+            safe_set(surf,x+8,y-5,(255,224,125))
 
     def _v87_boss_spectacle(self,surf):
         """Final craftsmanship layer: focal lighting, animated machinery/anatomy and stronger boss staging."""
@@ -5309,7 +5357,7 @@ class Game:
         self.canvas=pygame.Surface((NATIVE_W,NATIVE_H)).convert()
         self.clock=pygame.time.Clock(); self.running=True
         self.frame_hitch_count=0
-        load_v92_art_assets()
+        load_v93_art_assets()
 
         self.background=Background(); self.background.fx_level=int(self.settings["effects"])
         self.audio=AudioSynth(); self.audio.set_volumes(self.settings["music_volume"],self.settings["sfx_volume"])
@@ -5317,7 +5365,7 @@ class Game:
         self.player=Player()
 
         self.stage=1; self.state="title"; self.state_timer=0.0
-        self.ending_scroll=0.0; self.ending_duration=0.0; self.ending_lines=build_ending_lines()
+        self.ending_scroll=0.0; self.ending_duration=0.0; self.ending_lines=build_ending_lines(); self.ending_complete=False
         self.score=0; self.stage_distance=0.0; self.stage_goal=self.stage_distance_goal()
         self.enemies=[]; self.player_bullets=[]; self.enemy_bullets=[]; self.pickups=[]; self.explosions=[]; self.hazards=[]
         self.boss=None; self.wave_serial=0; self.waves={}; self.spawn_timer=1.0; self.hazard_timer=3.0; self.boss_warning=0.0
@@ -5594,7 +5642,7 @@ class Game:
     def win_game(self):
         self.state="ending"; self.state_timer=0
         self.ending_lines=build_ending_lines()
-        self.ending_scroll=ENDING_STORY_BOTTOM+8; self.ending_duration=0.0
+        self.ending_scroll=ENDING_STORY_BOTTOM+8; self.ending_duration=0.0; self.ending_complete=False
         self.enemies.clear(); self.enemy_bullets.clear(); self.player_bullets.clear(); self.pickups.clear(); self.hazards.clear()
         self.audio.play_ending()
 
@@ -5870,9 +5918,13 @@ class Game:
                     else:self.start_stage(self.stage+1)
             elif self.state=="ending":
                 self.ending_duration+=dt
-                self.ending_scroll-=dt*ENDING_SCROLL_SPEED
-                if self.ending_scroll < ENDING_STORY_TOP-(len(self.ending_lines)*11+38):
-                    self.state="victory"; self.audio.stop_music()
+                if not self.ending_complete:
+                    self.ending_scroll-=dt*ENDING_SCROLL_SPEED
+                    story_height=sum(7 if not line else 11 for line in self.ending_lines)
+                    settle_at=ENDING_STORY_TOP+74-story_height
+                    if self.ending_scroll<=settle_at:
+                        self.ending_scroll=settle_at
+                        self.ending_complete=True
 
     # ------------------------ input -----------------------------------
 
@@ -6054,7 +6106,8 @@ class Game:
         draw_text(self.canvas,"MISSION COMPLETE",(NATIVE_W-text_width("MISSION COMPLETE"))//2,8,GREEN)
         draw_text(self.canvas,"THE OMEGA WAR IS OVER",(NATIVE_W-text_width("THE OMEGA WAR IS OVER"))//2,22,(184,226,239))
         pygame.draw.rect(self.canvas,(2,4,12),(0,205,NATIVE_W,19))
-        draw_text(self.canvas,"ENTER SKIP",(NATIVE_W-text_width("ENTER SKIP"))//2,213,YELLOW)
+        prompt="PRESS ENTER TO CONTINUE" if self.ending_complete else "ENTER  SKIP"
+        draw_text(self.canvas,prompt,(NATIVE_W-text_width(prompt))//2,213,YELLOW)
 
     def draw_gameplay(self):
         self.background.draw(self.canvas,self.stage)
@@ -6159,23 +6212,31 @@ class Game:
         if subtitle2:draw_text(self.canvas,subtitle2,(NATIVE_W-text_width(subtitle2))//2,y+41,(120,170,195))
 
     def draw_title(self):
-        self.background.draw_space(self.canvas,1)
-        frames=ART_ASSETS.get("player_ship_frames")
-        if frames:
-            hero=pygame.transform.scale(frames[0],(112,48)); self.canvas.blit(hero,(72,91))
+        plate=ART_ASSETS.get("title_screen")
+        if plate is not None:
+            self.canvas.blit(plate,(0,0))
+            t=self.background.time
+            for i,(sx,sy) in enumerate(((31,21),(86,48),(151,73),(225,111),(197,31))):
+                if int(t*5+i)%5==0:
+                    safe_set(self.canvas,sx,sy,WHITE); safe_set(self.canvas,sx+1,sy,(129,211,235))
+            flame=2+int((math.sin(t*16)+1)*1.5)
+            for i in range(flame):safe_set(self.canvas,14-i,137,(255,213,84) if i<2 else ORANGE)
         else:
-            hero_pal={'1':(8,23,50),'2':(22,57,99),'3':(41,105,151),'4':(76,176,202),'5':(138,225,235),'6':WHITE,'7':ORANGE,'8':(124,240,255)}
-            draw_indexed_sprite(self.canvas,PLAYER_PIXELS,53,100,hero_pal,scale=2)
-        draw_text(self.canvas,"OMEGA HORIZON",38,45,CYAN,2,True)
-        draw_text(self.canvas, f"{DISPLAY_VERSION} {DISPLAY_SUBTITLE}", (NATIVE_W-text_width(f"{DISPLAY_VERSION} {DISPLAY_SUBTITLE}"))//2, 72, YELLOW)
-        draw_text(self.canvas,"ENTER NEW GAME",84,154,WHITE)
-        draw_text(self.canvas,"L LOAD  F2 SETTINGS",70,168,(170,210,230))
-        draw_text(self.canvas,"MOVE WASD  FIRE Z",74,181,(170,210,230))
-        draw_text(self.canvas,"WEAPON Q E  PAUSE P",67,192,(170,210,230))
+            self.background.draw_space(self.canvas,1)
+        pygame.draw.rect(self.canvas,(1,4,12),(23,15,210,39))
+        pygame.draw.rect(self.canvas,(55,137,166),(23,15,210,39),1)
+        draw_text(self.canvas,"OMEGA HORIZON",38,22,CYAN,2,True)
+        sub=f"{DISPLAY_VERSION}  {DISPLAY_SUBTITLE}"
+        draw_text(self.canvas,sub,(NATIVE_W-text_width(sub))//2,47,(211,231,237))
+        pygame.draw.rect(self.canvas,(1,4,12),(0,172,NATIVE_W,52))
+        pygame.draw.line(self.canvas,(37,101,128),(0,172),(NATIVE_W,172),1)
+        draw_text(self.canvas,"ENTER  NEW GAME",(NATIVE_W-text_width("ENTER  NEW GAME"))//2,179,WHITE,shadow=True)
+        draw_text(self.canvas,"L  LOAD     F2  SETTINGS",(NATIVE_W-text_width("L  LOAD     F2  SETTINGS"))//2,193,(163,208,225))
         if self.test_mode:
-            draw_text(self.canvas,"TEST MODE ENABLED  F1",68,204,MAGENTA)
+            draw_text(self.canvas,"TEST MODE ENABLED  F1",(NATIVE_W-text_width("TEST MODE ENABLED  F1"))//2,207,MAGENTA)
         else:
-            draw_text(self.canvas, f"BUILD {DISPLAY_VERSION}", (NATIVE_W-text_width(f"BUILD {DISPLAY_VERSION}"))//2, 207, (75,128,160))
+            tagline="A 16-BIT JOURNEY BEYOND OMEGA"
+            draw_text(self.canvas,tagline,(NATIVE_W-text_width(tagline))//2,207,(75,128,160))
         self.draw_menu_message()
 
     def draw(self):
@@ -6243,13 +6304,13 @@ class Game:
 # ---------------------------------------------------------------------------
 
 def packaged_smoke_test():
-    """Exercise V9.2 authored-world assets, intro/ending flow, sphere shields and systems."""
+    """Exercise V9.3 cinematic authored art, bosses, title/ending flow and systems."""
     g=Game()
     assert DIFFICULTY_ORDER==("EASY","HARDER","DIFFICULT","INSANE")
     assert g.difficulty=="INSANE"
     assert DIFFICULTY_PROFILES["INSANE"]["damage"]==1.0
     try:
-        assert BUILD_ID=="V9.2-AUTHORED-WORLD-EXPANSION"
+        assert BUILD_ID=="V9.3-CINEMATIC-ART-ESCALATION"
         assert WEAPON_NAMES[4]=="HOMING ROCKET"
         assert g.player.unlocked==[True]+[False]*9
         assert FIXED_DT==1.0/FPS
@@ -6260,8 +6321,8 @@ def packaged_smoke_test():
             assert len(art)>=7
         assert len(CARRIER_BODY)>=12 and len(LEVIATHAN_HEAD)>=16 and len(BASTION_HULL)>=12
         # V8.9 inherited convergence assets must survive PyInstaller collection.
-        assert set(V92_SCENE_CHUNKS)=={"space","atmosphere","lava","water","station","hive","city","ice","veil","omega"}
-        assert set(V92_SHIELD_PIXELS)==set(SHIELD_ORDER)
+        assert set(V93_SCENE_CHUNKS)=={"space","atmosphere","lava","water","station","hive","city","ice","veil","omega"}
+        assert set(V93_SHIELD_PIXELS)==set(SHIELD_ORDER)
         assert SHIELD_DATA["AEGIS"]["energy"]>=60 and SHIELD_DATA["REFLECTOR"]["charges"]>=6
         assert len(PLAYER_PIXELS)>=15 and max(map(len,PLAYER_PIXELS))>=35
         assert len(ART_ASSETS.get("player_ship_frames",[]))==5
@@ -6273,6 +6334,9 @@ def packaged_smoke_test():
         assert ART_ASSETS["stage08_ice"].get_size()==(256,91)
         assert len(ART_ASSETS.get("enemy_stage01_frames",[]))==8
         assert len(ART_ASSETS.get("enemy_stage09_frames",[]))==8
+        assert ART_ASSETS["title_screen"].get_size()==(256,224)
+        assert ART_ASSETS["bosses_v93_sheet"].get_size()==(192,720)
+        assert len(ART_ASSETS.get("boss_v93_frames",[]))==10 and all(len(v)==2 for v in ART_ASSETS["boss_v93_frames"])
         assert max(text_width(line) for line in build_ending_lines())<=ENDING_TEXT_WIDTH
         assert ENDING_SCROLL_SPEED<19 and ENDING_STORY_TOP>=44 and ENDING_STORY_BOTTOM<=204
         if g.audio.enabled:
@@ -6323,8 +6387,10 @@ def packaged_smoke_test():
         g.player.activate_shield("INTERCEPTOR",g); assert g.player.shield_kind=="INTERCEPTOR"
         g.god_mode=True; hp=g.player.health; g.player.invuln=0; g.player.hit(99,g); assert g.player.health==hp
 
-        # Menu/ending render paths and several fixed simulation frames.
-        g.win_game(); start_scroll=g.ending_scroll; g.update(FIXED_DT); assert g.ending_scroll<start_scroll; g.draw(); g.state="victory"; g.draw()
+        # Menu/ending render paths: scroll settles and remains until explicit input.
+        g.win_game(); start_scroll=g.ending_scroll; g.update(FIXED_DT); assert g.ending_scroll<start_scroll; g.draw()
+        g.ending_complete=True; held=g.ending_scroll; g.update(FIXED_DT*10); assert g.state=="ending" and g.ending_scroll==held
+        g.state="victory"; g.draw()
         g.state="pause"; g.draw()
         g.open_settings("pause"); g.draw()
         g.open_test_menu("settings"); g.draw()

@@ -1,44 +1,50 @@
-OMEGA HORIZON V9.2 - AUTHORED WORLD EXPANSION
-=============================================
+OMEGA HORIZON V9.3 - CINEMATIC ART ESCALATION
+==============================================
 
-V9.2 expands the asset-pipeline transition begun in V9.1. Major scene and enemy art
-is progressively becoming shipped authored PNG artwork rather than runtime-built geometry.
+V9.3 consolidates the authored-art transition into a more cinematic release. It focuses
+on the places V9.2 still looked or sounded weaker: title presentation, boss intimidation,
+Citadel scenery, authored enemy detail, and the final ending-state behavior.
 
-V9.2 MAJOR CHANGES
+V9.3 MAJOR CHANGES
 ------------------
-- Adds a dedicated title/intro theme derived from the ending melody: mysterious and
-  anticipatory at the title screen, then resolved heroically in the ending.
-- Slows the post-OMEGA story scroll from 19 px/sec to 15 px/sec.
-- Rebuilds ending composition so the hero ship stays behind the prose.
-- Clips the story to a protected reading region, preventing overlap with the fixed header.
-- Narrows ending copy to a 202-native-pixel maximum line width for more comfortable reading.
-- Strengthens spherical shield depth with three rotating, depth-sorted great-circle bands,
-  travelling shimmer segments, depth-scaled nodes and a moving specular crescent.
+- Adds a flagship 256x224 authored title-screen illustration featuring the hero ship,
+  a large nebula, planets, hostile craft, and a subtle OMEGA presence.
+- Cleans the title composition so the illustration owns most of the screen and utility
+  text is confined to a restrained lower panel.
+- Removes the independent FM/arpeggio phrase from the title theme that could fight the
+  primary beat; the main intro/ending motif remains intact.
+- Replaces the base art for ALL TEN BOSSES with a shipped two-frame authored boss sheet.
+  Runtime effects now add damage scars, focal lighting and phase spectacle on top of the
+  authored silhouettes instead of reconstructing the bosses from primitive geometry.
+- Redraws the authored Stage 1 and Stage 9 enemy sheets with more shading, hardpoints,
+  sharper silhouettes and post-sprite engine/specular detail.
+- Rebuilds the Stage 5 Ion Citadel upper environment with a larger reactor vault, layered
+  machinery bays, conduits, gantries, lighting and architectural hierarchy.
+- Repaints Stage 1 and Stage 8 authored plates with richer celestial/environmental depth.
+- Keeps the ending sequence in the ENDING state indefinitely after the story settles;
+  it only advances when the player explicitly presses Enter/Space (Esc returns to title).
+- Preserves the slower 15 px/sec ending scroll and the V9.2 spherical shield improvements.
 
-AUTHORED WORLD EXPANSION
-------------------------
-New shipped PNG assets in V9.2:
-- assets/stage01_space_v92.png      Full Stage 1 space background plate.
-- assets/stage05_station_v92.png    Stage 5 orbital-station upper background plate.
-- assets/stage08_ice_v92.png        Stage 8 twin-moon ice-sky / mountain plate.
-- assets/enemy_stage01_v92.png      Stage 1 four-archetype, two-frame enemy sheet.
-- assets/enemy_stage09_v92.png      Stage 9 four-archetype, two-frame Veil enemy sheet.
+AUTHORED V9.3 ASSETS
+--------------------
+- assets/title_screen_v93.png
+- assets/bosses_v93.png
+- assets/stage01_space_v93.png
+- assets/stage05_station_v93.png
+- assets/stage08_ice_v93.png
+- assets/enemy_stage01_v93.png
+- assets/enemy_stage09_v93.png
 
-V9.1 authored assets remain authoritative for:
-- player ship (five frames)
-- Pyroclast (four frames)
-- Stage 9 panoramic nebula
-
-Stage 1, 5, 8 and 9 now bypass older line-heavy beautification overlays so authored
-composition remains visually authoritative instead of being covered by procedural clutter.
+V9.1/V9.2 authored assets remain bundled where they are still authoritative, including
+player_ship_v91.png and stage09_nebula_v91.png.
 
 BUILD
 -----
-1. Replace all files in the existing GitHub repository with this package.
+1. Replace the repository files with this package.
 2. Keep the complete assets/ directory at repository root.
 3. Commit to the default branch.
-4. Actions -> Build Omega Horizon V9.2 for Windows -> Run workflow.
+4. Actions -> Build Omega Horizon V9.3 for Windows -> Run workflow.
 5. Wait for source regression and packaged-EXE smoke tests to pass.
-6. Download artifact: OmegaHorizon-Windows-x64-V9.2-AUTHORED-WORLD-EXPANSION
+6. Download artifact: OmegaHorizon-Windows-x64-V9.3-CINEMATIC-ART-ESCALATION
 
-The running window title contains V9.2-AUTHORED-WORLD-EXPANSION.
+The running window title contains V9.3-CINEMATIC-ART-ESCALATION.

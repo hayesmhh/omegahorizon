@@ -1,8 +1,8 @@
-"""Omega Horizon V9.2 authored-world source regression smoke test."""
+"""Omega Horizon V9.3 cinematic-art source regression smoke test."""
 import os
 import tempfile
 
-_tmp = tempfile.mkdtemp(prefix="omega_horizon_v92_")
+_tmp = tempfile.mkdtemp(prefix="omega_horizon_v93_")
 os.environ["LOCALAPPDATA"] = _tmp
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
@@ -11,20 +11,20 @@ import pygame
 import numpy as np
 import omega_horizon_shmup as game
 
-assert game.BUILD_ID == "V9.2-AUTHORED-WORLD-EXPANSION"
-assert game.DISPLAY_VERSION == "V9.2"
-assert game.DISPLAY_SUBTITLE == "AUTHORED WORLD EXPANSION"
+assert game.BUILD_ID == "V9.3-CINEMATIC-ART-ESCALATION"
+assert game.DISPLAY_VERSION == "V9.3"
+assert game.DISPLAY_SUBTITLE == "CINEMATIC ART ESCALATION"
 assert len(game.STAGES) == 10
 assert len(game.WEAPON_NAMES) == 10
 assert game.WEAPON_NAMES[4] == "HOMING ROCKET"
 assert game.FIXED_DT == 1.0/game.FPS
 assert game.DIFFICULTY_ORDER == ("EASY","HARDER","DIFFICULT","INSANE")
 assert game.DIFFICULTY_PROFILES["INSANE"]["damage"] == 1.0
-assert set(game.V92_SCENE_CHUNKS) == set(game.V91_SCENE_CHUNKS)
-assert set(game.V92_SHIELD_PIXELS) == set(game.SHIELD_ORDER)
+assert set(game.V93_SCENE_CHUNKS) == set(game.V91_SCENE_CHUNKS)
+assert set(game.V93_SHIELD_PIXELS) == set(game.SHIELD_ORDER)
 assert len({(s.theme, s.music_style, s.bpm, s.key) for s in game.STAGES}) == 10
 
-# V9.2 authored-world expansion assets.
+# V9.3 cinematic-art expansion assets.
 assert len(game.PLAYER_PIXELS) >= 15
 assert max(map(len, game.PLAYER_PIXELS)) >= 35
 assert all(a in game.ENEMY_PIXEL_BANK for a in game.ARCHETYPES)
@@ -46,8 +46,9 @@ for asset in (game.PYRO_PROFILE_HEAD, game.SENTINEL_CHASSIS, game.MOTHER_ABDOMEN
 
 for rel in (
     "assets/player_ship_v91.png","assets/pyroclast_v91.png","assets/stage09_nebula_v91.png",
-    "assets/stage01_space_v92.png","assets/stage05_station_v92.png","assets/stage08_ice_v92.png",
-    "assets/enemy_stage01_v92.png","assets/enemy_stage09_v92.png"):
+    "assets/stage01_space_v93.png","assets/stage05_station_v93.png","assets/stage08_ice_v93.png",
+    "assets/enemy_stage01_v93.png","assets/enemy_stage09_v93.png",
+    "assets/title_screen_v93.png","assets/bosses_v93.png"):
     assert os.path.exists(game.resource_path(rel)), rel
 wrapped=game.build_ending_lines()
 assert wrapped and max((game.text_width(line) for line in wrapped if line), default=0) <= game.ENDING_TEXT_WIDTH
@@ -88,6 +89,10 @@ assert game.ART_ASSETS["stage05_station"].get_size() == (256,91)
 assert game.ART_ASSETS["stage08_ice"].get_size() == (256,91)
 assert len(game.ART_ASSETS.get("enemy_stage01_frames",[])) == 8
 assert len(game.ART_ASSETS.get("enemy_stage09_frames",[])) == 8
+assert game.ART_ASSETS["title_screen"].get_size() == (256,224)
+assert game.ART_ASSETS["bosses_v93_sheet"].get_size() == (192,720)
+assert len(game.ART_ASSETS.get("boss_v93_frames",[])) == 10
+assert all(len(v)==2 for v in game.ART_ASSETS["boss_v93_frames"])
 assert g.audio.intro_sound is not None
 bg = g.background
 assert "ice" in bg.v86_tiles and "city" in bg.v86_tiles and "omega" in bg.v86_tiles
@@ -146,14 +151,17 @@ g.test_refill(); assert g.player.lives>=9 and g.player.health==g.player.max_heal
 g.god_mode=True; g.player.invuln=0; hp=g.player.health; g.player.hit(500,g); assert g.player.health==hp
 assert not g.save_game()
 
-g.win_game(); assert g.state=="ending"
+g.win_game(); assert g.state=="ending" and not g.ending_complete
 start_scroll=g.ending_scroll
 g.update(game.FIXED_DT); assert g.ending_scroll < start_scroll and (start_scroll-g.ending_scroll) < (19*game.FIXED_DT)
-g.draw(); g.state="victory"; g.draw()
+g.draw()
+g.ending_complete=True; held=g.ending_scroll; g.update(game.FIXED_DT*10)
+assert g.state=="ending" and g.ending_scroll==held
+g.state="victory"; g.draw()
 g.state="pause"; g.draw(); g.open_settings("pause"); g.draw(); g.open_test_menu("settings"); g.draw()
 g.state="play"
 for _ in range(8): g.update(game.FIXED_DT)
 g.draw()
 
 g.audio.stop_music(); pygame.quit()
-print("OMEGA_V920_SOURCE_SMOKE_TEST_OK")
+print("OMEGA_V930_SOURCE_SMOKE_TEST_OK")
