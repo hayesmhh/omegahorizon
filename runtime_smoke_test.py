@@ -1,8 +1,8 @@
-"""Omega Horizon V8.8 source-level regression smoke test."""
+"""Omega Horizon V8.8.1 source-level regression smoke test."""
 import os
 import tempfile
 
-_tmp = tempfile.mkdtemp(prefix="omega_horizon_v87_")
+_tmp = tempfile.mkdtemp(prefix="omega_horizon_v881_")
 os.environ["LOCALAPPDATA"] = _tmp
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
@@ -11,9 +11,9 @@ import pygame
 import numpy as np
 import omega_horizon_shmup as game
 
-assert game.BUILD_ID == "V8.8-MASTER-ART"
-assert game.DISPLAY_VERSION == "V8.8"
-assert game.DISPLAY_SUBTITLE == "MASTER ART PASS"
+assert game.BUILD_ID == "V8.8.1-HANDCRAFTED-BEAUTY"
+assert game.DISPLAY_VERSION == "V8.8.1"
+assert game.DISPLAY_SUBTITLE == "HANDCRAFTED BEAUTY"
 assert len(game.STAGES) == 10
 assert len(game.WEAPON_NAMES) == 10
 assert game.WEAPON_NAMES[4] == "HOMING ROCKET"
@@ -30,8 +30,8 @@ assert all(len(game.ENEMY_PIXEL_BANK[a]) >= 11 for a in game.ARCHETYPES)
 assert set(game.ENEMY_MATERIAL_PARTS) >= {"lava","water","station","hive","city","ice","veil","omega"}
 assert callable(game.draw_material_readability)
 assert callable(game.draw_enemy_material_parts)
-assert set(game.V87_SCENE_CHUNKS) == {"space","atmosphere","lava","water","station","hive","city","ice","veil","omega"}
-assert set(game.V87_SHIELD_PIXELS) == set(game.SHIELD_ORDER)
+assert set(game.V88_SCENE_CHUNKS) == {"space","atmosphere","lava","water","station","hive","city","ice","veil","omega"}
+assert set(game.V88_SHIELD_PIXELS) == set(game.SHIELD_ORDER)
 assert game.SHIELD_DATA["AEGIS"]["energy"] >= 60
 assert game.SHIELD_DATA["REFLECTOR"]["charges"] >= 6
 for art in (game.SPACE_WRECK_V86, game.ATMOS_RIDGE_V86, game.LAVA_COLUMN_V86,
@@ -125,4 +125,4 @@ for _ in range(8): g.update(game.FIXED_DT)
 g.draw()
 
 g.audio.stop_music(); pygame.quit()
-print("OMEGA_V87_SOURCE_SMOKE_TEST_OK")
+print("OMEGA_V881_SOURCE_SMOKE_TEST_OK")

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-OMEGA HORIZON V8.8 - HANDCRAFTED BEAUTY / REALISM & MENACE
+OMEGA HORIZON V8.8.1 - HANDCRAFTED BEAUTY / REALISM & MENACE
 =========================================================
 Single-file procedural Pygame shooter designed around a 256x224 SNES-like
 canvas, software perspective rendering, original artist-directed pixel art,
@@ -23,7 +23,7 @@ Controls:
 Developer code:
     Type TERMINUS on the title screen to enable TEST MODE.
 
-Build identity: V8.7-MASTER-ART
+Build identity: V8.8.1-HANDCRAFTED-BEAUTY
 """
 
 import json
@@ -51,8 +51,8 @@ FIXED_DT = 1.0 / FPS
 HUD_H = 21
 HORIZON_Y = 104
 AUDIO_RATE = 44100
-BUILD_ID = "V8.8-HANDCRAFTED-BEAUTY"
-DISPLAY_VERSION = "V8.8"
+BUILD_ID = "V8.8.1-HANDCRAFTED-BEAUTY"
+DISPLAY_VERSION = "V8.8.1"
 DISPLAY_SUBTITLE = "HANDCRAFTED BEAUTY"
 
 DIFFICULTY_ORDER=("EASY","HARDER","DIFFICULT","INSANE")
@@ -5902,13 +5902,13 @@ class Game:
 # ---------------------------------------------------------------------------
 
 def packaged_smoke_test():
-    """Exercise V8.7 master art, temporary shields, difficulty, saves and stereo audio."""
+    """Exercise V8.8.1 handcrafted art, temporary shields, difficulty, saves and stereo audio."""
     g=Game()
     assert DIFFICULTY_ORDER==("EASY","HARDER","DIFFICULT","INSANE")
     assert g.difficulty=="INSANE"
     assert DIFFICULTY_PROFILES["INSANE"]["damage"]==1.0
     try:
-        assert BUILD_ID=="V8.7-MASTER-ART"
+        assert BUILD_ID=="V8.8.1-HANDCRAFTED-BEAUTY"
         assert WEAPON_NAMES[4]=="HOMING ROCKET"
         assert g.player.unlocked==[True]+[False]*9
         assert FIXED_DT==1.0/FPS
@@ -5918,7 +5918,7 @@ def packaged_smoke_test():
                     WYRM_HEAD,SOVEREIGN_FACE,OMEGA_MASK):
             assert len(art)>=7
         assert len(CARRIER_BODY)>=12 and len(LEVIATHAN_HEAD)>=16 and len(BASTION_HULL)>=12
-        # V8.7 master-art and shield assets must survive PyInstaller collection.
+        # V8.8.1 inherited master-art and shield assets must survive PyInstaller collection.
         assert set(V87_SCENE_CHUNKS)=={"space","atmosphere","lava","water","station","hive","city","ice","veil","omega"}
         assert set(V87_SHIELD_PIXELS)==set(SHIELD_ORDER)
         assert SHIELD_DATA["AEGIS"]["energy"]>=60 and SHIELD_DATA["REFLECTOR"]["charges"]>=6

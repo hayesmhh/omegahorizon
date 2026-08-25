@@ -1,10 +1,10 @@
-OMEGA HORIZON V8.8 - HANDCRAFTED BEAUTY PASS / BEAUTY & SHIELDS
+OMEGA HORIZON V8.8.1 - HANDCRAFTED BEAUTY / REALISM & MENACE
 =====================================================
 
 V8.8 is intentionally a craftsmanship-first release. The primary quality bar is
 that a first-time viewer should plausibly react: "wow, this is beautiful."
 
-HANDCRAFTED BEAUTY PASS
+HANDCRAFTED BEAUTY
 ---------------
 - Adds a new authored V8.8 scenery composition layer to all ten stages.
 - Adds stronger atmospheric depth, lighting, focal composition and scene framing.
@@ -31,6 +31,8 @@ BUILD
 2. Commit to the default branch.
 3. Actions -> Build Omega Horizon V8.8 for Windows -> Run workflow.
 4. Wait for the source regression and packaged-EXE smoke test to turn green.
-5. Download: OmegaHorizon-Windows-x64-V8.8-MASTER-ART
+5. Download: OmegaHorizon-Windows-x64-V8.8.1-HANDCRAFTED-BEAUTY
 
-The running window title contains V8.8-MASTER-ART.
+The running window title contains V8.8.1-HANDCRAFTED-BEAUTY.
+
+V8.8.1 HOTFIX: synchronized source, workflow, source smoke-test, packaged smoke-test, artifact, and checksum release identities.
