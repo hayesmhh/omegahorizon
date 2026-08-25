@@ -1,49 +1,43 @@
-OMEGA HORIZON - GITHUB WINDOWS BUILD V8.4.1
-========================================
+OMEGA HORIZON V8.6 - FULL SPRITE ART & MATERIAL READABILITY
+===========================================================
 
-V8.4.1 is the Pixel Art Production Overhaul. It preserves the V8.3 fixed-step /
-continuous-scroll stability work and moves stage scenery further away from
-primitive runtime geometry toward reusable authored pixel-art chunks.
+V8.6 continues the late-SNES visual-fidelity program across the entire game.
+It is not a boss-only or readability-only patch.
 
-VISUAL BENCHMARK
-----------------
-Stage 8 is the lead benchmark for this release. The old triangle-like ice
-mountains are replaced by four multi-shade authored ridge families with snow
-shelves, faceted light/shadow planes, fracture veins, atmospheric mist, a
-separate 2x midground ridge layer, and cropped foreground glacier masses.
-
-Other stages gain authored reusable environmental chunks as well: volcanic
-arches, underwater ruin towers, station machinery, hive arches, damaged city
-towers, dimensional monoliths and Omega bio-machine columns.
-
-Bosses receive a second material/articulation finish pass with persistent
-damage scars, stronger silhouettes, more lighting cues and stage-specific
-animated details.
-
-TESTING
--------
-Type TERMINUS on the title screen, then press F1 to use Test Mode.
+PRIMARY CHANGES
+---------------
+- Replaces the universal bright enemy halo with material-specific edge lighting.
+  Hive enemies retain a broken bioluminescent membrane contour; mechanical,
+  ice, lava, aquatic, dimensional and Omega enemies use different hard-pixel
+  highlight/shadow treatments appropriate to their material.
+- Larger authored player-ship sprite plus banking-light animation states.
+- Larger, more distinctive core enemy silhouettes for interceptor, heavy,
+  artillery and ambusher roles.
+- Stage-material metasprite components modify those enemy silhouettes with
+  fins, armor pods, spikes, tendrils, crystals and dimensional structures.
+- Adds another authored scenery layer to all ten stages: space wreckage,
+  atmospheric ridges, cavern columns, submerged arches, station conduits,
+  hive ribs, grounded city facades, irregular ice cliffs, Veil gates and
+  Omega living-machine ribs.
+- Health, major-health, life and weapon pickups receive authored indexed art.
+- Bosses receive another material/anatomy finishing pass, including a more
+  threatening OMEGA face, brow, fangs and iris activity.
+- V8.5's EASY / HARDER / DIFFICULT / INSANE balance remains unchanged;
+  INSANE is still the original pre-difficulty balance.
+- Test mode, saves, settings, true stereo audio, fixed-step rendering and
+  continuous perspective scrolling remain intact.
 
 BUILD
 -----
-Upload/replace all files in the existing GitHub repository, then run:
+Replace the files in your existing GitHub repository, commit, then run:
 
-    Build Omega Horizon V8.4.1 for Windows
+    Actions -> Build Omega Horizon V8.6 for Windows -> Run workflow
 
-Download only:
+The cloud workflow source-tests the artist assets and then launches the actual
+packaged EXE in smoke-test mode before uploading it.
 
-    OmegaHorizon-Windows-x64-V8.4.1-PIXEL-ART-OVERHAUL
+DOWNLOAD ARTIFACT
+-----------------
+    OmegaHorizon-Windows-x64-V8.6-SPRITE-ART
 
-The packaged EXE is smoke-tested on the Windows runner before upload.
-
-
-VISIBLE VERSION HOTFIX
-----------------------
-V8.4.1 fixes two stale title-screen strings that still displayed V8.3 even
-though the executable itself was V8.4. Visible version text is now derived
-from centralized DISPLAY_VERSION / DISPLAY_SUBTITLE constants, and the cloud
-workflow asserts those values before packaging.
-
-
-V8.5 adds EASY / HARDER / DIFFICULT / INSANE; INSANE preserves V8.4 balance.
-It also grounds city scenery, applies stage-specific color-math/readability separation, adds silhouette rims to enemies, and substantially enlarges/reworks OMEGA.
+The running window title contains V8.6-SPRITE-ART.

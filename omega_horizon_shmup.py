@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-OMEGA HORIZON V8.5 - SCENE READABILITY / OMEGA / DIFFICULTY
+OMEGA HORIZON V8.6 - FULL SPRITE ART / MATERIAL READABILITY
 =========================================================
 Single-file procedural Pygame shooter designed around a 256x224 SNES-like
 canvas, software perspective rendering, original artist-directed pixel art,
@@ -23,7 +23,7 @@ Controls:
 Developer code:
     Type TERMINUS on the title screen to enable TEST MODE.
 
-Build identity: V8.5-SCENE-READABILITY
+Build identity: V8.6-SPRITE-ART
 """
 
 import json
@@ -51,9 +51,9 @@ FIXED_DT = 1.0 / FPS
 HUD_H = 21
 HORIZON_Y = 104
 AUDIO_RATE = 44100
-BUILD_ID = "V8.5-SCENE-READABILITY"
-DISPLAY_VERSION = "V8.5"
-DISPLAY_SUBTITLE = "SCENE READABILITY"
+BUILD_ID = "V8.6-SPRITE-ART"
+DISPLAY_VERSION = "V8.6"
+DISPLAY_SUBTITLE = "FULL SPRITE ART"
 
 DIFFICULTY_ORDER=("EASY","HARDER","DIFFICULT","INSANE")
 DIFFICULTY_PROFILES={
@@ -218,6 +218,144 @@ def draw_indexed_outline(surface, rows, x, y, color, flip_x=False, scale=1):
         else:pygame.draw.rect(surface,color,(x+gx*scale,y+gy*scale,scale,scale))
 
 
+_EDGE_CACHE={}
+def _indexed_edges(rows,flip_x=False):
+    """Return actual silhouette edge pixels grouped by direction."""
+    key=(tuple(rows),bool(flip_x))
+    cached=_EDGE_CACHE.get(key)
+    if cached is not None:return cached
+    pixels=set()
+    for gy,row in enumerate(rows):
+        rr=row[::-1] if flip_x else row
+        for gx,ch in enumerate(rr):
+            if ch!='.':pixels.add((gx,gy))
+    groups={'top':[],'bottom':[],'left':[],'right':[],'all':[]}
+    for gx,gy in pixels:
+        groups['all'].append((gx,gy))
+        if (gx,gy-1) not in pixels:groups['top'].append((gx,gy))
+        if (gx,gy+1) not in pixels:groups['bottom'].append((gx,gy))
+        if (gx-1,gy) not in pixels:groups['left'].append((gx,gy))
+        if (gx+1,gy) not in pixels:groups['right'].append((gx,gy))
+    _EDGE_CACHE[key]=groups
+    return groups
+
+
+def draw_material_readability(surface,rows,x,y,theme,flip_x=False):
+    """Material-aware edge lighting instead of a universal glowing halo.
+
+    Mechanical craft receive hard specular pixels, ice uses crystalline glints,
+    water uses a wet highlight, dimensional enemies split cyan/magenta, while
+    only the hive keeps a fuller bioluminescent contour.
+    """
+    e=_indexed_edges(rows,flip_x)
+    forward='left' if flip_x else 'right'
+    back='right' if flip_x else 'left'
+    schemes={
+        'space':((114,207,239),(10,28,57),3),
+        'atmosphere':((196,229,238),(22,53,67),3),
+        'lava':((124,214,237),(24,9,13),2),
+        'water':((174,250,238),(2,38,55),3),
+        'station':((121,224,237),(15,30,37),3),
+        'city':((223,181,100),(21,25,34),3),
+        'ice':((238,252,255),(26,70,104),2),
+    }
+    if theme=='hive':
+        # Organic enemies alone retain a membrane-like contour, but it is
+        # broken rather than continuous to keep the pixel clusters visible.
+        for i,(gx,gy) in enumerate(e['all']):
+            if i%3==0:
+                for ox,oy in ((-1,0),(1,0),(0,-1),(0,1)):
+                    safe_set(surface,x+gx+ox,y+gy+oy,(103,239,155))
+        return
+    if theme in ('veil','omega'):
+        left_col=(79,243,225) if theme=='veil' else (243,91,142)
+        right_col=(220,63,225) if theme=='veil' else (255,207,151)
+        for i,(gx,gy) in enumerate(e['left']):
+            if (gx+gy+i)%3==0:safe_set(surface,x+gx-1,y+gy,left_col)
+        for i,(gx,gy) in enumerate(e['right']):
+            if (gx+gy+i)%3==0:safe_set(surface,x+gx+1,y+gy,right_col)
+        return
+    light,shadow,step=schemes.get(theme,((135,200,225),(12,25,42),3))
+    # Paint directly on/just outside selected edges, not around the whole body.
+    selected=e['top']+e[forward]
+    for i,(gx,gy) in enumerate(selected):
+        if (gx*3+gy+i)%step==0:
+            safe_set(surface,x+gx,y+gy,light)
+            if theme=='ice' and i%4==0:safe_set(surface,x+gx,y+gy-1,light)
+    for i,(gx,gy) in enumerate(e['bottom']+e[back]):
+        if (gx+gy+i)%5==0:safe_set(surface,x+gx,y+gy,shadow)
+
+
+# Authored mini-metasprites used to make the same tactical archetype belong to
+# radically different stage materials without relying on primitive outlines.
+ENEMY_MATERIAL_PARTS={
+    'space':[
+        ["..1..",".121.","12321"],
+        ["11111",".123.","..1.."],
+    ],
+    'atmosphere':[
+        ["1......1","121..121",".123321."],
+        ["..1..",".123.","12321"],
+    ],
+    'lava':[
+        ["1...1","12121",".232."],
+        ["1.1","232",".1."],
+    ],
+    'water':[
+        ["1....","121..","12321",".121.","..1.."],
+        ["..1..",".121.","12321",".121.","..1.."],
+    ],
+    'station':[
+        ["11111","12321","11111"],
+        ["..1..","..1..",".232.","11111"],
+    ],
+    'hive':[
+        ["1...1","12.21",".232.","..2..","..1.."],
+        ["1....","12...",".23..","..21.","...1."],
+    ],
+    'city':[
+        ["11111","12321",".111."],
+        ["11.11","12321",".111."],
+    ],
+    'ice':[
+        ["..1..",".121.","12321",".232."],
+        ["1...1","12.21",".232.","..1.."],
+    ],
+    'veil':[
+        ["..1..",".121.","12321",".121.","..1.."],
+        ["1...1",".2.2.","..3..",".2.2.","1...1"],
+    ],
+    'omega':[
+        ["1...1","12.21",".343.","12.21","1...1"],
+        ["..1..",".232.","13431",".232.","..1.."],
+    ],
+}
+
+
+def draw_enemy_material_parts(surface,theme,archetype,x,y,pal,flip_x=False,anim=0):
+    parts=ENEMY_MATERIAL_PARTS.get(theme)
+    if not parts:return
+    part=parts[0 if archetype in ('interceptor','ambusher') else 1]
+    ppal={'1':pal.get('2',(40,50,60)),'2':pal.get('4',(120,160,180)),
+          '3':pal.get('5',WHITE),'4':pal.get('8',ORANGE)}
+    direction=-1 if flip_x else 1
+    if theme in ('water','ice'):
+        draw_indexed_sprite(surface,part,x-2,y-11+(anim if theme=='water' else 0),ppal,flip_x=flip_x)
+        if archetype in ('heavy','artillery'):
+            draw_indexed_sprite(surface,part,x-2,y+7-(anim if theme=='water' else 0),ppal,flip_x=flip_x)
+    elif theme=='hive':
+        draw_indexed_sprite(surface,part,x+direction*2,y-10,ppal,flip_x=flip_x)
+    elif theme in ('veil','omega'):
+        draw_indexed_sprite(surface,part,x+direction*5,y-11,ppal,flip_x=flip_x)
+        if archetype=='heavy':draw_indexed_sprite(surface,parts[1],x-direction*8,y+4,ppal,flip_x=not flip_x)
+    elif theme=='lava':
+        draw_indexed_sprite(surface,part,x-2,y-10,ppal,flip_x=flip_x)
+    else:
+        oy=-9 if archetype!='heavy' else -11
+        draw_indexed_sprite(surface,part,x+direction*1-len(part[0])//2,y+oy,ppal,flip_x=flip_x)
+
+
+
 def draw_pixel_cloud(surface, x, y, scale=1, light=(194,211,218), mid=(142,169,181), shadow=(88,121,137)):
     """Chunky three-value cloud cluster designed to read like painted tiles."""
     rows=[
@@ -234,65 +372,82 @@ def draw_pixel_cloud(surface, x, y, scale=1, light=(194,211,218), mid=(142,169,1
 
 
 PLAYER_PIXELS=[
-    ".............11...............",
-    ".........11112211.............",
-    "......1112223344211...........",
-    "..1111222333444554211.........",
-    "..112222333444556643211.......",
-    "771222333444455566554332111...",
-    "777122333444455555544443321188",
-    "771222333444455566554332111...",
-    "..112222333444556643211.......",
-    "..1111222333444554211.........",
-    "......1112223344211...........",
-    ".........11112211.............",
-    ".............11...............",
+    "..................11...................",
+    "...............11122111................",
+    "............1112233442211..............",
+    ".........111223344555443211............",
+    "......11122233445566655443211..........",
+    "...1112223334455666666554432211........",
+    ".111222333444556666666655544332211.....",
+    "771222333444556667776665554443332211888",
+    "777122233344455667888766655544433221888",
+    "771222333444556667776665554443332211888",
+    ".111222333444556666666655544332211.....",
+    "...1112223334455666666554432211........",
+    "......11122233445566655443211..........",
+    ".........111223344555443211............",
+    "............1112233442211..............",
+    "...............11122111................",
+    "..................11...................",
 ]
+
 
 ENEMY_PIXEL_BANK={
     'interceptor':[
-        ".......11.......",
-        "....111221.......",
-        "..1122334411.....",
-        "112234455443311..",
-        "81123445555544331",
-        "112234455443311..",
-        "..1122334411.....",
-        "....111221.......",
-        ".......11.......",
+        "..........11..........",
+        "......11112211........",
+        "...1112233442211......",
+        ".112234455544332211...",
+        "812344555555544332211.",
+        "8881234455554433221118",
+        "812344555555544332211.",
+        ".112234455544332211...",
+        "...1112233442211......",
+        "......11112211........",
+        "..........11..........",
     ],
     'heavy':[
-        "...111111111.....",
-        ".1122222222211....",
-        "112233333332211...",
-        "1223344444332211..",
-        "812345555554332211",
-        "1223344444332211..",
-        "112233333332211...",
-        ".1122222222211....",
-        "...111111111.....",
+        ".....111111111111.....",
+        "..111222222222222111..",
+        ".12223333333333332221.",
+        "123344444555444433321",
+        "123455555555555544321",
+        "8812344555555554432188",
+        "8881234555555544321888",
+        "8812344555555554432188",
+        "123455555555555544321",
+        "123344444555444433321",
+        ".12223333333333332221.",
+        "..111222222222222111..",
+        ".....111111111111.....",
     ],
     'artillery':[
-        "......1111.......",
-        "...111222211......",
-        ".1122333332211.....",
-        "112334444433211....",
-        "88812345554332211..",
-        "112334444433211....",
-        ".1122333332211.....",
-        "...111222211......",
-        "......1111.......",
+        "........111111.........",
+        "....1111222222111......",
+        "..11223333333332211....",
+        ".123344444444433321....",
+        "81234455555554433211111",
+        "88812345555554433222225",
+        "81234455555554433211111",
+        ".123344444444433321....",
+        "..11223333333332211....",
+        "....1111222222111......",
+        "........111111.........",
     ],
     'ambusher':[
-        "....11......11....",
-        "...1221....1221...",
-        "..1233211123321...",
-        ".12334444443321....",
-        "8123445555443321..",
-        ".12334444443321....",
-        "..1233211123321...",
-        "...1221....1221...",
-        "....11......11....",
+        "....11..........11....",
+        "...1221........1221...",
+        "..123321..11..123321..",
+        ".12344321122112344321.",
+        "1234554433333344554321",
+        "8812344555555544321888",
+        "8881234555555543218888",
+        "8812344555555544321888",
+        "1234554433333344554321",
+        ".12344321122112344321.",
+        "..123321..11..123321..",
+        "...1221........1221...",
+        "....11..........11....",
     ],
 }
 
@@ -1534,6 +1689,144 @@ def draw_hive_pod(surface,x,y,phase):
 # Stage identity data
 # ---------------------------------------------------------------------------
 
+
+# ---------------------------------------------------------------------------
+# V8.6 authored scenery chunks - deliberately irregular / illustrative
+# ---------------------------------------------------------------------------
+SPACE_WRECK_V86=[
+    "................111.............",
+    "..........111112222111..........",
+    ".....11111222333333221111.......",
+    "111112223334444444433222111.....",
+    "..111222333444555544433221......",
+    ".....1111222333444332211........",
+    ".........111222333221...........",
+    ".............111221.............",
+]
+ATMOS_RIDGE_V86=[
+    "............................111.................",
+    "....................111...12221................",
+    "..............111..12221.1233321.....111.......",
+    "......111....12221123332112344321...12221......",
+    "..111122211.1233332344432123454321.123332111...",
+    "1122333333212344443455543234555432123444332211",
+    "2233444444323455554566654345666543234555443322",
+]
+LAVA_COLUMN_V86=[
+    "....111111....",
+    "..1122222211..",
+    ".122333333221.",
+    "1233445543321",
+    "1234556654321",
+    "1234567654321",
+    "1234567654321",
+    "1234556654321",
+    "1233445543321",
+    "1223333333221",
+    "1223333333221",
+    "1233444433321",
+    "1234555444321",
+    "1234566554321",
+    "1234566554321",
+    "1234555444321",
+    "1223333333221",
+    ".11122222111.",
+]
+WATER_ARCH_V86=[
+    "1111................1111",
+    "12221111........1112221",
+    "12333222111111122233321",
+    "12344443333333344444321",
+    "12345554444444455554321",
+    "12345554333333345554321",
+    "12344............344321",
+    "1234..............34321",
+    "123................3321",
+    "12..................221",
+    "11..................111",
+]
+STATION_CONDUIT_V86=[
+    "1111111111111111111111111111",
+    "1222222222222222222222222221",
+    "1233331111333333111133333321",
+    "1234441221344444211244444321",
+    "1234441221345554211244444321",
+    "1233331111333333111133333321",
+    "1222222222222222222222222221",
+    "1111111111111111111111111111",
+]
+HIVE_RIB_V86=[
+    "1..................1",
+    "12................21",
+    ".23..............32.",
+    "..34............43..",
+    "...45..........54...",
+    "....56........65....",
+    ".....67......76.....",
+    "......78....87......",
+    ".......788887.......",
+]
+CITY_FACADE_V86=[
+    ".....111111111.....",
+    "...1122222222211...",
+    "..123333333333321..",
+    ".1234444444444321..",
+    ".1234554545544321..",
+    ".1234444444444321..",
+    ".1234545454544321..",
+    ".1234444444444321..",
+    ".1234554545544321..",
+    ".1234444444444321..",
+    ".1233333333333321..",
+    ".1222222222222221..",
+    ".1111111111111111..",
+]
+ICE_CLIFF_V86=[
+    "...........11...............",
+    ".........11221.......11.....",
+    ".......1123321.....11221....",
+    ".....1123444321..1123321....",
+    "...1123455544321123444321...",
+    ".1123456666544332345554321..",
+    "123456777665544345666543321.",
+    "1234566777655443456665543321",
+    "1234555666554432345554433321",
+    "1234444555443321234444333221",
+    "122333344433221.123333332221",
+    "11122223332211...12222222111",
+]
+VEIL_GATE_V86=[
+    "1.................1",
+    "12...............21",
+    "123.............321",
+    "1234...........4321",
+    "12345.........54321",
+    "123456.......654321",
+    "1234567.....7654321",
+    "12345678...87654321",
+    "1234567888887654321",
+]
+OMEGA_RIB_V86=[
+    "......11111......",
+    "....112222211....",
+    "...12333333321...",
+    "..1234444444321..",
+    ".123455666554321.",
+    "12345677776554321",
+    "12345678876554321",
+    "12345677776554321",
+    ".123455666554321.",
+    "..1234444444321..",
+    "...12333333321...",
+    "....112222211....",
+    "......11111......",
+]
+
+PICKUP_HEALTH_PIXELS=["..11..",".1221.","123321","123321",".1221.","..11.."]
+PICKUP_MAJOR_PIXELS=["..111..",".12221.","1234321","1245421","1234321",".12221.","..111.."]
+PICKUP_LIFE_PIXELS=["...11...",".112211.","12344321","123554321",".1234321.","..1221.."]
+PICKUP_WEAPON_PIXELS=["..111..",".12221.","1234321","1245421","1234321",".12221.","..111.."]
+
 @dataclass(frozen=True)
 class StageProfile:
     title: str
@@ -2203,6 +2496,7 @@ class Background:
         # Authored V8.4 scenery is pre-rendered once; dense pixel art no longer
         # requires thousands of per-pixel set_at calls every frame.
         self.v84_tiles=self._build_v84_art_tiles()
+        self.v86_tiles=self._build_v86_art_tiles()
 
     def _build_v84_art_tiles(self):
         icepal={'1':(18,45,78),'2':(34,78,118),'3':(62,118,158),'4':(91,157,190),'5':(207,239,248),'6':(121,207,231)}
@@ -2229,6 +2523,34 @@ class Background:
             'city':[make_indexed_surface(r,palettes['city']) for r in (CITY_TOWER_V84_A,CITY_TOWER_V84_B)],
             'veil':make_indexed_surface(VEIL_MONOLITH_V84,palettes['veil']),
             'omega':make_indexed_surface(OMEGA_COLUMN_V84,palettes['omega']),
+        }
+
+
+    def _build_v86_art_tiles(self):
+        palettes={
+            'space':{'1':(14,20,36),'2':(37,49,72),'3':(67,80,104),'4':(102,119,144),'5':(171,194,211)},
+            'atmosphere':{'1':(31,60,73),'2':(50,87,96),'3':(78,117,120),'4':(115,151,147),'5':(174,196,183)},
+            'lava':{'1':(25,6,7),'2':(55,13,12),'3':(91,23,14),'4':(149,39,15),'5':(223,65,14),'6':(255,207,69),'7':(114,205,220)},
+            'water':{'1':(2,29,46),'2':(5,57,75),'3':(11,90,101),'4':(36,130,135),'5':(92,186,181)},
+            'station':{'1':(8,16,22),'2':(29,44,52),'3':(57,77,86),'4':(89,115,121),'5':(150,174,177)},
+            'hive':{'1':(28,5,27),'2':(61,12,54),'3':(99,20,73),'4':(143,32,93),'5':(190,48,116),'6':(91,219,145),'7':(194,247,209),'8':(236,113,170)},
+            'city':{'1':(18,20,28),'2':(36,39,49),'3':(62,62,68),'4':(91,75,67),'5':(42,157,184)},
+            'ice':{'1':(17,43,75),'2':(32,75,112),'3':(59,116,155),'4':(90,158,190),'5':(143,211,230),'6':(219,244,250),'7':(109,192,220)},
+            'veil':{'1':(14,5,31),'2':(48,16,76),'3':(84,26,119),'4':(132,39,158),'5':(201,60,206),'6':(82,236,216),'7':(228,81,225),'8':(240,223,244)},
+            'omega':{'1':(12,4,15),'2':(47,10,38),'3':(82,17,55),'4':(125,24,72),'5':(191,34,91),'6':(243,57,118),'7':(255,180,172),'8':(255,230,185)},
+        }
+        return {
+            'space':make_indexed_surface(SPACE_WRECK_V86,palettes['space']),
+            'atmosphere':make_indexed_surface(ATMOS_RIDGE_V86,palettes['atmosphere']),
+            'lava':make_indexed_surface(LAVA_COLUMN_V86,palettes['lava']),
+            'lava_flip':pygame.transform.flip(make_indexed_surface(LAVA_COLUMN_V86,palettes['lava']),False,True),
+            'water':make_indexed_surface(WATER_ARCH_V86,palettes['water']),
+            'station':make_indexed_surface(STATION_CONDUIT_V86,palettes['station']),
+            'hive':make_indexed_surface(HIVE_RIB_V86,palettes['hive']),
+            'city':make_indexed_surface(CITY_FACADE_V86,palettes['city']),
+            'ice':make_indexed_surface(ICE_CLIFF_V86,palettes['ice']),
+            'veil':make_indexed_surface(VEIL_GATE_V86,palettes['veil']),
+            'omega':make_indexed_surface(OMEGA_RIB_V86,palettes['omega']),
         }
 
     def _build_texture(self, theme, size):
@@ -2345,7 +2667,61 @@ class Background:
         fn(surf,stage)
         self.draw_artist_layer(surf,stage)
         self.draw_v84_scene_finish(surf,stage)
+        self.draw_v86_scene_depth(surf,stage)
         self.draw_combat_color_math(surf,stage)
+
+
+    def draw_v86_scene_depth(self,surf,stage):
+        """Additional authored depth composition with strict combat-plane hierarchy."""
+        theme=STAGES[stage-1].theme; tile=self.v86_tiles.get(theme); sc=self.scroll; t=self.time
+        if tile is None:return
+        if theme=='space':
+            for i in range(3):
+                x=int((i*127-sc*(.055+i*.018))%430)-100; y=58+i*49
+                surf.blit(tile,(x,y))
+        elif theme=='atmosphere':
+            # Anchored irregular terrain ridge along the true horizon.
+            for i in range(3):
+                x=int((i*112-sc*.12)%400)-70
+                surf.blit(tile,(x,104-tile.get_height()))
+        elif theme=='lava':
+            # Cave columns hang from ceiling and rise from floor, framing action.
+            for i in range(4):
+                x=int((i*83-sc*.20)%360)-48
+                if i%2: surf.blit(tile,(x,103-tile.get_height()))
+                else: surf.blit(self.v86_tiles['lava_flip'],(x,142))
+        elif theme=='water':
+            for i in range(4):
+                x=int((i*91-sc*.17)%390)-65
+                surf.blit(tile,(x,103-tile.get_height()+8+(i%2)*5))
+        elif theme=='station':
+            # Ceiling conduits are deliberately away from the central combat lane.
+            for i in range(4):
+                x=int((i*89-sc*.26)%390)-70
+                surf.blit(tile,(x,31+(i%2)*13))
+        elif theme=='hive':
+            for i in range(5):
+                x=int((i*72-sc*.22)%370)-55
+                surf.blit(tile,(x,44+(i%2)*14))
+        elif theme=='city':
+            # Every facade is explicitly grounded to horizon 116 with a plinth/shadow.
+            for i in range(6):
+                x=int((i*58-sc*.23)%380)-55; base=116
+                surf.blit(tile,(x,base-tile.get_height()))
+                pygame.draw.line(surf,(11,13,19),(x-1,base),(x+tile.get_width()+1,base),2)
+        elif theme=='ice':
+            # Detailed cliff silhouettes at two depths; never simple triangles.
+            for i in range(5):
+                x=int((i*71-sc*.16)%390)-70; base=105+(i%2)*3
+                surf.blit(tile,(x,base-tile.get_height()))
+        elif theme=='veil':
+            for i in range(4):
+                x=int((i*97+math.sin(t*.35+i)*18)%390)-70
+                surf.blit(tile,(x,54+(i%2)*28))
+        elif theme=='omega':
+            for i in range(5):
+                x=int((i*70-sc*.18)%390)-60
+                surf.blit(tile,(x,45+(i%2)*25))
 
     def draw_combat_color_math(self,surf,stage):
         """SNES-style color math keeps rich scenery behind readable combat sprites."""
@@ -3004,31 +3380,28 @@ class Pickup:
     def draw(self,surf):
         x,y=int(self.x),int(self.y); flash=int(self.phase*10)%2==0
         if self.kind=="health":
-            pygame.draw.rect(surf,(7,38,24),(x-6,y-6,12,12))
-            col=(117,255,151) if flash else GREEN
-            pygame.draw.rect(surf,col,(x-2,y-5,4,10)); pygame.draw.rect(surf,col,(x-5,y-2,10,4))
-            safe_set(surf,x-1,y-4,WHITE)
+            pal={'1':(5,35,22),'2':(18,98,57),'3':GREEN,'4':(142,255,184),'5':WHITE}
+            draw_indexed_sprite(surf,PICKUP_HEALTH_PIXELS,x-3,y-3,pal)
+            pygame.draw.rect(surf,pal['5'] if flash else pal['4'],(x-1,y-4,3,9))
+            pygame.draw.rect(surf,pal['5'] if flash else pal['4'],(x-4,y-1,9,3))
         elif self.kind=="major_health":
-            pygame.draw.rect(surf,(12,52,38),(x-7,y-7,14,14))
-            pygame.draw.rect(surf,(68,218,130),(x-6,y-6,12,12),1)
-            col=WHITE if flash else (137,255,188)
-            pygame.draw.rect(surf,col,(x-2,y-6,4,12)); pygame.draw.rect(surf,col,(x-6,y-2,12,4))
-            pygame.draw.circle(surf,(35,143,88),(x,y),7,1)
+            pal={'1':(7,37,29),'2':(18,91,64),'3':(48,170,105),'4':(117,255,179),'5':WHITE}
+            draw_indexed_sprite(surf,PICKUP_MAJOR_PIXELS,x-3,y-3,pal)
+            pygame.draw.line(surf,pal['5'],(x,y-4),(x,y+4),2); pygame.draw.line(surf,pal['5'],(x-4,y),(x+4,y),2)
+            if flash:pygame.draw.circle(surf,(156,255,202),(x,y),8,1)
         elif self.kind=="life":
-            # Miniature glowing player-ship core.
-            pygame.draw.circle(surf,(45,65,100),(x,y),7)
-            pygame.draw.circle(surf,YELLOW,(x,y),7,1)
-            pygame.draw.polygon(surf,CYAN,[(x-5,y),(x+1,y-4),(x+6,y),(x+1,y+4)])
-            pygame.draw.rect(surf,WHITE,(x+1,y-1,3,2))
-            if flash: pygame.draw.circle(surf,(255,245,160),(x,y),9,1)
+            pal={'1':(15,29,58),'2':(30,80,126),'3':(60,160,199),'4':CYAN,'5':WHITE}
+            draw_indexed_sprite(surf,PICKUP_LIFE_PIXELS,x-4,y-3,pal)
+            safe_set(surf,x+4,y,WHITE); safe_set(surf,x-5,y,ORANGE)
+            if flash:pygame.draw.circle(surf,YELLOW,(x,y),8,1)
         elif self.kind=="weapon":
             idx=self.weapon_index or 0
             hue=[CYAN,ORANGE,(118,100,255),WHITE,MAGENTA,PURPLE,(88,230,255),GREEN,YELLOW,(137,211,255)][idx]
-            pygame.draw.rect(surf,(18,24,42),(x-7,y-7,14,14))
-            pygame.draw.rect(surf,hue,(x-6,y-6,12,12),1)
-            pygame.draw.circle(surf,hue,(x,y),4,1)
+            pal={'1':(13,19,35),'2':tuple(max(0,c//3) for c in hue),'3':tuple(max(0,c//2) for c in hue),'4':hue,'5':WHITE}
+            draw_indexed_sprite(surf,PICKUP_WEAPON_PIXELS,x-3,y-3,pal)
             pygame.draw.line(surf,WHITE,(x-3,y),(x+3,y),1)
-            if flash: safe_set(surf,x,y,WHITE)
+            if flash:safe_set(surf,x,y,WHITE)
+
 
 
 class Hazard:
@@ -3203,8 +3576,17 @@ class Player:
         }
         # A one-pixel dark underside offset makes the ship read as a volume.
         shadow_pal={k:tuple(max(0,c-24) for c in v) if isinstance(v,tuple) else v for k,v in pal.items()}
-        draw_indexed_sprite(surf,PLAYER_PIXELS,x-15,y-5+bank,shadow_pal)
-        draw_indexed_sprite(surf,PLAYER_PIXELS,x-15,y-6+bank,pal)
+        pw=max(len(r) for r in PLAYER_PIXELS); ph=len(PLAYER_PIXELS)
+        px=x-pw//2; py=y-ph//2+bank
+        draw_indexed_sprite(surf,PLAYER_PIXELS,px,py+1,shadow_pal)
+        draw_indexed_sprite(surf,PLAYER_PIXELS,px,py,pal)
+        # Bank-specific wing illumination gives the hero craft an authored animation state.
+        if self.bank<-.25:
+            pygame.draw.line(surf,(188,241,250),(x-5,y+4),(x+7,y+2),1)
+            pygame.draw.line(surf,(35,85,126),(x-7,y-5),(x+4,y-4),1)
+        elif self.bank>.25:
+            pygame.draw.line(surf,(188,241,250),(x-5,y-4),(x+7,y-2),1)
+            pygame.draw.line(surf,(35,85,126),(x-7,y+5),(x+4,y+4),1)
         # Layered engine flame is simulation-time based (not wall-clock based),
         # avoiding visual phase jumps after a slow frame.
         flame=4+int((math.sin(self.anim_time*24)+1)*1.5)
@@ -3349,10 +3731,10 @@ class Enemy:
         rows=ENEMY_PIXEL_BANK[self.archetype]
         flip=self.from_rear
         sx=x-len(rows[0])//2; sy=y-len(rows)//2
-        rim={'lava':(117,210,235),'water':(182,255,239),'station':(125,226,238),'hive':(177,255,194),'city':(119,213,235),'ice':(232,250,255),'veil':(126,255,230),'omega':(255,185,195)}.get(theme,(117,191,226))
-        draw_indexed_outline(surf,rows,sx,sy,rim,flip_x=flip)
         draw_indexed_sprite(surf,rows,sx,sy,pal,flip_x=flip)
+        draw_material_readability(surf,rows,sx,sy,theme,flip_x=flip)
         anim=int(self.age*9)%2
+        draw_enemy_material_parts(surf,theme,self.archetype,x,y,pal,flip_x=flip,anim=anim)
         direction=1 if flip else -1
         # Distinct archetype hardpoints/animation so types are recognizable in motion.
         if self.archetype=='interceptor':
@@ -3626,12 +4008,60 @@ class Boss:
         getattr(self,f"draw_{self.profile.boss_kind}")(surf)
         self._artist_detail_overlay(surf)
         self._v84_boss_finish(surf)
+        self._v86_boss_material_finish(surf)
         if self.flash>0:
             # sparse white hit highlights without blanking the art
             x,y=int(self.x),int(self.y)
             pygame.draw.circle(surf,WHITE,(x-5,y-3),3,1)
         if self.teleport_flash>0:
             pygame.draw.circle(surf,(165,255,239),(int(self.x),int(self.y)),self.radius+6,1)
+
+
+    def _v86_boss_material_finish(self,surf):
+        """Fine pixel clusters that reinforce material and anatomy without redefining silhouettes."""
+        x,y=int(self.x),int(self.y); kind=self.profile.boss_kind; pulse=int((math.sin(self.age*4)+1)*2)
+        if kind=='carrier':
+            for ox in (-25,-12,8,21):
+                pygame.draw.line(surf,(112,190,207),(x+ox,y-5),(x+ox+5,y-5),1)
+                safe_set(surf,x+ox+2,y-4,(224,247,250))
+        elif kind=='bastion':
+            for ox,oy in ((-18,-17),(16,-17),(-18,16),(16,16)):
+                pygame.draw.circle(surf,(13,27,39),(x+ox,y+oy),4,1)
+                safe_set(surf,x+ox+pulse-1,y+oy,(126,226,236))
+        elif kind=='pyroclast':
+            # facial eye, jaw teeth and claw heat make the creature read as anatomy.
+            safe_set(surf,x-20,y-12,(255,237,139)); safe_set(surf,x-21,y-12,WHITE)
+            for i in range(4):safe_set(surf,x-24+i*3,y-3+(i%2),(255,210,118))
+            if not self.shell:pygame.draw.line(surf,(255,91,18),(x-6,y+3),(x+8,y+8),2)
+        elif kind=='leviathan':
+            for i in range(4):
+                pygame.draw.line(surf,(80,220,210),(x-4+i*5,y-7),(x-1+i*5,y-4),1)
+            safe_set(surf,x-17,y-3,(220,255,244))
+        elif kind=='sentinel':
+            for ox in (-15,-8,7,14):
+                safe_set(surf,x+ox,y-4,(137,224,229)); safe_set(surf,x+ox,y+4,(224,167,65))
+        elif kind=='mother':
+            for i in range(5):
+                a=self.age*.3+i*math.tau/5; safe_set(surf,x+8+int(math.cos(a)*8),y+int(math.sin(a)*7),(122,241,168))
+        elif kind=='ares':
+            pygame.draw.line(surf,(183,130,80),(x-7,y-13),(x+7,y-13),1)
+            for oy in (-5,3,11):safe_set(surf,x+12,y+oy,(251,94,53))
+        elif kind=='wyrm':
+            for i in range(7):
+                sx=x+i*9; sy=y+int(math.sin(self.age*3.2-i*.62)*9)
+                safe_set(surf,sx-2,sy-4,(234,252,255)); safe_set(surf,sx+2,sy+3,(48,104,142))
+        elif kind=='sovereign':
+            for sign,col in ((-1,(78,245,218)),(1,(231,76,226))):
+                safe_set(surf,x+sign*(13+pulse),y-11,col); safe_set(surf,x+sign*(18+pulse),y+8,col)
+        elif kind=='omega':
+            # More threatening facial architecture: brow, vertical fangs, living iris veins.
+            pygame.draw.line(surf,(124,18,68),(x-25,y-13),(x-7,y-19),3)
+            pygame.draw.line(surf,(124,18,68),(x+25,y-13),(x+7,y-19),3)
+            for i in range(-4,5,2):
+                pygame.draw.line(surf,(255,178,166),(x+i*3,y+16),(x+i*3,y+21+abs(i)),1)
+            for a in range(0,360,45):
+                aa=math.radians(a+self.age*20); rr=10+self.phase*2
+                safe_set(surf,x+int(math.cos(aa)*rr),y+int(math.sin(aa)*rr),(255,72,125))
 
     def _v84_boss_finish(self,surf):
         """Second-pass pixel detailing: material texture, articulation and silhouette accents."""
@@ -4882,13 +5312,13 @@ class Game:
 # ---------------------------------------------------------------------------
 
 def packaged_smoke_test():
-    """Exercise V8.5 art, readability, difficulty, menus, saves and stereo audio."""
+    """Exercise V8.6 sprite art, material readability, difficulty, saves and stereo audio."""
     g=Game()
     assert DIFFICULTY_ORDER==("EASY","HARDER","DIFFICULT","INSANE")
     assert g.difficulty=="INSANE"
     assert DIFFICULTY_PROFILES["INSANE"]["damage"]==1.0
     try:
-        assert BUILD_ID=="V8.5-SCENE-READABILITY"
+        assert BUILD_ID=="V8.6-SPRITE-ART"
         assert WEAPON_NAMES[4]=="HOMING ROCKET"
         assert g.player.unlocked==[True]+[False]*9
         assert FIXED_DT==1.0/FPS
@@ -4898,6 +5328,14 @@ def packaged_smoke_test():
                     WYRM_HEAD,SOVEREIGN_FACE,OMEGA_MASK):
             assert len(art)>=7
         assert len(CARRIER_BODY)>=12 and len(LEVIATHAN_HEAD)>=16 and len(BASTION_HULL)>=12
+        # V8.6 full-sprite/material art assets must survive PyInstaller collection.
+        assert len(PLAYER_PIXELS)>=15 and max(map(len,PLAYER_PIXELS))>=35
+        assert all(len(ENEMY_PIXEL_BANK[a])>=11 for a in ARCHETYPES)
+        assert set(ENEMY_MATERIAL_PARTS)>={"lava","water","station","hive","city","ice","veil","omega"}
+        for art in (SPACE_WRECK_V86,ATMOS_RIDGE_V86,LAVA_COLUMN_V86,WATER_ARCH_V86,
+                    STATION_CONDUIT_V86,HIVE_RIB_V86,CITY_FACADE_V86,ICE_CLIFF_V86,
+                    VEIL_GATE_V86,OMEGA_RIB_V86):
+            assert len(art)>=7
 
         # Camera scroll must remain continuous across the old 256 wrap point.
         bg=Background(); bg.scroll=255.75
