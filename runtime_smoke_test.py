@@ -1,4 +1,4 @@
-"""Omega Horizon V8.7 source-level regression smoke test."""
+"""Omega Horizon V8.8 source-level regression smoke test."""
 import os
 import tempfile
 
@@ -11,8 +11,8 @@ import pygame
 import numpy as np
 import omega_horizon_shmup as game
 
-assert game.BUILD_ID == "V8.7-MASTER-ART"
-assert game.DISPLAY_VERSION == "V8.7"
+assert game.BUILD_ID == "V8.8-MASTER-ART"
+assert game.DISPLAY_VERSION == "V8.8"
 assert game.DISPLAY_SUBTITLE == "MASTER ART PASS"
 assert len(game.STAGES) == 10
 assert len(game.WEAPON_NAMES) == 10
@@ -22,7 +22,7 @@ assert game.DIFFICULTY_ORDER == ("EASY","HARDER","DIFFICULT","INSANE")
 assert game.DIFFICULTY_PROFILES["INSANE"]["damage"] == 1.0
 assert len({(s.theme, s.music_style, s.bpm, s.key) for s in game.STAGES}) == 10
 
-# V8.7 master-art, material readability and shield assets.
+# V8.8 master-art, material readability and shield assets.
 assert len(game.PLAYER_PIXELS) >= 15
 assert max(map(len, game.PLAYER_PIXELS)) >= 35
 assert all(a in game.ENEMY_PIXEL_BANK for a in game.ARCHETYPES)
