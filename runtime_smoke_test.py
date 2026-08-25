@@ -1,8 +1,8 @@
-"""Omega Horizon V8.8.1 source-level regression smoke test."""
+"""Omega Horizon V8.9 source-level regression smoke test."""
 import os
 import tempfile
 
-_tmp = tempfile.mkdtemp(prefix="omega_horizon_v881_")
+_tmp = tempfile.mkdtemp(prefix="omega_horizon_v89_")
 os.environ["LOCALAPPDATA"] = _tmp
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
@@ -11,18 +11,20 @@ import pygame
 import numpy as np
 import omega_horizon_shmup as game
 
-assert game.BUILD_ID == "V8.8.1-HANDCRAFTED-BEAUTY"
-assert game.DISPLAY_VERSION == "V8.8.1"
-assert game.DISPLAY_SUBTITLE == "HANDCRAFTED BEAUTY"
+assert game.BUILD_ID == "V8.9-LATE-SNES-CONVERGENCE"
+assert game.DISPLAY_VERSION == "V8.9"
+assert game.DISPLAY_SUBTITLE == "LATE-SNES CONVERGENCE"
 assert len(game.STAGES) == 10
 assert len(game.WEAPON_NAMES) == 10
 assert game.WEAPON_NAMES[4] == "HOMING ROCKET"
 assert game.FIXED_DT == 1.0/game.FPS
 assert game.DIFFICULTY_ORDER == ("EASY","HARDER","DIFFICULT","INSANE")
 assert game.DIFFICULTY_PROFILES["INSANE"]["damage"] == 1.0
+assert set(game.V89_SCENE_CHUNKS) == set(game.V88_SCENE_CHUNKS)
+assert set(game.V89_SHIELD_PIXELS) == set(game.SHIELD_ORDER)
 assert len({(s.theme, s.music_style, s.bpm, s.key) for s in game.STAGES}) == 10
 
-# V8.8 master-art, material readability and shield assets.
+# V8.9 convergence assets.
 assert len(game.PLAYER_PIXELS) >= 15
 assert max(map(len, game.PLAYER_PIXELS)) >= 35
 assert all(a in game.ENEMY_PIXEL_BANK for a in game.ARCHETYPES)

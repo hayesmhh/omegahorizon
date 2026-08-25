@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-OMEGA HORIZON V8.8.1 - HANDCRAFTED BEAUTY / REALISM & MENACE
+OMEGA HORIZON V8.9 - LATE-SNES AESTHETIC CONVERGENCE
 =========================================================
 Single-file procedural Pygame shooter designed around a 256x224 SNES-like
 canvas, software perspective rendering, original artist-directed pixel art,
@@ -23,7 +23,7 @@ Controls:
 Developer code:
     Type TERMINUS on the title screen to enable TEST MODE.
 
-Build identity: V8.8.1-HANDCRAFTED-BEAUTY
+Build identity: V8.9-LATE-SNES-CONVERGENCE
 """
 
 import json
@@ -51,9 +51,9 @@ FIXED_DT = 1.0 / FPS
 HUD_H = 21
 HORIZON_Y = 104
 AUDIO_RATE = 44100
-BUILD_ID = "V8.8.1-HANDCRAFTED-BEAUTY"
-DISPLAY_VERSION = "V8.8.1"
-DISPLAY_SUBTITLE = "HANDCRAFTED BEAUTY"
+BUILD_ID = "V8.9-LATE-SNES-CONVERGENCE"
+DISPLAY_VERSION = "V8.9"
+DISPLAY_SUBTITLE = "LATE-SNES CONVERGENCE"
 
 DIFFICULTY_ORDER=("EASY","HARDER","DIFFICULT","INSANE")
 SHIELD_ORDER=("AEGIS","REFLECTOR","PHASE","INTERCEPTOR")
@@ -270,12 +270,19 @@ def draw_material_readability(surface,rows,x,y,theme,flip_x=False):
         'ice':((238,252,255),(26,70,104),2),
     }
     if theme=='hive':
-        # Organic enemies alone retain a membrane-like contour, but it is
-        # broken rather than continuous to keep the pixel clusters visible.
-        for i,(gx,gy) in enumerate(e['all']):
-            if i%3==0:
-                for ox,oy in ((-1,0),(1,0),(0,-1),(0,1)):
-                    safe_set(surface,x+gx+ox,y+gy+oy,(103,239,155))
+        # V8.9: less amoeba-like full halos, more predatory toxic edge glints.
+        toxic=(104,238,151); acid=(212,255,136); bruise=(45,11,38); bile=(255,188,92)
+        lead=e[forward]; step=max(1,len(lead)//4)
+        for i,(gx,gy) in enumerate(e['top']+lead):
+            if (gx*5+gy+i)%4==0:
+                safe_set(surface,x+gx,y+gy-1,toxic)
+        for i,(gx,gy) in enumerate(e['bottom']+e[back]):
+            if (gx*7+gy+i)%5==0:
+                safe_set(surface,x+gx,y+gy+1,bruise)
+        ox=-1 if flip_x else 1
+        for i,(gx,gy) in enumerate(lead[::step]):
+            safe_set(surface,x+gx+ox,y+gy,acid)
+            if i%2==0:safe_set(surface,x+gx+ox*2,y+gy,bile)
         return
     if theme in ('veil','omega'):
         left_col=(79,243,225) if theme=='veil' else (243,91,142)
@@ -355,6 +362,8 @@ def draw_enemy_material_parts(surface,theme,archetype,x,y,pal,flip_x=False,anim=
             draw_indexed_sprite(surface,part,x-2,y+7-(anim if theme=='water' else 0),ppal,flip_x=flip_x)
     elif theme=='hive':
         draw_indexed_sprite(surface,part,x+direction*2,y-10,ppal,flip_x=flip_x)
+        if len(parts)>1 and archetype in ('heavy','artillery'):
+            draw_indexed_sprite(surface,parts[1],x-direction*3,y+3,ppal,flip_x=not flip_x)
     elif theme in ('veil','omega'):
         draw_indexed_sprite(surface,part,x+direction*5,y-11,ppal,flip_x=flip_x)
         if archetype=='heavy':draw_indexed_sprite(surface,parts[1],x-direction*8,y+4,ppal,flip_x=not flip_x)
@@ -697,80 +706,91 @@ BOSS_DETAIL_TILES={
 # of geometric primitives.
 
 PYRO_PROFILE_HEAD=[
-    "........11.............",
-    "......11221......11....",
-    "....11223321...1121....",
-    "..11223344421122321....",
-    ".12233445554333321.....",
-    "122345566665443321.....",
-    "12345667777655433211...",
-    "123456677776655443321..",
-    "112345566665554433221..",
-    "..123444444433332221...",
-    "...112333333222211.....",
-    ".....112222211.........",
-    "........111............",
+    ".........11111........",
+    "......11122222111.....",
+    "....11223333332211....",
+    "...1233445555443321...",
+    "..123445666666554321..",
+    ".123455667777766554321.",
+    "12345677788887776654321",
+    "12345677899988776654321",
+    "12345677888888776654321",
+    "12345566777777665554321",
+    ".1234455666666555444321.",
+    "..12334455555544433221..",
+    "...11233334444332211....",
+    ".....111222222111......",
+    "........111111.........",
 ]
 PYRO_PROFILE_JAW=[
-    "1111111111111....",
-    "122222222222211..",
-    "1233333333333221.",
-    "112222111222221..",
-    "..1.1.1.1.1.1....",
+    "1111111111111111.....",
+    "12222222222222221....",
+    "123333333333333321...",
+    "12344444444433321....",
+    ".122221111122221.....",
+    "..1.1.1.1.1.1.1......",
 ]
 PYRO_PROFILE_TORSO=[
-    "........111111111........",
-    ".....111222222222111.....",
-    "...112233333333333221....",
-    ".112334444455444433221...",
-    "12234455566665554433221..",
-    "123455666777766655443321.",
-    "1234566777777776655443321",
-    "1234566777777777665543321",
-    "1234556677777776655443321",
-    "122344556677766655443321.",
-    ".1123344556666554433221..",
-    "...112334455544332221....",
-    ".....11223333332211......",
-    ".......111222111.........",
+    "...........11111111111..........",
+    ".......1111222222222222111......",
+    "....111223333333333333332211....",
+    "..1122334444444555444444332211..",
+    ".1223344555556666666555554433221.",
+    "12334556666677777777666665543321",
+    "123456677777888888887777766554321",
+    "123456778888999999998888776654321",
+    "123456778899999999999988776654321",
+    "123456778899999999999988776654321",
+    "123456777888888888888887776654321",
+    "123455667777777777777776665543321",
+    "123445566666666666666666554433221",
+    ".1223344555555555555555544332211.",
+    "..112233444444444444444332211....",
+    "....11122333333333333322111......",
+    "........111222222222111..........",
 ]
 PYRO_PROFILE_ARM=[
-    "....111.......",
-    "..112221......",
-    ".12333321.....",
-    "1234444321....",
-    "12345554321...",
-    ".12345554321..",
-    "..1234444321..",
-    "...123333221..",
-    "....1222211...",
-    ".....1221.....",
-    "......121.....",
+    ".....11111.......",
+    "...11222211......",
+    ".11233333321......",
+    "1234445554321....",
+    "12345566654321...",
+    "123456777654321..",
+    ".123456777654321..",
+    "..12345566654321..",
+    "...1234445554321..",
+    "....12333333221...",
+    ".....112222211....",
+    "......1112111.....",
 ]
 PYRO_PROFILE_CLAW=[
-    "1...1...1",
-    "11.121.11",
-    ".1234321.",
-    "..12321..",
-    "...121...",
+    "1...11...1.",
+    "11.1221.11.",
+    ".123443321.",
+    "..1233321..",
+    "...12221...",
+    "....111....",
 ]
 PYRO_PROFILE_LEG=[
-    "..1111....",
-    ".122221...",
-    "12333321..",
-    "123443321.",
-    ".123433321",
-    "..12333221",
-    "...122221.",
-    "...121.121",
-    "..121...11",
+    "...11111....",
+    "..1222221...",
+    ".123333321..",
+    "12344443321.",
+    "123455543321",
+    ".12345543321",
+    "..1234443321",
+    "...123333221",
+    "....12222121",
+    "....1211..11",
 ]
 PYRO_PROFILE_TAIL=[
-    "1111111111111111111111",
-    ".122222222222222222211",
-    "..1233333333333333221.",
-    "....122222222222221...",
-    "......11111111111.....",
+    "........111111111111111111.......",
+    ".....11122222222222222222211.....",
+    "...11223333333333333333333221....",
+    "..123344444444444444444433221....",
+    "...1122333333333333333332211.....",
+    ".....11122222222222221111........",
+    "........11111111111111...........",
 ]
 
 SENTINEL_CHASSIS=[
@@ -2095,6 +2115,11 @@ V87_SHIELD_PIXELS={
 'INTERCEPTOR':["..111..",".12221.","1234321","1345431","1234321",".12221.","..111.."],
 }
 
+V88_SCENE_CHUNKS=V87_SCENE_CHUNKS
+V88_SHIELD_PIXELS=V87_SHIELD_PIXELS
+V89_SCENE_CHUNKS=V88_SCENE_CHUNKS
+V89_SHIELD_PIXELS=V88_SHIELD_PIXELS
+
 V87_PICKUP_SHIELD_PALETTES={
 'AEGIS':{'1':(4,24,55),'2':(15,80,132),'3':(53,151,203),'4':(105,224,255),'5':WHITE},
 'REFLECTOR':{'1':(20,27,42),'2':(75,95,126),'3':(146,177,209),'4':(225,242,255),'5':WHITE},
@@ -2882,6 +2907,46 @@ class Background:
             for r,col in ((38+pulse,(72,14,51)),(29+pulse,(116,21,68)),(19+pulse,(175,32,88))):
                 pygame.draw.circle(surf,col,(cx,cy),r,1)
 
+    def draw_v89_convergence_layer(self,surf,stage):
+        self.draw_v87_beauty_layer(surf,stage)
+        theme=STAGES[stage-1].theme; sc=self.scroll; t=self.time
+        if theme=='ice':
+            # Extra distant ridge and snow-haze to move the stage away from a
+            # bare geometric mountain band and toward a painted frozen horizon.
+            ridge=[(0,88),(18,76),(34,84),(49,71),(67,90),(87,78),(104,92),(126,70),
+                   (149,90),(170,76),(192,86),(211,68),(233,88),(255,74),(255,102),(0,102)]
+            pygame.draw.polygon(surf,(50,86,119),ridge)
+            for pts,col in [
+                ([(0,93),(20,82),(38,88),(55,79),(74,95),(0,100)],(104,149,181)),
+                ([(85,94),(106,79),(122,89),(138,76),(160,98),(85,101)],(111,163,199)),
+                ([(167,92),(190,77),(206,84),(227,73),(248,95),(167,101)],(98,144,178)),
+            ]:
+                pygame.draw.lines(surf,col,False,pts,1)
+            if self.fx_level:
+                for i in range(20):
+                    sx=(i*29+int(t*13))%NATIVE_W; sy=36+(i*11)%78
+                    safe_set(surf,sx,sy,(214,244,255))
+        elif theme=='hive':
+            # More oppressive biome depth: shadow pods and tendon silhouettes.
+            for i in range(4):
+                x=int((i*79-sc*.10)%380)-50; y=47+(i%2)*25
+                pygame.draw.ellipse(surf,(39,10,31),(x,y,44,16),1)
+                pygame.draw.ellipse(surf,(64,21,49),(x+8,y+3,12,7),1)
+                pygame.draw.line(surf,(76,34,60),(x+22,y+16),(x+17,y+31),1)
+                pygame.draw.line(surf,(92,46,70),(x+22,y+16),(x+28,y+29),1)
+        elif theme=='city':
+            # Reinforce grounded plinth so the skyline never appears to float.
+            pygame.draw.rect(surf,(18,20,28),(0,112,NATIVE_W,7))
+            pygame.draw.line(surf,(68,76,88),(0,111),(NATIVE_W,111),1)
+        elif theme=='lava' and self.fx_level:
+            for i in range(7):
+                sx=(i*37+int(t*9))%NATIVE_W; sy=44+(i*19)%56
+                safe_set(surf,sx,sy,(255,121,41)); safe_set(surf,sx+1,sy,(255,205,73))
+        elif theme=='omega' and self.fx_level:
+            for i in range(5):
+                sx=28+i*43+int(math.sin(t*.8+i)*6)
+                pygame.draw.line(surf,(112,33,81),(sx,34),(sx,106),1)
+
     def _build_texture(self, theme, size):
         yy,xx=np.indices((size,size))
         tex=np.zeros((size,size,3),dtype=np.uint8)
@@ -2997,7 +3062,7 @@ class Background:
         self.draw_artist_layer(surf,stage)
         self.draw_v84_scene_finish(surf,stage)
         self.draw_v86_scene_depth(surf,stage)
-        self.draw_v87_beauty_layer(surf,stage)
+        self.draw_v89_convergence_layer(surf,stage)
         self.draw_combat_color_math(surf,stage)
 
 
@@ -3924,31 +3989,62 @@ class Player:
         if not self.shield_kind:return
         x,y=int(self.x),int(self.y); t=self.anim_time; flash=self.shield_flash>0
         col=SHIELD_DATA[self.shield_kind]['color']
+        shell=pygame.Surface((64,48),pygame.SRCALPHA)
+        # Shields spend most of their time semi-transparent, occasionally
+        # blooming into a brighter pulse before fading again.
+        flick=.18+.48*(math.sin(t*7.6)+1)*.5
+        if int(t*15)%5==0:flick*=.42
+        if flash:flick=min(1.0,flick+.35)
+        ox=32; oy=24
+        def a(v): return max(0,min(255,int(v)))
+        base_alpha=a(26+96*flick)
+        fill_alpha=a(8+38*flick)
+        rim_alpha=a(18+68*flick)
         if self.shield_kind=='AEGIS':
-            # faceted blue shell with rotating highlight facets
-            pts=[]
-            for i in range(12):
-                a=i*math.tau/12+t*.8; rx=20+(1 if i%2 else 0); ry=13
-                pts.append((x+int(math.cos(a)*rx),y+int(math.sin(a)*ry)))
-            pygame.draw.lines(surf,col,True,pts,1)
-            for i in range(0,12,3): safe_set(surf,*pts[i],WHITE if flash else (167,241,255))
+            pygame.draw.ellipse(shell,(*col,fill_alpha),(11,12,42,22),0)
+            pygame.draw.ellipse(shell,(*col,base_alpha),(8,8,48,30),1)
+            pygame.draw.ellipse(shell,(255,255,255,rim_alpha),(11,10,40,24),1)
+            for phase in (0,math.pi*.8):
+                rx=18+int(math.cos(t*2.1+phase)*2)
+                ry=11
+                pts=[]
+                for i in range(10):
+                    ang=i*math.tau/10+t*1.05+phase
+                    pts.append((ox+int(math.cos(ang)*rx),oy+int(math.sin(ang)*ry)))
+                pygame.draw.lines(shell,(167,241,255,a(34+88*flick)),True,pts,1)
+            for i in range(3):
+                ang=t*1.8+i*math.tau/3
+                px=ox+int(math.cos(ang)*20); py=oy+int(math.sin(ang)*11)
+                pygame.draw.circle(shell,(255,255,255,a(80+120*flick)),(px,py),1)
         elif self.shield_kind=='REFLECTOR':
-            for i in range(6):
-                a=i*math.tau/6+t*.9; cx=x+int(math.cos(a)*19); cy=y+int(math.sin(a)*12)
-                pygame.draw.line(surf,(226,242,255),(cx-2,cy-2),(cx+2,cy+2),1)
-                pygame.draw.line(surf,(93,157,211),(cx+2,cy-2),(cx-2,cy+2),1)
+            pygame.draw.ellipse(shell,(*col,a(10+26*flick)),(12,13,40,20),0)
+            pygame.draw.ellipse(shell,(*col,base_alpha),(8,8,48,30),1)
+            pygame.draw.ellipse(shell,(255,255,255,a(42+92*flick)),(9,9,46,28),1)
+            for i in range(4):
+                ang=t*1.6+i*math.tau/4
+                cx=ox+int(math.cos(ang)*18); cy=oy+int(math.sin(ang)*10)
+                pygame.draw.line(shell,(226,242,255,a(70+100*flick)),(cx-3,cy-2),(cx+3,cy+2),1)
+                pygame.draw.line(shell,(93,157,211,a(55+85*flick)),(cx+3,cy-2),(cx-3,cy+2),1)
         elif self.shield_kind=='PHASE':
-            # offset cyan/magenta ghost silhouettes sell spatial displacement
-            for sign,c in ((-1,(69,234,245)),(1,(225,75,255))):
-                ox=sign*(2+int((math.sin(t*18)+1)))
-                pygame.draw.arc(surf,c,(x-21+ox,y-13,42,26),.2,2.8,1)
-                pygame.draw.arc(surf,c,(x-21-ox,y-13,42,26),3.3,5.9,1)
+            split=2+int((math.sin(t*9.0)+1)*1.5)
+            for dx,c in ((-split,(69,234,245)),(split,(225,75,255))):
+                pygame.draw.ellipse(shell,(*c,a(12+28*flick)),(12+dx,13,40,20),0)
+                pygame.draw.arc(shell,(*c,a(42+88*flick)),(9+dx,8,46,30),.15,2.95,1)
+                pygame.draw.arc(shell,(*c,a(42+88*flick)),(9-dx,8,46,30),3.25,6.0,1)
+            for i in range(4):
+                px=ox+(-1)**i*(6+i*3); py=oy-7+i*4
+                pygame.draw.circle(shell,(255,255,255,a(38+90*flick)),(px,py),1)
         elif self.shield_kind=='INTERCEPTOR':
-            rr=17+int((math.sin(t*8)+1)*1.5)
-            for i in range(8):
-                a=i*math.tau/8-t*1.8; px=x+int(math.cos(a)*rr); py=y+int(math.sin(a)*rr*.72)
-                safe_set(surf,px,py,WHITE if i%3==0 else col)
-                if i%2==0:safe_set(surf,px+1,py,col)
+            pygame.draw.ellipse(shell,(*col,a(8+22*flick)),(13,13,38,20),0)
+            pygame.draw.ellipse(shell,(*col,base_alpha),(9,9,46,28),1)
+            rr=20+int((math.sin(t*8)+1)*1.2)
+            for i in range(6):
+                ang=i*math.tau/6-t*2.4
+                px=ox+int(math.cos(ang)*rr); py=oy+int(math.sin(ang)*rr*.58)
+                pygame.draw.circle(shell,(255,255,255,a(44+110*flick)),(px,py),1)
+                pygame.draw.circle(shell,(*col,a(26+86*flick)),(px,py),2,1)
+            pygame.draw.arc(shell,(255,255,255,a(34+70*flick)),(12,11,40,24),.35,2.7,1)
+        surf.blit(shell,(x-32,y-24))
 
     def update(self,dt,keys,game):
         dx=(1 if keys[pygame.K_RIGHT] or keys[pygame.K_d] else 0)-(1 if keys[pygame.K_LEFT] or keys[pygame.K_a] else 0)
@@ -4743,8 +4839,9 @@ class Boss:
 
     def draw_pyroclast(self,surf):
         x,y=int(self.x),int(self.y)
-        # V8.3 profile redesign: a hunched horned lava beast facing the player.
-        # It has an actual snout/jaw, shoulder mass, forelimbs, legs and tail.
+        # V8.9 convergence pass: Pyroclast reads as one dense predator mass,
+        # not separated floating pieces.  The head, chest and arm now overlap
+        # more aggressively and the lava fissures are concentrated into one body.
         if self.shell:
             pal={'1':(6,6,8),'2':(25,27,31),'3':(49,52,56),'4':(78,82,82),
                  '5':(116,101,82),'6':(165,75,39),'7':(78,163,193),'8':(198,238,247)}
@@ -4752,39 +4849,44 @@ class Boss:
             pal={'1':(14,4,4),'2':(43,9,6),'3':(78,16,7),'4':(126,27,8),
                  '5':(190,45,8),'6':(245,75,11),'7':(255,161,29),'8':(255,239,129)}
         heave=int(math.sin(self.age*2.0)*2)
-        # Tail and rear mass sit behind the body.
-        draw_indexed_sprite(surf,PYRO_PROFILE_TAIL,x+6,y+6+heave,pal)
-        draw_indexed_sprite(surf,PYRO_PROFILE_TORSO,x-4,y-7+heave,pal)
-        # Rear leg creates a grounded creature stance instead of a floating ring.
         step=int(math.sin(self.age*1.6)*2)
-        draw_indexed_sprite(surf,PYRO_PROFILE_LEG,x+5,y+14+step,pal)
-        # Shoulder / attacking arm reaches toward the player.
         swing=int(math.sin(self.age*2.3)*3)
-        draw_indexed_sprite(surf,PYRO_PROFILE_ARM,x-23,y-2+swing,pal)
-        draw_indexed_sprite(surf,PYRO_PROFILE_CLAW,x-31,y+7+swing,pal)
-        # Large side-profile head and lower jaw, offset left from torso.
-        hy=y-25+int(math.sin(self.age*2.7)*2)
-        draw_indexed_sprite(surf,PYRO_PROFILE_HEAD,x-25,hy,pal)
-        jaw_open=2+int((math.sin(self.age*3.4)+1)*1.5)
-        draw_indexed_sprite(surf,PYRO_PROFILE_JAW,x-24,hy+10+jaw_open,pal)
-        eye=(170,235,255) if self.shell else WHITE
-        safe_set(surf,x-13,hy+6,eye); safe_set(surf,x-14,hy+6,eye)
-        # Chest and shoulder magma fissures animate independently.
+        hy=y-22+int(math.sin(self.age*2.7)*2)
+        jaw_open=1+int((math.sin(self.age*3.4)+1)*1.5)
         hot=(92,190,217) if self.shell else (255,223,83)
         hot2=(47,111,145) if self.shell else (255,83,12)
-        for ax,ay,bx,by in [(-1,-2,4,5),(8,1,12,8),(-12,4,-8,11),(5,10,8,15)]:
+        # Rear tail and lower body.
+        draw_indexed_sprite(surf,PYRO_PROFILE_TAIL,x+5,y+8+heave,pal)
+        draw_indexed_sprite(surf,PYRO_PROFILE_LEG,x+10,y+15+step,pal)
+        # Main body mass.
+        draw_indexed_sprite(surf,PYRO_PROFILE_TORSO,x-1,y-8+heave,pal)
+        draw_indexed_sprite(surf,PYRO_PROFILE_ARM,x-17,y-1+swing,pal)
+        draw_indexed_sprite(surf,PYRO_PROFILE_CLAW,x-24,y+8+swing,pal)
+        draw_indexed_sprite(surf,PYRO_PROFILE_HEAD,x-18,hy,pal)
+        draw_indexed_sprite(surf,PYRO_PROFILE_JAW,x-16,hy+11+jaw_open,pal)
+        # Bridge the anatomy so the boss reads as a single molten beast.
+        for sx,sy,ex,ey,col in [
+            (-1,-4,10,0,pal['5']), (-6,-7,6,-2,pal['4']), (-9,-1,-3,5,pal['4']),
+            (-12,8,-3,10,pal['5']), (4,10,11,16,pal['4'])
+        ]:
+            pygame.draw.line(surf,col,(x+sx,y+sy+heave),(x+ex,y+ey+heave),2 if col in (pal['4'],pal['5']) else 1)
+        # Horns / mane flare from the skull to make the silhouette more menacing.
+        for hx,hy2 in [(-26,hy-1),(-23,hy-5),(-8,hy-2)]:
+            pygame.draw.line(surf,pal['5'],(x+hx,y+10),(x+hx+3,hy2),1)
+        eye=(170,235,255) if self.shell else WHITE
+        safe_set(surf,x-5,hy+7,eye); safe_set(surf,x-6,hy+7,eye)
+        # Concentrated chest fissures and throat vents.
+        for ax,ay,bx,by in [(-6,-1,2,6),(3,0,10,7),(-13,5,-8,11),(-1,10,6,15),(11,-1,15,3)]:
             pygame.draw.line(surf,hot2,(x+ax,y+ay+heave),(x+bx,y+by+heave),2)
             safe_set(surf,x+bx,y+by+heave,hot)
-        # Sternum core visibly dims in the armored state.
-        core=3+int((math.sin(self.age*4.5)+1)*1.5)
-        pygame.draw.circle(surf,(26,6,4),(x+4,y+4+heave),core+2)
-        pygame.draw.circle(surf,hot2,(x+4,y+4+heave),core)
-        safe_set(surf,x+3,y+3+heave,hot)
+        core=4+int((math.sin(self.age*4.5)+1)*1.5)
+        pygame.draw.circle(surf,(26,6,4),(x+4,y+5+heave),core+3)
+        pygame.draw.circle(surf,hot2,(x+4,y+5+heave),core+1)
+        safe_set(surf,x+4,y+4+heave,hot)
         if self.shell:
-            # cool rim along the top of the beast to communicate hardened armor
-            pygame.draw.line(surf,(119,169,186),(x-25,hy+1),(x-10,hy-5),1)
-            pygame.draw.line(surf,(91,139,160),(x-2,y-8+heave),(x+15,y-4+heave),1)
-        self._damage_fx(surf,[(-18,-13),(6,8),(-10,13),(16,-2)])
+            pygame.draw.line(surf,(119,169,186),(x-18,hy+2),(x-4,hy-2),1)
+            pygame.draw.line(surf,(91,139,160),(x+1,y-6+heave),(x+18,y-1+heave),1)
+        self._damage_fx(surf,[(-15,-12),(7,9),(-8,14),(18,-1)])
 
     def draw_leviathan(self,surf):
         x,y=int(self.x),int(self.y)
@@ -5902,13 +6004,13 @@ class Game:
 # ---------------------------------------------------------------------------
 
 def packaged_smoke_test():
-    """Exercise V8.8.1 handcrafted art, temporary shields, difficulty, saves and stereo audio."""
+    """Exercise V8.9 convergence art, shields, difficulty, saves and stereo audio."""
     g=Game()
     assert DIFFICULTY_ORDER==("EASY","HARDER","DIFFICULT","INSANE")
     assert g.difficulty=="INSANE"
     assert DIFFICULTY_PROFILES["INSANE"]["damage"]==1.0
     try:
-        assert BUILD_ID=="V8.8.1-HANDCRAFTED-BEAUTY"
+        assert BUILD_ID=="V8.9-LATE-SNES-CONVERGENCE"
         assert WEAPON_NAMES[4]=="HOMING ROCKET"
         assert g.player.unlocked==[True]+[False]*9
         assert FIXED_DT==1.0/FPS
@@ -5918,9 +6020,9 @@ def packaged_smoke_test():
                     WYRM_HEAD,SOVEREIGN_FACE,OMEGA_MASK):
             assert len(art)>=7
         assert len(CARRIER_BODY)>=12 and len(LEVIATHAN_HEAD)>=16 and len(BASTION_HULL)>=12
-        # V8.8.1 inherited master-art and shield assets must survive PyInstaller collection.
-        assert set(V87_SCENE_CHUNKS)=={"space","atmosphere","lava","water","station","hive","city","ice","veil","omega"}
-        assert set(V87_SHIELD_PIXELS)==set(SHIELD_ORDER)
+        # V8.9 inherited convergence assets must survive PyInstaller collection.
+        assert set(V89_SCENE_CHUNKS)=={"space","atmosphere","lava","water","station","hive","city","ice","veil","omega"}
+        assert set(V89_SHIELD_PIXELS)==set(SHIELD_ORDER)
         assert SHIELD_DATA["AEGIS"]["energy"]>=60 and SHIELD_DATA["REFLECTOR"]["charges"]>=6
         assert len(PLAYER_PIXELS)>=15 and max(map(len,PLAYER_PIXELS))>=35
         assert all(len(ENEMY_PIXEL_BANK[a])>=11 for a in ARCHETYPES)
@@ -5984,17 +6086,3 @@ def packaged_smoke_test():
 if __name__=="__main__":
     if "--smoke-test" in sys.argv:raise SystemExit(packaged_smoke_test())
     Game().run()
-# V8.8 aliases / requirements for the realism-menace pass.
-V88_SCENE_CHUNKS=V87_SCENE_CHUNKS
-V88_SHIELD_PIXELS=V87_SHIELD_PIXELS
-
-def draw_v88_realism_layer(self,surf,stage):
-    return self.draw_v87_beauty_layer(surf,stage)
-
-def draw_v88_realism_finish(self,surf,theme,pal,flip=False):
-    return self.draw_v87_beauty_finish(surf,theme,pal,flip)
-
-def _v88_boss_realism(self,surf):
-    return self._v87_boss_spectacle(surf)
-
-

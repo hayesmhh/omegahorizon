@@ -1,18 +1,16 @@
-OMEGA HORIZON V8.8.1 - HANDCRAFTED BEAUTY / REALISM & MENACE
+OMEGA HORIZON V8.9 - LATE-SNES AESTHETIC CONVERGENCE
 =====================================================
 
-V8.8 is intentionally a craftsmanship-first release. The primary quality bar is
-that a first-time viewer should plausibly react: "wow, this is beautiful."
+V8.9 is a convergence pass aimed at the late-SNES target aesthetic: richer handcrafted sprite mass, more atmospheric backgrounds, denser bosses, and more shimmering shield presentation.
 
-HANDCRAFTED BEAUTY
+LATE-SNES CONVERGENCE
 ---------------
-- Adds a new authored V8.8 scenery composition layer to all ten stages.
-- Adds stronger atmospheric depth, lighting, focal composition and scene framing.
-- Adds another hero-ship finish pass with panel, canopy and wing-root detail.
-- Adds stage/material-specific focal detailing to all four enemy archetypes.
-- Adds a new spectacle/detail pass to all bosses, with the largest escalation on OMEGA.
-- Adds projectile motion accents and richer multi-layer explosions.
-- Preserves V8.6 material-specific readability without returning to universal glow outlines.
+- Re-branches the build as V8.9 with a late-SNES convergence target.
+- Reworks Pyroclast into a denser, more unified lava-beast silhouette.
+- Rebalances hive-enemy readability away from amoeba halos and toward predatory toxic glints.
+- Overhauls shield presentation into shimmering semi-transparent spherical fields with flicker and orbital motion.
+- Adds an extra V8.9 convergence background pass for ice, hive, city, lava and omega themes.
+- Preserves staged music, difficulty tiers, pickups and shield systems from prior builds.
 
 TEMPORARY SHIELD PICKUPS
 ------------------------
@@ -29,10 +27,10 @@ BUILD
 -----
 1. Replace all files in the existing GitHub repository with this package.
 2. Commit to the default branch.
-3. Actions -> Build Omega Horizon V8.8 for Windows -> Run workflow.
+3. Actions -> Build Omega Horizon V8.9 for Windows -> Run workflow.
 4. Wait for the source regression and packaged-EXE smoke test to turn green.
-5. Download: OmegaHorizon-Windows-x64-V8.8.1-HANDCRAFTED-BEAUTY
+5. Download: OmegaHorizon-Windows-x64-V8.9-LATE-SNES-CONVERGENCE
 
-The running window title contains V8.8.1-HANDCRAFTED-BEAUTY.
+The running window title contains V8.9-LATE-SNES-CONVERGENCE.
 
-V8.8.1 HOTFIX: synchronized source, workflow, source smoke-test, packaged smoke-test, artifact, and checksum release identities.
+V8.9: synchronized source, workflow, source smoke-test, packaged smoke-test, artifact, and checksum release identities.
