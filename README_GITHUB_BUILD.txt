@@ -1,39 +1,52 @@
-OMEGA HORIZON V9.0 - SUPERNOVA BEAUTY PASS
-===========================================
+OMEGA HORIZON V9.1 - AUTHORED ART FOUNDATION
+=============================================
 
-V9.0 is a full aesthetic escalation build rather than another subtle cleanup pass.
-It pushes the game toward a more dramatic late-SNES presentation, adds the new ending
-sequence, and implements the multi-moon / nebula art-direction decisions from planning.
+V9.1 begins the new visual-production pipeline requested after the V9.0 playtest.
+Major visual elements now start moving out of runtime-drawn geometry and into shipped,
+original PNG sprite sheets and background plates.
 
-SUPERNOVA BEAUTY PASS
----------------------
-- Re-branches the build as V9.0 with the release identity SUPERNOVA BEAUTY PASS.
-- Adds a more aggressive player-ship sprite redesign with a broader heroic silhouette.
-- Redraws enemy tracking projectiles so they read as missiles instead of lollipop shots.
-- Replaces the Stage 2 straight sky bands with softer atmospheric haze shelves.
-- Adds a subtle second moon to Stage 1.
-- Adds twin-moon composition to Stage 8 (ice), Stage 9 (veil), and Stage 10 (omega).
-- Rebuilds Stage 9 into the dedicated nebula showcase stage.
-- Tightens Pyroclast so its body reads as a heavier unified lava creature.
-- Extends shield rendering with a more spherical, shimmering, intermittently solid look.
-- Adds a post-OMEGA ending sequence with original music and a scrolling aftermath story.
+FIRST TRUE AUTHORED-ASSET WAVE
+------------------------------
+- Adds assets/player_ship_v91.png: a 5-frame player-ship sprite sheet with neutral,
+  bank-up, bank-down, firing and damage artwork.
+- Adds assets/pyroclast_v91.png: a 4-frame cohesive Pyroclast boss sheet covering
+  molten/cooled shell and jaw states.
+- Adds assets/stage09_nebula_v91.png: a full 256-pixel-wide far-background plate.
+  The nebula is now a huge horizon-spanning cosmic structure rather than small
+  midground nebula blobs.
+- PyInstaller now bundles the assets directory into the standalone EXE.
 
-ENDING SEQUENCE
----------------
-After OMEGA is destroyed, the build now enters a dedicated ending state instead of
-jumping directly to a static victory card. The ending includes:
-- an original ending theme,
-- a scrolling aftermath narrative,
-- and a transition to the final victory screen.
+VISUAL CORRECTIONS
+------------------
+- Terminus Veil bypasses the older procedural line/arc overlay stack when rendering
+  the new authored background plate.
+- Veil floor texture replaces its old straight grid with a mottled cosmic surface.
+- Eclipse Engine removes the unexplained full-width aurora lines and reduces the
+  ruler-straight ice-floor ray pattern into recognizable branching cracks.
+- The player ship runtime now displays the authored frames directly.
+- Pyroclast runtime now displays the authored cohesive boss frames directly.
+
+SPHERICAL SHIELD V3
+-------------------
+The shield renderer now uses projected 3D great-circle mathematics rather than a
+flat oval. Back-hemisphere rings/nodes render before the ship and front-hemisphere
+rings/nodes render afterward, so energy visibly rotates behind and in front of the
+craft. The outer silhouette is circular, translucent, flickering, and hit-reactive.
+
+ENDING FIX
+----------
+- Ending narration is dynamically wrapped against a strict 218-pixel text width.
+- The ending is now a standalone presentation state and no longer draws the gameplay
+  HUD underneath the scrolling story.
+- Story lines remain centered and inside the 256x224 native canvas.
+- The original V9.0 heroic ending theme is retained.
 
 BUILD
 -----
-1. Replace all files in the existing GitHub repository with this package.
+1. Replace the repository contents with this package, including the assets folder.
 2. Commit to the default branch.
-3. Actions -> Build Omega Horizon V9.0 for Windows -> Run workflow.
-4. Wait for the source regression and packaged-EXE smoke test to turn green.
-5. Download: OmegaHorizon-Windows-x64-V9.0-SUPERNOVA-BEAUTY-PASS
+3. Actions -> Build Omega Horizon V9.1 for Windows -> Run workflow.
+4. Wait for source regression, syntax, packaged-EXE smoke test and packaging to pass.
+5. Download artifact: OmegaHorizon-Windows-x64-V9.1-AUTHORED-ART-FOUNDATION
 
-The running window title contains V9.0-SUPERNOVA-BEAUTY-PASS.
-
-V9.0 synchronizes source, workflow, smoke tests, artifact naming, and release identity.
+The running window title contains V9.1-AUTHORED-ART-FOUNDATION.

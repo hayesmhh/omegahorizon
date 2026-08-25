@@ -1,8 +1,8 @@
-"""Omega Horizon V9.0 source-level regression smoke test."""
+"""Omega Horizon V9.1 authored-art source regression smoke test."""
 import os
 import tempfile
 
-_tmp = tempfile.mkdtemp(prefix="omega_horizon_v90_")
+_tmp = tempfile.mkdtemp(prefix="omega_horizon_v91_")
 os.environ["LOCALAPPDATA"] = _tmp
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
@@ -11,20 +11,20 @@ import pygame
 import numpy as np
 import omega_horizon_shmup as game
 
-assert game.BUILD_ID == "V9.0-SUPERNOVA-BEAUTY-PASS"
-assert game.DISPLAY_VERSION == "V9.0"
-assert game.DISPLAY_SUBTITLE == "SUPERNOVA BEAUTY PASS"
+assert game.BUILD_ID == "V9.1-AUTHORED-ART-FOUNDATION"
+assert game.DISPLAY_VERSION == "V9.1"
+assert game.DISPLAY_SUBTITLE == "AUTHORED ART FOUNDATION"
 assert len(game.STAGES) == 10
 assert len(game.WEAPON_NAMES) == 10
 assert game.WEAPON_NAMES[4] == "HOMING ROCKET"
 assert game.FIXED_DT == 1.0/game.FPS
 assert game.DIFFICULTY_ORDER == ("EASY","HARDER","DIFFICULT","INSANE")
 assert game.DIFFICULTY_PROFILES["INSANE"]["damage"] == 1.0
-assert set(game.V90_SCENE_CHUNKS) == set(game.V89_SCENE_CHUNKS)
-assert set(game.V90_SHIELD_PIXELS) == set(game.SHIELD_ORDER)
+assert set(game.V91_SCENE_CHUNKS) == set(game.V90_SCENE_CHUNKS)
+assert set(game.V91_SHIELD_PIXELS) == set(game.SHIELD_ORDER)
 assert len({(s.theme, s.music_style, s.bpm, s.key) for s in game.STAGES}) == 10
 
-# V9.0 convergence assets.
+# V9.1 authored-art foundation assets.
 assert len(game.PLAYER_PIXELS) >= 15
 assert max(map(len, game.PLAYER_PIXELS)) >= 35
 assert all(a in game.ENEMY_PIXEL_BANK for a in game.ARCHETYPES)
@@ -43,6 +43,11 @@ for art in (game.SPACE_WRECK_V86, game.ATMOS_RIDGE_V86, game.LAVA_COLUMN_V86,
 for asset in (game.PYRO_PROFILE_HEAD, game.SENTINEL_CHASSIS, game.MOTHER_ABDOMEN,
               game.ARES_TORSO, game.WYRM_HEAD, game.SOVEREIGN_FACE, game.OMEGA_MASK):
     assert len(asset) >= 7
+
+for rel in ("assets/player_ship_v91.png","assets/pyroclast_v91.png","assets/stage09_nebula_v91.png"):
+    assert os.path.exists(game.resource_path(rel)), rel
+wrapped=game.build_ending_lines()
+assert wrapped and max((game.text_width(line) for line in wrapped if line), default=0) <= 218
 
 pygame.mixer.quit()
 pygame.mixer.init(frequency=game.AUDIO_RATE, size=-16, channels=2, buffer=512)
@@ -67,6 +72,9 @@ assert arr.ndim == 2 and arr.shape[1] == 2
 # Continuous fixed-step rendering and cached authored tile/surface allocations.
 g = game.Game()
 assert g.difficulty == "INSANE"
+assert len(game.ART_ASSETS.get("player_ship_frames",[])) == 5
+assert len(game.ART_ASSETS.get("pyroclast_frames",[])) == 4
+assert game.ART_ASSETS["stage09_nebula"].get_size() == (256,91)
 bg = g.background
 assert "ice" in bg.v86_tiles and "city" in bg.v86_tiles and "omega" in bg.v86_tiles
 assert set(bg.v87_tiles) == {"space","atmosphere","lava","water","station","hive","city","ice","veil","omega"}
@@ -132,4 +140,4 @@ for _ in range(8): g.update(game.FIXED_DT)
 g.draw()
 
 g.audio.stop_music(); pygame.quit()
-print("OMEGA_V900_SOURCE_SMOKE_TEST_OK")
+print("OMEGA_V910_SOURCE_SMOKE_TEST_OK")

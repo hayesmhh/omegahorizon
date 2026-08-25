@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-OMEGA HORIZON V9.0 - SUPERNOVA BEAUTY PASS
+OMEGA HORIZON V9.1 - AUTHORED ART FOUNDATION
 =========================================================
-Single-file procedural Pygame shooter designed around a 256x224 SNES-like
-canvas, software perspective rendering, original artist-directed pixel art,
+Pygame shooter designed around a 256x224 SNES-like canvas with software
+perspective rendering, shipped authored pixel-art assets, original procedural support art,
 true stereo procedural audio, ten distinct stages, enemy archetypes, unique
 boss behavior, weapon progression, tactical weapon matchups, and rare pickups.
 
@@ -23,7 +23,7 @@ Controls:
 Developer code:
     Type TERMINUS on the title screen to enable TEST MODE.
 
-Build identity: V9.0-SUPERNOVA-BEAUTY-PASS
+Build identity: V9.1-AUTHORED-ART-FOUNDATION
 """
 
 import json
@@ -51,9 +51,9 @@ FIXED_DT = 1.0 / FPS
 HUD_H = 21
 HORIZON_Y = 104
 AUDIO_RATE = 44100
-BUILD_ID = "V9.0-SUPERNOVA-BEAUTY-PASS"
-DISPLAY_VERSION = "V9.0"
-DISPLAY_SUBTITLE = "SUPERNOVA BEAUTY PASS"
+BUILD_ID = "V9.1-AUTHORED-ART-FOUNDATION"
+DISPLAY_VERSION = "V9.1"
+DISPLAY_SUBTITLE = "AUTHORED ART FOUNDATION"
 
 DIFFICULTY_ORDER=("EASY","HARDER","DIFFICULT","INSANE")
 SHIELD_ORDER=("AEGIS","REFLECTOR","PHASE","INTERCEPTOR")
@@ -180,6 +180,58 @@ def color_lerp(a, b, t):
 def safe_set(surface, x, y, color):
     if 0 <= x < surface.get_width() and 0 <= y < surface.get_height():
         surface.set_at((x, y), color)
+
+
+# V9.1 begins the shipped authored-art pipeline.  These PNG assets are part of
+# the release and are loaded as actual sprite sheets/background plates rather
+# than reconstructed from pygame.draw geometry at runtime.
+ART_ASSETS={}
+
+def resource_path(relative_path):
+    base=getattr(sys,"_MEIPASS",os.path.abspath(os.path.dirname(__file__)))
+    return os.path.join(base,relative_path)
+
+
+def load_v91_art_assets():
+    if ART_ASSETS:
+        return ART_ASSETS
+    specs={
+        "player_ship_sheet":("assets/player_ship_v91.png",True),
+        "pyroclast_sheet":("assets/pyroclast_v91.png",True),
+        "stage09_nebula":("assets/stage09_nebula_v91.png",False),
+    }
+    for key,(rel,alpha) in specs.items():
+        surf=pygame.image.load(resource_path(rel))
+        ART_ASSETS[key]=surf.convert_alpha() if alpha else surf.convert()
+    ps=ART_ASSETS["player_ship_sheet"]
+    ART_ASSETS["player_ship_frames"]=[ps.subsurface((i*56,0,56,24)).copy() for i in range(5)]
+    py=ART_ASSETS["pyroclast_sheet"]
+    ART_ASSETS["pyroclast_frames"]=[py.subsurface((i*96,0,96,64)).copy() for i in range(4)]
+    return ART_ASSETS
+
+
+def wrap_pixel_text(text,max_width=218):
+    """Wrap bitmap-font prose to a strict native-pixel width."""
+    words=str(text).split()
+    if not words:return [""]
+    lines=[]; line=words[0]
+    for word in words[1:]:
+        candidate=line+" "+word
+        if text_width(candidate)<=max_width:
+            line=candidate
+        else:
+            lines.append(line); line=word
+    lines.append(line)
+    return lines
+
+
+def build_ending_lines():
+    lines=[]
+    for raw in ENDING_SCROLL_LINES:
+        if not raw:
+            lines.append(""); continue
+        lines.extend(wrap_pixel_text(raw,218))
+    return lines
 
 
 # ---------------------------------------------------------------------------
@@ -2150,6 +2202,8 @@ V89_SCENE_CHUNKS=V88_SCENE_CHUNKS
 V89_SHIELD_PIXELS=V88_SHIELD_PIXELS
 V90_SCENE_CHUNKS=V89_SCENE_CHUNKS
 V90_SHIELD_PIXELS=V89_SHIELD_PIXELS
+V91_SCENE_CHUNKS=V90_SCENE_CHUNKS
+V91_SHIELD_PIXELS=V90_SHIELD_PIXELS
 
 V87_PICKUP_SHIELD_PALETTES={
 'AEGIS':{'1':(4,24,55),'2':(15,80,132),'3':(53,151,203),'4':(105,224,255),'5':WHITE},
@@ -2748,7 +2802,7 @@ class AudioSynth:
             self.current=self.generate_ending_theme()
             if self.current:
                 self.current.set_volume(self.music_volume)
-                self.current.play()
+                self.current.play(loops=-1)
         except Exception as exc:
             self.last_error=f"{type(exc).__name__}: {exc}"; self.enabled=False
 
@@ -2964,11 +3018,12 @@ class Background:
                 for i in range(4):
                     x=int((i*123-sc*spd)%520)-110
                     surf.blit(tile,(x,base-tile.get_height()))
-            # Aurora ribbons / ice mist add color without cluttering the combat lane, while the mountain banding stays more painterly.
+            # V9.1 removes the old full-width aurora lines; scattered glow dust
+            # preserves atmospheric color without reading as unexplained geometry.
             if self.fx_level:
-                for i,col in enumerate(((73,160,184),(73,118,182),(105,182,178))):
-                    y=38+i*8+int(math.sin(t*.35+i)*3)
-                    pygame.draw.line(surf,col,(0,y),(NATIVE_W,y),1)
+                for i in range(18):
+                    sx=(i*37+int(t*3))%NATIVE_W; sy=34+(i*17)%52
+                    if i%3==0:safe_set(surf,sx,sy,(92,169,190))
         elif theme=='veil':
             for i in range(5):
                 x=int((i*95+math.sin(t*.29+i)*19)%430)-75; y=42+(i%3)*36
@@ -3027,7 +3082,7 @@ class Background:
                 pygame.draw.line(surf,(112,33,81),(sx,34),(sx,106),1)
 
     def draw_v90_beauty_layer(self,surf,stage):
-        """Aggressive late-SNES composition pass for V9.0."""
+        """Inherited V9.0 late-SNES composition layer for non-authored stages."""
         theme=STAGES[stage-1].theme; sc=self.scroll; t=self.time
         if theme=='space':
             # Secondary distant moon so stage 1 feels grand without spending the full spectacle budget.
@@ -3104,10 +3159,11 @@ class Background:
             bands=((xx+yy*2)%31)<2; tex[bands]=(178,231,248)
             cracks=((xx*7-yy*5)%89)<2; tex[cracks]=(24,73,109)
         elif theme=="veil":
-            tex[...,0]=35+(((xx^yy)&31)*2)
-            tex[...,1]=12+(((xx*3+yy)&15)*2)
-            tex[...,2]=65+(((xx+yy*5)&31)*3)
-            grid=((xx%29)<2)|((yy%37)<2); tex[grid]=(190,49,210)
+            swirl=((np.sin(xx*.071)+np.cos(yy*.093)+np.sin((xx+yy)*.041))*12).astype(np.int16)
+            tex[...,0]=np.clip(29+swirl,0,255)
+            tex[...,1]=np.clip(9+swirl//3,0,255)
+            tex[...,2]=np.clip(62+swirl*2,0,255)
+            motes=(((xx*7+yy*11)%97)<2); tex[motes]=(101,61,154)
         elif theme=="omega":
             tex[:]=(15,9,17)
             ribs=((xx%24)<3)|((yy%32)<3); tex[ribs]=(78,24,56)
@@ -3176,6 +3232,11 @@ class Background:
         theme=STAGES[stage-1].theme
         fn=getattr(self,f"draw_{theme}")
         fn(surf,stage)
+        # Stage 9 now uses a single authored far-background plate.  Deliberately
+        # bypass the old line/arc overlays that made the scene look diagrammatic.
+        if theme=='veil':
+            self.draw_combat_color_math(surf,stage)
+            return
         self.draw_artist_layer(surf,stage)
         self.draw_v84_scene_finish(surf,stage)
         self.draw_v86_scene_depth(surf,stage)
@@ -3640,15 +3701,13 @@ class Background:
 
         self._floor_cast(surf,'ice',104,.35,(23,57,86))
 
-        # Long perspective fracture planes, deliberately sparse enough for combat readability.
-        for i in range(11):
-            sx=128+(i-5)*7; ex=(i*31+17)%NATIVE_W
-            col=(105,182,213) if i%3 else (198,235,245)
-            pygame.draw.line(surf,col,(sx,105),(ex,223),1)
-        for i in range(7):
-            x=int((i*47-self.scroll*.38)%310)-25; y=143+(i%3)*23
-            pygame.draw.line(surf,(28,78,115),(x,y),(x+9,y-12),1)
-            pygame.draw.line(surf,(153,218,239),(x+9,y-12),(x+13,y-4),1)
+        # V9.1 branching ice fractures: recognizable cracks rather than a fan
+        # of unexplained ruler-straight perspective lines.
+        cracks=[[(27,177),(38,161),(33,149),(44,139)],[(91,216),(96,190),(108,176),(103,160)],
+                [(154,210),(148,188),(160,171),(157,151)],[(218,198),(211,177),(224,161),(221,145)]]
+        for ci,pts in enumerate(cracks):
+            pygame.draw.lines(surf,(117,193,218),False,pts,1)
+            bx,by=pts[1]; pygame.draw.line(surf,(187,230,241),(bx,by),(bx+7,by-4 if ci%2 else by+5),1)
 
         # Snow/ice crystal particles at three apparent depths.
         count=48 if self.fx_level==2 else 26 if self.fx_level==1 else 10
@@ -3661,34 +3720,26 @@ class Background:
                 safe_set(surf,x+1,y,col); safe_set(surf,x,y+1,col)
 
     def draw_veil(self,surf,stage):
-        self._gradient(surf,(6,2,19),(28,6,51))
-        # Nebula drapery behind the ringworld makes this the dedicated cosmic beauty stage.
-        nebulae=[((38,58,66,22),(72,28,100)),((110,46,82,28),(116,45,138)),((176,70,70,20),(74,178,157))]
-        for (cx,cy,rx,ry),col in nebulae:
-            pygame.draw.ellipse(surf,col,(cx-rx,cy-ry,rx*2,ry*2),1)
-            pygame.draw.ellipse(surf,(min(255,col[0]+38),min(255,col[1]+28),min(255,col[2]+26)),(cx-rx+8,cy-ry+4,rx*2-16,ry*2-8),1)
-        # Layered ringworld arcs and broken inner rails.
-        pygame.draw.arc(surf,(51,22,91),(-75,12,405,187),3.20,6.20,9)
-        pygame.draw.arc(surf,(115,35,154),(-72,18,398,181),3.28,6.12,3)
-        pygame.draw.arc(surf,(220,62,221),(-70,21,394,178),3.35,6.05,1)
-        # Twin moons in veil haze.
-        pygame.draw.circle(surf,(27,16,48),(198,42),18)
-        pygame.draw.circle(surf,(120,78,157),(194,39),13)
-        pygame.draw.circle(surf,(20,10,40),(152,28),9)
-        pygame.draw.circle(surf,(86,53,128),(150,26),6)
-        for i in range(8):
-            x=int((i*49+self.time*(-4 if i%2 else 5))%315)-30
-            pygame.draw.line(surf,(52,21,85),(x,51),(x+22,77),3)
-            safe_set(surf,x+11,64,(83,239,217) if i%2 else MAGENTA)
-        self._stars(surf,HUD_H,105,-.7,(1.0,.5,1.0))
-        self._floor_cast(surf,"veil",101,7.0,(26,3,39))
-        # Reality tears with offset chromatic echoes.
-        for i in range(5):
-            x=int((i*63+self.time*(7 if i%2 else -5))%300)-20; y=50+(i*33)%130; h=18+(i*9)%30
-            bend=int(math.sin(self.time*3+i)*8)
-            pygame.draw.line(surf,(73,255,220),(x,y),(x+bend,y+h),1)
-            pygame.draw.line(surf,(227,60,232),(x+3,y),(x+bend+4,y+h),1)
-            safe_set(surf,x+1,y+h//2,WHITE)
+        # V9.1 authored far-background plate: the nebula is enormous, distant,
+        # and horizon-spanning instead of a collection of midground blobs.
+        plate=ART_ASSETS.get("stage09_nebula")
+        if plate is not None:
+            surf.fill((3,2,12))
+            surf.blit(plate,(0,HUD_H))
+        else:
+            self._gradient(surf,(4,2,16),(34,7,51),HUD_H,112)
+            self._stars(surf,HUD_H,112,-.25,(1.0,.65,1.0))
+        # Dark ringworld horizon architecture stays subordinate to the sky.
+        for i in range(6):
+            x=int((i*51-self.scroll*.08)%330)-30
+            h=9+(i%3)*6
+            pygame.draw.polygon(surf,(18,9,31),[(x,103),(x+8,103-h),(x+16,104),(x+19,112),(x-2,112)])
+            pygame.draw.rect(surf,(72,28,91),(x+7,104-h,2,max(2,h-1)))
+        self._floor_cast(surf,"veil",112,2.2,(25,3,38))
+        # Sparse crystalline motes read as particles, not unexplained lines.
+        for i in range(16 if self.fx_level==2 else 8):
+            x=(i*47+int(self.time*5))%NATIVE_W; y=121+(i*29)%92
+            safe_set(surf,x,y,(83,224,212) if i%3==0 else (178,72,192))
 
     def draw_omega(self,surf,stage):
         self._gradient(surf,(2,2,7),(29,4,20))
@@ -4133,56 +4184,63 @@ class Player:
             return True
         return False
 
-    def draw_shield(self,surf):
+    def _shield_projected_ring(self,tilt,spin,radius=29,steps=28):
+        pts=[]
+        ct,st=math.cos(tilt),math.sin(tilt); cs,ss=math.cos(spin),math.sin(spin)
+        for i in range(steps+1):
+            a=i*math.tau/steps
+            # Circle in X/Y, rotate around X then Y; z is used for front/back sorting.
+            x=math.cos(a); y=math.sin(a)*ct; z=math.sin(a)*st
+            xr=x*cs+z*ss; zr=-x*ss+z*cs
+            pts.append((xr*radius,y*radius,zr))
+        return pts
+
+    def draw_shield(self,surf,front=True):
         if not self.shield_kind:return
         x,y=int(self.x),int(self.y); t=self.anim_time; flash=self.shield_flash>0
-        col=SHIELD_DATA[self.shield_kind]['color']
-        shell=pygame.Surface((68,52),pygame.SRCALPHA)
-        ox=34; oy=26
-        def a(v): return max(0,min(255,int(v)))
-        flick=.13+.52*(math.sin(t*8.2)+1)*.5
-        if int(t*18)%6 in (0,1): flick*=.28
-        if flash:flick=min(1.0,flick+.38)
-        base_alpha=a(18+104*flick)
-        fill_alpha=a(4+34*flick)
-        rim_alpha=a(28+110*flick)
-        # Shared shimmering spherical shell: mostly transparent, briefly solid on pulses.
-        pygame.draw.ellipse(shell,(*col,fill_alpha),(13,14,42,22),0)
-        pygame.draw.ellipse(shell,(*col,base_alpha),(9,9,50,32),1)
-        pygame.draw.arc(shell,(255,255,255,rim_alpha),(10,10,48,30),.22,2.85,1)
-        pygame.draw.arc(shell,(*col,a(24+84*flick)),(10,10,48,30),3.35,6.05,1)
-        for phase in (0,math.pi*.66):
-            pts=[]
-            for i in range(13):
-                ang=i*math.tau/12+t*(1.9 if self.shield_kind!='INTERCEPTOR' else -2.4)+phase
-                rx=22; ry=12+int(math.sin(t*3+phase)*2)
-                pts.append((ox+int(math.cos(ang)*rx),oy+int(math.sin(ang)*ry)))
-            pygame.draw.lines(shell,(255,255,255,a(14+58*flick)),False,pts,1)
-        for i in range(4):
-            ang=t*(2.1+i*.2)+i*math.tau/4
-            rr=18+int(math.sin(t*4+i)*2)
-            px=ox+int(math.cos(ang)*rr); py=oy+int(math.sin(ang)*rr*.58)
-            pygame.draw.circle(shell,(255,255,255,a(44+100*flick)),(px,py),1)
-        if self.shield_kind=='AEGIS':
-            pygame.draw.ellipse(shell,(255,255,255,a(26+70*flick)),(14,13,40,24),1)
-        elif self.shield_kind=='REFLECTOR':
-            for i in range(3):
-                ang=t*2.0+i*math.tau/3
-                cx=ox+int(math.cos(ang)*17); cy=oy+int(math.sin(ang)*9)
-                pygame.draw.line(shell,(226,242,255,a(62+98*flick)),(cx-3,cy-2),(cx+3,cy+2),1)
-                pygame.draw.line(shell,(93,157,211,a(55+85*flick)),(cx+3,cy-2),(cx-3,cy+2),1)
-        elif self.shield_kind=='PHASE':
-            split=2+int((math.sin(t*9.0)+1)*1.5)
-            for dx,c in ((-split,(69,234,245)),(split,(225,75,255))):
-                pygame.draw.arc(shell,(*c,a(52+92*flick)),(9+dx,8,46,30),.15,2.95,1)
-                pygame.draw.arc(shell,(*c,a(52+92*flick)),(9-dx,8,46,30),3.25,6.0,1)
-        elif self.shield_kind=='INTERCEPTOR':
-            for i in range(6):
-                ang=i*math.tau/6-t*2.8
-                px=ox+int(math.cos(ang)*21); py=oy+int(math.sin(ang)*21*.55)
-                pygame.draw.circle(shell,(255,255,255,a(44+110*flick)),(px,py),1)
-                pygame.draw.circle(shell,(*col,a(26+86*flick)),(px,py),2,1)
-        surf.blit(shell,(x-34,y-26))
+        col=SHIELD_DATA[self.shield_kind]['color']; radius=29
+        layer=pygame.Surface((70,70),pygame.SRCALPHA); cx=35; cy=35
+        shimmer=.16+.46*(math.sin(t*8.6)+1)*.5
+        if int(t*19)%7 in (0,1):shimmer*=.28
+        if flash:shimmer=min(1.0,shimmer+.42)
+        def alpha(v):return max(0,min(255,int(v)))
+        if not front:
+            pygame.draw.circle(layer,(*col,alpha(5+22*shimmer)),(cx,cy),radius)
+            pygame.draw.circle(layer,(*col,alpha(18+54*shimmer)),(cx,cy),radius,1)
+        # Two true projected great circles rotate in 3D; segments are depth sorted
+        # so half physically passes behind the ship and half passes in front.
+        for ri,(tilt,speed) in enumerate(((1.05,1.35),(.62,-1.85))):
+            pts=self._shield_projected_ring(tilt,t*speed+ri*1.4,radius-2,30)
+            for a,b in zip(pts,pts[1:]):
+                z=(a[2]+b[2])*.5
+                if (z>=0)==front:
+                    c=(255,255,255,alpha(28+110*shimmer)) if ri==0 else (*col,alpha(30+95*shimmer))
+                    pygame.draw.line(layer,c,(cx+int(a[0]),cy+int(a[1])),(cx+int(b[0]),cy+int(b[1])),1)
+        # Orbiting nodes use the same depth test, visibly disappearing behind ship.
+        count=6 if self.shield_kind=='INTERCEPTOR' else 4
+        for i in range(count):
+            a=t*(2.2 if self.shield_kind!='INTERCEPTOR' else 3.1)+i*math.tau/count
+            px=math.cos(a)*(radius-3); py=math.sin(a)*(radius-3)*.55; z=math.sin(a)
+            if (z>=0)==front:
+                rr=2 if self.shield_kind=='INTERCEPTOR' else 1
+                pygame.draw.circle(layer,(255,255,255,alpha(75+130*shimmer)),(cx+int(px),cy+int(py)),rr)
+                if rr>1:pygame.draw.circle(layer,(*col,alpha(60+100*shimmer)),(cx+int(px),cy+int(py)),3,1)
+        if front:
+            # Circular silhouette is always visible enough to read as a sphere,
+            # but spends most of its time translucent/shimmering.
+            pygame.draw.arc(layer,(255,255,255,alpha(35+115*shimmer)),(cx-radius,cy-radius,radius*2,radius*2),.18,2.95,1)
+            pygame.draw.arc(layer,(*col,alpha(25+90*shimmer)),(cx-radius,cy-radius,radius*2,radius*2),3.3,6.05,1)
+            if self.shield_kind=='PHASE':
+                off=2+int((math.sin(t*10)+1))
+                pygame.draw.circle(layer,(85,235,250,alpha(38+75*shimmer)),(cx-off,cy),radius-2,1)
+                pygame.draw.circle(layer,(226,84,255,alpha(38+75*shimmer)),(cx+off,cy),radius-2,1)
+            elif self.shield_kind=='REFLECTOR':
+                for i in range(3):
+                    a=t*1.7+i*math.tau/3; px=cx+int(math.cos(a)*20); py=cy+int(math.sin(a)*11)
+                    pygame.draw.line(layer,(240,248,255,alpha(70+100*shimmer)),(px-3,py-2),(px+3,py+2),1)
+            elif self.shield_kind=='AEGIS':
+                pygame.draw.circle(layer,(220,250,255,alpha(20+55*shimmer)),(cx,cy),radius-5,1)
+        surf.blit(layer,(x-cx,y-cy))
 
     def update(self,dt,keys,game):
         dx=(1 if keys[pygame.K_RIGHT] or keys[pygame.K_d] else 0)-(1 if keys[pygame.K_LEFT] or keys[pygame.K_a] else 0)
@@ -4227,61 +4285,39 @@ class Player:
                 self.health=self.max_health; self.reset_position(); game.enemy_bullets.clear()
 
     def draw(self,surf):
-        # V8.7 keeps the hero visible during invulnerability; protection is shown
-        # through animated energy treatment instead of deleting every other frame.
         x,y=int(self.x),int(self.y)
-        bank=int(round(self.bank))
-        pal={
-            '1':(7,20,45), '2':(18,48,88), '3':(37,92,139),
-            '4':(67,158,192), '5':(126,218,235), '6':WHITE,
-            '7':ORANGE, '8':(112,235,255),
-        }
-        # A one-pixel dark underside offset makes the ship read as a volume.
-        shadow_pal={k:tuple(max(0,c-24) for c in v) if isinstance(v,tuple) else v for k,v in pal.items()}
-        pw=max(len(r) for r in PLAYER_PIXELS); ph=len(PLAYER_PIXELS)
-        px=x-pw//2; py=y-ph//2+bank
-        draw_indexed_sprite(surf,PLAYER_PIXELS,px,py+1,shadow_pal)
-        draw_indexed_sprite(surf,PLAYER_PIXELS,px,py,pal)
-        # Bank-specific wing illumination gives the hero craft an authored animation state.
-        if self.bank<-.25:
-            pygame.draw.line(surf,(188,241,250),(x-5,y+4),(x+7,y+2),1)
-            pygame.draw.line(surf,(35,85,126),(x-7,y-5),(x+4,y-4),1)
-        elif self.bank>.25:
-            pygame.draw.line(surf,(188,241,250),(x-5,y-4),(x+7,y-2),1)
-            pygame.draw.line(surf,(35,85,126),(x-7,y+5),(x+4,y+4),1)
-        # Layered engine flame is simulation-time based (not wall-clock based),
-        # avoiding visual phase jumps after a slow frame.
-        flame=4+int((math.sin(self.anim_time*24)+1)*1.5)
-        for fx in range(flame):
-            col=WHITE if fx==0 else YELLOW if fx<2 else ORANGE if fx<4 else (146,44,54)
-            safe_set(surf,x-14-fx,y,col)
-            if fx<4:safe_set(surf,x-13-fx,y+1,col)
-        # Canopy reflection, navigation lights, and moving wing glints.
-        safe_set(surf,x+2,y-3+bank,WHITE)
-        safe_set(surf,x-2,y-4+bank,(97,221,243))
-        blink=int(self.anim_time*8)%2
-        safe_set(surf,x-5,y-5+bank,(255,103,65) if blink else (113,48,58))
-        safe_set(surf,x-5,y+5+bank,(91,232,190) if not blink else (35,104,96))
-        if self.fire_timer>0 and self.fire_timer<.05:
-            pygame.draw.line(surf,WHITE,(x+12,y),(x+15,y),2)
-            safe_set(surf,x+16,y,CYAN)
-        if self.invuln>0:
-            # sparse energy shell pixels rather than disappearing entirely
-            for a in range(0,360,60):
-                aa=math.radians(a+self.anim_time*80)
-                safe_set(surf,x+int(math.cos(aa)*17),y+int(math.sin(aa)*10),(109,231,255))
+        # Back hemisphere first so the field visibly wraps around the craft.
+        self.draw_shield(surf,front=False)
+        frames=ART_ASSETS.get("player_ship_frames")
+        if frames:
+            if self.fire_timer>0 and self.fire_timer<.09:idx=3
+            elif self.invuln>0 and int(self.anim_time*12)%4==0:idx=4
+            elif self.bank<-.28:idx=1
+            elif self.bank>.28:idx=2
+            else:idx=0
+            ship=frames[idx]
+            surf.blit(ship,(x-28,y-12))
+            # Engine flicker remains dynamic while the body itself is authored art.
+            flame=2+int((math.sin(self.anim_time*27)+1))
+            for i in range(flame):
+                safe_set(surf,x-29-i,y,(255,228,113) if i==0 else (255,126,41))
+        else:
+            # Safe fallback for source copies missing the V9.1 asset directory.
+            pal={'1':(7,20,45),'2':(18,48,88),'3':(37,92,139),'4':(67,158,192),'5':(126,218,235),'6':WHITE,'7':ORANGE,'8':(112,235,255)}
+            pw=max(len(r) for r in PLAYER_PIXELS); ph=len(PLAYER_PIXELS)
+            draw_indexed_sprite(surf,PLAYER_PIXELS,x-pw//2,y-ph//2,pal)
         if self.weapon==7:
             for ox,oy in self.orbiter_positions():
-                ox,oy=int(ox),int(oy)
-                orb=["..1..",".232.","12321",".242.","..1.."]
+                ox,oy=int(ox),int(oy); orb=["..1..",".232.","12321",".242.","..1.."]
                 draw_indexed_sprite(surf,orb,ox-2,oy-2,{'1':(8,36,53),'2':(31,128,143),'3':WHITE,'4':GREEN})
-                safe_set(surf,ox+3,oy,(119,255,197))
-        # V8.7 beauty finish: panel seams, canopy gradient pixels and wing-root highlights.
-        pygame.draw.line(surf,(18,58,99),(x-7,y-2+bank),(x+7,y-1+bank),1)
-        safe_set(surf,x+4,y-3+bank,(205,248,255)); safe_set(surf,x+6,y-2+bank,(101,202,230))
-        safe_set(surf,x-1,y+4+bank,(77,147,179)); safe_set(surf,x+9,y+1+bank,(221,248,250))
-        self.draw_shield(surf)
+        if self.invuln>0 and not self.shield_kind:
+            for a in range(0,360,90):
+                aa=math.radians(a+self.anim_time*95); safe_set(surf,x+int(math.cos(aa)*18),y+int(math.sin(aa)*10),(109,231,255))
+        # Front hemisphere last: arcs and nodes pass over the ship convincingly.
+        self.draw_shield(surf,front=True)
 
+# ---------------------------------------------------------------------------
+# Enemy archetypes and stage-local visual families
 # ---------------------------------------------------------------------------
 # Enemy archetypes and stage-local visual families
 # ---------------------------------------------------------------------------
@@ -4977,56 +5013,25 @@ class Boss:
 
     def draw_pyroclast(self,surf):
         x,y=int(self.x),int(self.y)
-        # V8.9 convergence pass: Pyroclast reads as one dense predator mass,
-        # not separated floating pieces.  The head, chest and arm now overlap
-        # more aggressively and the lava fissures are concentrated into one body.
-        if self.shell:
-            pal={'1':(6,6,8),'2':(25,27,31),'3':(49,52,56),'4':(78,82,82),
-                 '5':(116,101,82),'6':(165,75,39),'7':(78,163,193),'8':(198,238,247)}
-        else:
-            pal={'1':(14,4,4),'2':(43,9,6),'3':(78,16,7),'4':(126,27,8),
-                 '5':(190,45,8),'6':(245,75,11),'7':(255,161,29),'8':(255,239,129)}
-        heave=int(math.sin(self.age*2.0)*2)
-        step=int(math.sin(self.age*1.6)*2)
-        swing=int(math.sin(self.age*2.3)*3)
-        hy=y-22+int(math.sin(self.age*2.7)*2)
-        jaw_open=1+int((math.sin(self.age*3.4)+1)*1.5)
-        hot=(92,190,217) if self.shell else (255,223,83)
-        hot2=(47,111,145) if self.shell else (255,83,12)
-        # Rear tail and lower body.
-        draw_indexed_sprite(surf,PYRO_PROFILE_TAIL,x+2,y+7+heave,pal)
-        draw_indexed_sprite(surf,PYRO_PROFILE_LEG,x+8,y+14+step,pal)
-        # Main body mass, brought closer together so the silhouette feels heavier and less separated.
-        draw_indexed_sprite(surf,PYRO_PROFILE_TORSO,x-4,y-7+heave,pal)
-        draw_indexed_sprite(surf,PYRO_PROFILE_ARM,x-15,y+1+swing,pal)
-        draw_indexed_sprite(surf,PYRO_PROFILE_CLAW,x-20,y+8+swing,pal)
-        draw_indexed_sprite(surf,PYRO_PROFILE_HEAD,x-16,hy,pal)
-        draw_indexed_sprite(surf,PYRO_PROFILE_JAW,x-14,hy+11+jaw_open,pal)
-        pygame.draw.ellipse(surf,pal['4'],(x-3,y-2+heave,28,22),0)
-        pygame.draw.ellipse(surf,pal['5'],(x+2,y+3+heave,16,12),1)
-        # Bridge the anatomy so the boss reads as a single molten beast.
-        for sx,sy,ex,ey,col in [
-            (-1,-4,10,0,pal['5']), (-6,-7,6,-2,pal['4']), (-9,-1,-3,5,pal['4']),
-            (-12,8,-3,10,pal['5']), (4,10,11,16,pal['4'])
-        ]:
-            pygame.draw.line(surf,col,(x+sx,y+sy+heave),(x+ex,y+ey+heave),2 if col in (pal['4'],pal['5']) else 1)
-        # Horns / mane flare from the skull to make the silhouette more menacing.
-        for hx,hy2 in [(-26,hy-1),(-23,hy-5),(-8,hy-2)]:
-            pygame.draw.line(surf,pal['5'],(x+hx,y+10),(x+hx+3,hy2),1)
-        eye=(170,235,255) if self.shell else WHITE
-        safe_set(surf,x-5,hy+7,eye); safe_set(surf,x-6,hy+7,eye)
-        # Concentrated chest fissures and throat vents.
-        for ax,ay,bx,by in [(-6,-1,2,6),(3,0,10,7),(-13,5,-8,11),(-1,10,6,15),(11,-1,15,3)]:
-            pygame.draw.line(surf,hot2,(x+ax,y+ay+heave),(x+bx,y+by+heave),2)
-            safe_set(surf,x+bx,y+by+heave,hot)
-        core=4+int((math.sin(self.age*4.5)+1)*1.5)
-        pygame.draw.circle(surf,(26,6,4),(x+4,y+5+heave),core+3)
-        pygame.draw.circle(surf,hot2,(x+4,y+5+heave),core+1)
-        safe_set(surf,x+4,y+4+heave,hot)
-        if self.shell:
-            pygame.draw.line(surf,(119,169,186),(x-18,hy+2),(x-4,hy-2),1)
-            pygame.draw.line(surf,(91,139,160),(x+1,y-6+heave),(x+18,y-1+heave),1)
-        self._damage_fx(surf,[(-15,-12),(7,9),(-8,14),(18,-1)])
+        frames=ART_ASSETS.get("pyroclast_frames")
+        if frames:
+            jaw_open=(math.sin(self.age*3.4)>-.05)
+            idx=(2 if self.shell else 0)+(1 if jaw_open else 0)
+            frame=frames[idx]
+            heave=int(math.sin(self.age*2.0)*2)
+            surf.blit(frame,(x-48,y-32+heave))
+            # Hot core pulse and damage scars integrate the static authored art
+            # with gameplay state without reconstructing its anatomy.
+            core=(149,224,239) if self.shell else (255,229,105)
+            if int(self.age*8)%2==0:safe_set(surf,x+7,y+1+heave,core)
+            self._damage_fx(surf,[(-19,-12),(9,10),(-11,16),(20,-1)])
+            return
+        # Fallback only if the shipped sheet is unavailable.
+        pal={'1':(14,4,4),'2':(43,9,6),'3':(78,16,7),'4':(126,27,8),'5':(190,45,8),'6':(245,75,11),'7':(255,161,29),'8':(255,239,129)}
+        draw_indexed_sprite(surf,PYRO_PROFILE_TORSO,x-4,y-7,pal)
+        draw_indexed_sprite(surf,PYRO_PROFILE_HEAD,x-16,y-22,pal)
+        draw_indexed_sprite(surf,PYRO_PROFILE_ARM,x-15,y+1,pal)
+        draw_indexed_sprite(surf,PYRO_PROFILE_LEG,x+8,y+14,pal)
 
     def draw_leviathan(self,surf):
         x,y=int(self.x),int(self.y)
@@ -5269,13 +5274,14 @@ class Game:
         self.canvas=pygame.Surface((NATIVE_W,NATIVE_H)).convert()
         self.clock=pygame.time.Clock(); self.running=True
         self.frame_hitch_count=0
+        load_v91_art_assets()
 
         self.background=Background(); self.background.fx_level=int(self.settings["effects"])
         self.audio=AudioSynth(); self.audio.set_volumes(self.settings["music_volume"],self.settings["sfx_volume"])
         self.player=Player()
 
         self.stage=1; self.state="title"; self.state_timer=0.0
-        self.ending_scroll=0.0; self.ending_duration=0.0
+        self.ending_scroll=0.0; self.ending_duration=0.0; self.ending_lines=build_ending_lines()
         self.score=0; self.stage_distance=0.0; self.stage_goal=self.stage_distance_goal()
         self.enemies=[]; self.player_bullets=[]; self.enemy_bullets=[]; self.pickups=[]; self.explosions=[]; self.hazards=[]
         self.boss=None; self.wave_serial=0; self.waves={}; self.spawn_timer=1.0; self.hazard_timer=3.0; self.boss_warning=0.0
@@ -5550,7 +5556,8 @@ class Game:
     def game_over(self): self.state="game_over"; self.state_timer=0; self.audio.stop_music()
     def win_game(self):
         self.state="ending"; self.state_timer=0
-        self.ending_scroll=NATIVE_H+10; self.ending_duration=0.0
+        self.ending_lines=build_ending_lines()
+        self.ending_scroll=NATIVE_H+12; self.ending_duration=0.0
         self.enemies.clear(); self.enemy_bullets.clear(); self.player_bullets.clear(); self.pickups.clear(); self.hazards.clear()
         self.audio.play_ending()
 
@@ -5827,7 +5834,7 @@ class Game:
             elif self.state=="ending":
                 self.ending_duration+=dt
                 self.ending_scroll-=dt*19
-                if self.ending_scroll < -(len(ENDING_SCROLL_LINES)*11+20):
+                if self.ending_scroll < -(len(self.ending_lines)*11+28):
                     self.state="victory"; self.audio.stop_music()
 
     # ------------------------ input -----------------------------------
@@ -5978,26 +5985,28 @@ class Game:
             draw_text(s,"BOSS",45,23,MAGENTA)
 
     def draw_ending_sequence(self):
-        self.background.draw(self.canvas,1)
-        # Calm horizon strip for readable story text.
-        overlay=pygame.Surface((NATIVE_W,NATIVE_H),pygame.SRCALPHA)
-        overlay.fill((0,0,0,88))
-        self.canvas.blit(overlay,(0,0))
-        draw_text(self.canvas,"MISSION COMPLETE",68,18,GREEN)
-        draw_text(self.canvas,"THE OMEGA WAR IS OVER",46,30,(184,226,239))
-        # Hero ship glides beneath the credits.
-        ship_y=188+int(math.sin(self.background.time*1.4)*3)
-        ghost=Player(); ghost.x=54; ghost.y=ship_y; ghost.anim_time=self.background.time; ghost.bank=math.sin(self.background.time*.8)*.2
-        ghost.draw(self.canvas)
-        # Twin sunrise stars at the far horizon.
-        pygame.draw.circle(self.canvas,(255,232,170),(222,184),5)
-        pygame.draw.circle(self.canvas,(116,216,255),(236,176),3)
+        # Standalone ending presentation: no gameplay HUD or boss bar underneath.
+        self.canvas.fill((2,3,11))
+        self.background.draw_space(self.canvas,1)
+        overlay=pygame.Surface((NATIVE_W,NATIVE_H),pygame.SRCALPHA); overlay.fill((0,0,0,118)); self.canvas.blit(overlay,(0,0))
+        pygame.draw.rect(self.canvas,(3,7,16),(0,0,NATIVE_W,42))
+        pygame.draw.line(self.canvas,(67,194,207),(0,41),(NATIVE_W,41),1)
+        draw_text(self.canvas,"MISSION COMPLETE",(NATIVE_W-text_width("MISSION COMPLETE"))//2,8,GREEN)
+        draw_text(self.canvas,"THE OMEGA WAR IS OVER",(NATIVE_W-text_width("THE OMEGA WAR IS OVER"))//2,22,(184,226,239))
         y=int(self.ending_scroll)
-        for line in ENDING_SCROLL_LINES:
-            col=WHITE if line.isupper() else (188,220,236)
+        for line in self.ending_lines:
+            if not line:
+                y+=7; continue
+            col=YELLOW if line in ("OMEGA DESTROYED","A NEW AGE BEGINS.") else (190,221,237)
             draw_text(self.canvas,line,(NATIVE_W-text_width(line))//2,y,col)
             y+=11
-        draw_text(self.canvas,"PRESS ENTER TO CONTINUE",40,210,YELLOW)
+        # Hero ship and distant sunrise remain below the text safe area.
+        ship_y=191+int(math.sin(self.background.time*1.4)*2)
+        ghost=Player(); ghost.x=51; ghost.y=ship_y; ghost.anim_time=self.background.time; ghost.bank=math.sin(self.background.time*.8)*.2
+        ghost.draw(self.canvas)
+        pygame.draw.circle(self.canvas,(255,232,170),(221,190),5); pygame.draw.circle(self.canvas,(116,216,255),(238,183),3)
+        pygame.draw.rect(self.canvas,(2,4,12),(0,210,NATIVE_W,14))
+        draw_text(self.canvas,"ENTER SKIP",(NATIVE_W-text_width("ENTER SKIP"))//2,214,YELLOW)
 
     def draw_gameplay(self):
         self.background.draw(self.canvas,self.stage)
@@ -6103,11 +6112,12 @@ class Game:
 
     def draw_title(self):
         self.background.draw_space(self.canvas,1)
-        hero_pal={'1':(8,23,50),'2':(22,57,99),'3':(41,105,151),'4':(76,176,202),
-                  '5':(138,225,235),'6':WHITE,'7':ORANGE,'8':(124,240,255)}
-        draw_indexed_sprite(self.canvas,PLAYER_PIXELS,53,100,hero_pal,scale=2)
-        for i,col in enumerate(((255,229,91),ORANGE,(153,48,54),(76,35,70))):
-            pygame.draw.line(self.canvas,col,(51-i*3,112),(44-i*5,112),max(1,4-i))
+        frames=ART_ASSETS.get("player_ship_frames")
+        if frames:
+            hero=pygame.transform.scale(frames[0],(112,48)); self.canvas.blit(hero,(72,91))
+        else:
+            hero_pal={'1':(8,23,50),'2':(22,57,99),'3':(41,105,151),'4':(76,176,202),'5':(138,225,235),'6':WHITE,'7':ORANGE,'8':(124,240,255)}
+            draw_indexed_sprite(self.canvas,PLAYER_PIXELS,53,100,hero_pal,scale=2)
         draw_text(self.canvas,"OMEGA HORIZON",38,45,CYAN,2,True)
         draw_text(self.canvas, f"{DISPLAY_VERSION} {DISPLAY_SUBTITLE}", (NATIVE_W-text_width(f"{DISPLAY_VERSION} {DISPLAY_SUBTITLE}"))//2, 72, YELLOW)
         draw_text(self.canvas,"ENTER NEW GAME",84,154,WHITE)
@@ -6129,6 +6139,8 @@ class Game:
             self.draw_title(); self.draw_settings_menu(); self.draw_menu_message()
         elif self.state=="test_menu" and self.test_return_state=="title":
             self.draw_title(); self.draw_test_menu(); self.draw_menu_message()
+        elif self.state=="ending":
+            self.draw_ending_sequence()
         else:
             self.draw_gameplay()
             if self.state=="stage_intro":
@@ -6142,8 +6154,6 @@ class Game:
                 self.draw_overlay_center("STAGE CLEAR",sub,GREEN)
             elif self.state=="pause":
                 self.draw_pause_menu()
-            elif self.state=="ending":
-                self.draw_ending_sequence()
             elif self.state=="settings":
                 self.draw_settings_menu()
             elif self.state=="test_menu":
@@ -6185,13 +6195,13 @@ class Game:
 # ---------------------------------------------------------------------------
 
 def packaged_smoke_test():
-    """Exercise V9.0 beauty-pass art, ending flow, shields, difficulty and saves."""
+    """Exercise V9.1 authored-art assets, sphere shields, ending flow and systems."""
     g=Game()
     assert DIFFICULTY_ORDER==("EASY","HARDER","DIFFICULT","INSANE")
     assert g.difficulty=="INSANE"
     assert DIFFICULTY_PROFILES["INSANE"]["damage"]==1.0
     try:
-        assert BUILD_ID=="V9.0-SUPERNOVA-BEAUTY-PASS"
+        assert BUILD_ID=="V9.1-AUTHORED-ART-FOUNDATION"
         assert WEAPON_NAMES[4]=="HOMING ROCKET"
         assert g.player.unlocked==[True]+[False]*9
         assert FIXED_DT==1.0/FPS
@@ -6202,10 +6212,14 @@ def packaged_smoke_test():
             assert len(art)>=7
         assert len(CARRIER_BODY)>=12 and len(LEVIATHAN_HEAD)>=16 and len(BASTION_HULL)>=12
         # V8.9 inherited convergence assets must survive PyInstaller collection.
-        assert set(V90_SCENE_CHUNKS)=={"space","atmosphere","lava","water","station","hive","city","ice","veil","omega"}
-        assert set(V90_SHIELD_PIXELS)==set(SHIELD_ORDER)
+        assert set(V91_SCENE_CHUNKS)=={"space","atmosphere","lava","water","station","hive","city","ice","veil","omega"}
+        assert set(V91_SHIELD_PIXELS)==set(SHIELD_ORDER)
         assert SHIELD_DATA["AEGIS"]["energy"]>=60 and SHIELD_DATA["REFLECTOR"]["charges"]>=6
         assert len(PLAYER_PIXELS)>=15 and max(map(len,PLAYER_PIXELS))>=35
+        assert len(ART_ASSETS.get("player_ship_frames",[]))==5
+        assert len(ART_ASSETS.get("pyroclast_frames",[]))==4
+        assert ART_ASSETS.get("stage09_nebula") is not None
+        assert ART_ASSETS["stage09_nebula"].get_size()==(256,91)
         assert all(len(ENEMY_PIXEL_BANK[a])>=11 for a in ARCHETYPES)
         assert set(ENEMY_MATERIAL_PARTS)>={"lava","water","station","hive","city","ice","veil","omega"}
         for art in (SPACE_WRECK_V86,ATMOS_RIDGE_V86,LAVA_COLUMN_V86,WATER_ARCH_V86,

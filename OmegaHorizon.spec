@@ -10,7 +10,7 @@ a = Analysis(
     ['omega_horizon_shmup.py'],
     pathex=[],
     binaries=pygame_binaries,
-    datas=pygame_datas,
+    datas=pygame_datas + [('assets', 'assets')],
     hiddenimports=pygame_hiddenimports,
     hookspath=[],
     hooksconfig={},
