@@ -1,4 +1,4 @@
-name: Build Omega Horizon V8.6 for Windows
+name: Build Omega Horizon V8.7 for Windows
 
 on:
   workflow_dispatch:
@@ -8,12 +8,12 @@ permissions:
 
 jobs:
   build-windows:
-    name: Build and test V8.6 full-sprite-art Windows EXE
+    name: Build and test V8.7 master-art Windows EXE
     runs-on: windows-2022
     timeout-minutes: 45
 
     steps:
-      - name: Check out V8.6 source
+      - name: Check out V8.7 source
         uses: actions/checkout@v4
 
       - name: Set up 64-bit Python 3.13
@@ -30,12 +30,12 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install --only-binary=:all: -r requirements-build.txt
 
-      - name: Verify V8.6 identity and artist assets
+      - name: Verify V8.7 identity and artist assets
         shell: pwsh
         run: |
-          python -c "import omega_horizon_shmup as g; assert g.BUILD_ID == 'V8.6-SPRITE-ART'; assert g.DISPLAY_VERSION == 'V8.6'; assert g.DISPLAY_SUBTITLE == 'FULL SPRITE ART'; assert g.WEAPON_NAMES[4] == 'HOMING ROCKET'; assert len(g.PLAYER_PIXELS) >= 15; assert max(map(len,g.PLAYER_PIXELS)) >= 35; assert len(g.ICE_CLIFF_V86) >= 10; assert len(g.OMEGA_RIB_V86) >= 10; assert g.DIFFICULTY_ORDER == ('EASY','HARDER','DIFFICULT','INSANE'); assert g.DIFFICULTY_PROFILES['INSANE']['damage'] == 1.0; print(g.BUILD_ID)"
+          python -c "import omega_horizon_shmup as g; assert g.BUILD_ID == 'V8.7-MASTER-ART'; assert g.DISPLAY_VERSION == 'V8.7'; assert g.DISPLAY_SUBTITLE == 'MASTER ART PASS'; assert g.WEAPON_NAMES[4] == 'HOMING ROCKET'; assert len(g.PLAYER_PIXELS) >= 15; assert max(map(len,g.PLAYER_PIXELS)) >= 35; assert len(g.ICE_CLIFF_V86) >= 10; assert len(g.OMEGA_RIB_V86) >= 10; assert set(g.V87_SCENE_CHUNKS) == {'space','atmosphere','lava','water','station','hive','city','ice','veil','omega'}; assert set(g.V87_SHIELD_PIXELS) == set(g.SHIELD_ORDER); assert g.SHIELD_DATA['AEGIS']['energy'] >= 60; assert g.DIFFICULTY_ORDER == ('EASY','HARDER','DIFFICULT','INSANE'); assert g.DIFFICULTY_PROFILES['INSANE']['damage'] == 1.0; print(g.BUILD_ID)"
 
-      - name: Source regression test - sprite art, material readability and systems
+      - name: Source regression test - master art, shields and systems
         shell: pwsh
         env:
           SDL_VIDEODRIVER: dummy
@@ -48,7 +48,7 @@ jobs:
         run: |
           python -m py_compile omega_horizon_shmup.py runtime_smoke_test.py
 
-      - name: Build V8.6 OmegaHorizon.exe
+      - name: Build V8.7 OmegaHorizon.exe
         shell: pwsh
         run: |
           python -m PyInstaller --noconfirm --clean OmegaHorizon.spec
@@ -56,12 +56,12 @@ jobs:
             throw "PyInstaller completed without creating dist\OmegaHorizon.exe"
           }
 
-      - name: Smoke-test the PACKAGED V8.6 EXE
+      - name: Smoke-test the PACKAGED V8.7 EXE
         shell: pwsh
         env:
           SDL_VIDEODRIVER: dummy
           SDL_AUDIODRIVER: dummy
-          LOCALAPPDATA: ${{ runner.temp }}\OmegaHorizonV86
+          LOCALAPPDATA: ${{ runner.temp }}\OmegaHorizonV87
         run: |
           New-Item -ItemType Directory -Force -Path $env:LOCALAPPDATA | Out-Null
           $p = Start-Process `
@@ -70,32 +70,32 @@ jobs:
             -Wait `
             -PassThru
           if ($p.ExitCode -ne 0) {
-            throw "Packaged OmegaHorizon.exe V8.6 smoke test failed with exit code $($p.ExitCode)"
+            throw "Packaged OmegaHorizon.exe V8.7 smoke test failed with exit code $($p.ExitCode)"
           }
-          Write-Host "PACKAGED_V86_EXE_SMOKE_TEST_OK"
+          Write-Host "PACKAGED_V87_EXE_SMOKE_TEST_OK"
 
       - name: Create SHA-256 checksum
         shell: pwsh
         run: |
           $hash = (Get-FileHash "dist\OmegaHorizon.exe" -Algorithm SHA256).Hash
-          Set-Content -Path "dist\OmegaHorizon_V86_SHA256.txt" -Value $hash -Encoding ASCII
-          Write-Host "OmegaHorizon V8.6 SHA-256: $hash"
+          Set-Content -Path "dist\OmegaHorizon_V87_SHA256.txt" -Value $hash -Encoding ASCII
+          Write-Host "OmegaHorizon V8.7 SHA-256: $hash"
 
-      - name: Create V8.6 release ZIP
+      - name: Create V8.7 release ZIP
         shell: pwsh
         run: |
           Compress-Archive `
-            -Path "dist\OmegaHorizon.exe","dist\OmegaHorizon_V86_SHA256.txt" `
-            -DestinationPath "dist\OmegaHorizon_V86_Windows_x64.zip" `
+            -Path "dist\OmegaHorizon.exe","dist\OmegaHorizon_V87_SHA256.txt" `
+            -DestinationPath "dist\OmegaHorizon_V87_Windows_x64.zip" `
             -Force
 
-      - name: Upload tested V8.6 Windows build
+      - name: Upload tested V8.7 Windows build
         uses: actions/upload-artifact@v4
         with:
-          name: OmegaHorizon-Windows-x64-V8.6-SPRITE-ART
+          name: OmegaHorizon-Windows-x64-V8.7-MASTER-ART
           path: |
             dist/OmegaHorizon.exe
-            dist/OmegaHorizon_V86_SHA256.txt
-            dist/OmegaHorizon_V86_Windows_x64.zip
+            dist/OmegaHorizon_V87_SHA256.txt
+            dist/OmegaHorizon_V87_Windows_x64.zip
           if-no-files-found: error
           retention-days: 30
