@@ -11,7 +11,7 @@ import pygame
 import numpy as np
 import omega_horizon_shmup as game
 
-assert game.BUILD_ID == "V9.0-LATE-SNES-CONVERGENCE"
+assert game.BUILD_ID == "V9.0-SUPERNOVA-BEAUTY-PASS"
 assert game.DISPLAY_VERSION == "V9.0"
 assert game.DISPLAY_SUBTITLE == "SUPERNOVA BEAUTY PASS"
 assert len(game.STAGES) == 10
