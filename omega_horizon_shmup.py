@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-OMEGA HORIZON V8.2 - BOSS ARTIST PASS & SYSTEMS
+OMEGA HORIZON V8.3 - FULL VISUAL FIDELITY PASS
 =========================================================
 Single-file procedural Pygame shooter designed around a 256x224 SNES-like
 canvas, software perspective rendering, original artist-directed pixel art,
@@ -23,7 +23,7 @@ Controls:
 Developer code:
     Type TERMINUS on the title screen to enable TEST MODE.
 
-Build identity: V8.2-BOSS-ART-SYSTEMS
+Build identity: V8.3-VISUAL-FIDELITY
 """
 
 import json
@@ -47,10 +47,11 @@ SCALE = 4
 WINDOW_W = NATIVE_W * SCALE
 WINDOW_H = NATIVE_H * SCALE
 FPS = 60
+FIXED_DT = 1.0 / FPS
 HUD_H = 21
 HORIZON_Y = 104
 AUDIO_RATE = 44100
-BUILD_ID = "V8.2-BOSS-ART-SYSTEMS"
+BUILD_ID = "V8.3-VISUAL-FIDELITY"
 
 BLACK = (4, 5, 12)
 WHITE = (236, 246, 255)
@@ -323,7 +324,7 @@ BASTION_TURBINE_B=[
 
 
 # ---------------------------------------------------------------------------
-# V8.2 authored boss metasprites
+# V8.3 authored boss metasprites
 # ---------------------------------------------------------------------------
 
 # Pyroclast is a horned magma golem rather than an abstract molten polygon.
@@ -499,6 +500,480 @@ BOSS_DETAIL_TILES={
 
 
 # ---------------------------------------------------------------------------
+# V8.3 full boss artist-pass assets
+# ---------------------------------------------------------------------------
+# These matrices are deliberately asymmetric / profile-oriented. The goal is
+# to make every boss legible as a subject at a glance rather than as a diagram
+# of geometric primitives.
+
+PYRO_PROFILE_HEAD=[
+    "........11.............",
+    "......11221......11....",
+    "....11223321...1121....",
+    "..11223344421122321....",
+    ".12233445554333321.....",
+    "122345566665443321.....",
+    "12345667777655433211...",
+    "123456677776655443321..",
+    "112345566665554433221..",
+    "..123444444433332221...",
+    "...112333333222211.....",
+    ".....112222211.........",
+    "........111............",
+]
+PYRO_PROFILE_JAW=[
+    "1111111111111....",
+    "122222222222211..",
+    "1233333333333221.",
+    "112222111222221..",
+    "..1.1.1.1.1.1....",
+]
+PYRO_PROFILE_TORSO=[
+    "........111111111........",
+    ".....111222222222111.....",
+    "...112233333333333221....",
+    ".112334444455444433221...",
+    "12234455566665554433221..",
+    "123455666777766655443321.",
+    "1234566777777776655443321",
+    "1234566777777777665543321",
+    "1234556677777776655443321",
+    "122344556677766655443321.",
+    ".1123344556666554433221..",
+    "...112334455544332221....",
+    ".....11223333332211......",
+    ".......111222111.........",
+]
+PYRO_PROFILE_ARM=[
+    "....111.......",
+    "..112221......",
+    ".12333321.....",
+    "1234444321....",
+    "12345554321...",
+    ".12345554321..",
+    "..1234444321..",
+    "...123333221..",
+    "....1222211...",
+    ".....1221.....",
+    "......121.....",
+]
+PYRO_PROFILE_CLAW=[
+    "1...1...1",
+    "11.121.11",
+    ".1234321.",
+    "..12321..",
+    "...121...",
+]
+PYRO_PROFILE_LEG=[
+    "..1111....",
+    ".122221...",
+    "12333321..",
+    "123443321.",
+    ".123433321",
+    "..12333221",
+    "...122221.",
+    "...121.121",
+    "..121...11",
+]
+PYRO_PROFILE_TAIL=[
+    "1111111111111111111111",
+    ".122222222222222222211",
+    "..1233333333333333221.",
+    "....122222222222221...",
+    "......11111111111.....",
+]
+
+SENTINEL_CHASSIS=[
+    "...........111111111111...........",
+    "......111112222222222221111.......",
+    "...111222233333333333332222111....",
+    ".112223334444455554444433322211...",
+    "1223344455555666655555444333221..",
+    "12344555666667777666665554433221.",
+    "123455667777788887777766554433221",
+    "123455667777788887777766554433221",
+    "12344555666667777666665554433221.",
+    "1223344455555666655555444333221..",
+    ".112223334444455554444433322211...",
+    "...111222233333333333332222111....",
+    "......111112222222222221111.......",
+    "...........111111111111...........",
+]
+SENTINEL_GUN=[
+    "111111111111111111",
+    "122222223333344448",
+    "123333344444455558",
+    "122222223333344448",
+    "111111111111111111",
+]
+SENTINEL_POD=[
+    "...11111...",
+    ".112222211.",
+    "12234443221",
+    "12345554321",
+    "12345654321",
+    "12345554321",
+    "12234443221",
+    ".112222211.",
+    "...11111...",
+]
+
+MOTHER_HEAD=[
+    "........1111........",
+    ".....111222211.......",
+    "...112233333221......",
+    "..12334444433221.....",
+    ".123455555443321.....",
+    "12345666665543321....",
+    "123456777665443321...",
+    "1234556676655443321..",
+    ".123445555554433221..",
+    "..1233334444333221...",
+    "...12222233332211....",
+    ".....111222211.......",
+]
+MOTHER_ABDOMEN=[
+    "........11111111........",
+    ".....111222222222111.....",
+    "...112233333333333221....",
+    ".1123344445555444433221..",
+    "123445556666666555443321.",
+    "1234566777777776655443321",
+    "1234567788888777665543321",
+    "1234567788888877665543321",
+    "1234566778888776655443321",
+    "123455667777776655443321.",
+    ".12344555666665554433221..",
+    "..12334445555544433221...",
+    "...122333344443332211....",
+    ".....11222233322211......",
+    ".......111111111.........",
+]
+MOTHER_MANDIBLE=[
+    "11.......11",
+    "121.....121",
+    ".123...321.",
+    "..1234321..",
+    "...12321...",
+]
+MOTHER_EGG=[
+    "..111..",
+    ".12221.",
+    "1234321",
+    "1234321",
+    ".12221.",
+    "..111..",
+]
+
+ARES_TORSO=[
+    "......111111......",
+    "...111222222111...",
+    ".1122333333332211.",
+    "122344455554433221",
+    "123455566665544321",
+    "123456677776654321",
+    "123456677776654321",
+    "123455566665544321",
+    "122344455554433221",
+    ".1233334444333321.",
+    ".1233334444333321.",
+    ".1222334444332221.",
+    "..12233333333221..",
+    "...112222222211...",
+    ".....11111111.....",
+]
+ARES_HEAD=[
+    "...111111...",
+    ".11222222211.",
+    "123344443321",
+    "123455554321",
+    "111188881111",
+    "122233332221",
+    ".1112222111.",
+]
+ARES_CANNON=[
+    "11111111111111111111111",
+    "12222222223333334444448",
+    "12333333334444445555558",
+    "12222222223333334444448",
+    "11111111111111111111111",
+]
+ARES_ARM=[
+    "..111111..",
+    ".12222221.",
+    "1233443321",
+    "1234554321",
+    "1234554321",
+    ".12344321.",
+    "..122221..",
+]
+ARES_LEG=[
+    "..11111..",
+    ".1222221.",
+    "123333321",
+    "123444321",
+    "123444321",
+    "123333321",
+    "122222221",
+    ".122221..",
+    ".122221..",
+    "12222221.",
+    "11111111.",
+]
+ARES_SHOULDER=[
+    "..1111..",
+    ".122221.",
+    "12344321",
+    "12355321",
+    ".122221.",
+    "..1111..",
+]
+
+WYRM_HEAD=[
+    "........1111111........",
+    "....11112222222111.....",
+    "..112233333333332211...",
+    ".12334445555544433221..",
+    "123455566666655443321..",
+    "1234566777777665543321.",
+    "12345667778887665543321",
+    "12345566777776655443321",
+    "1123445566666554433221.",
+    "..1234445555444333221..",
+    "...11233334443332211...",
+    ".....122222222211......",
+    "......111111111........",
+]
+WYRM_JAW=[
+    "111111111111111....",
+    "12222222222222211..",
+    "123333333333333221.",
+    "111111111111111111.",
+    ".1.1.1.1.1.1.1.1...",
+]
+WYRM_SEGMENT=[
+    "....111111....",
+    "..1122222211..",
+    ".122333333221.",
+    "1233445543321",
+    "1234566543321",
+    "1234555543321",
+    "1223333333221",
+    ".11222222211.",
+    "...1111111...",
+]
+WYRM_FIN=[
+    "....1....",
+    "...121...",
+    "..12321..",
+    ".1234321.",
+    "123454321",
+]
+
+SOVEREIGN_FACE=[
+    ".........11111.........",
+    "......11122222111......",
+    "....112233333332211....",
+    "..1123344444444332211..",
+    ".12344555565555443321..",
+    "1234566667666665543321.",
+    "12345677787777766543321",
+    "12345677888887766543321",
+    "12345677787777766543321",
+    "1234566667666665543321.",
+    ".12344555565555443321..",
+    "..1123344444444332211..",
+    "....112233333332211....",
+    "......11122222111......",
+    ".........11111.........",
+]
+SOVEREIGN_SHARD=[
+    "....1....",
+    "...121...",
+    "..12321..",
+    ".1234321.",
+    "123454321",
+    ".1234321.",
+    "..12321..",
+    "...121...",
+    "....1....",
+]
+SOVEREIGN_WING=[
+    "1.............",
+    "121...........",
+    "12321.........",
+    "1234321.......",
+    "123454321.....",
+    "12345554321...",
+    "1234566554321.",
+    ".12345554321..",
+    "...12344321...",
+    ".....12321....",
+    ".......121....",
+]
+
+OMEGA_MASK=[
+    "..........111111111..........",
+    "......11112222222221111......",
+    "....112233333333333332211....",
+    "..1123344444555544444332211..",
+    ".12344555566666665555443321..",
+    "1234566667777777766665543321.",
+    "12345677788888887777665543321",
+    "12345677888888888777665543321",
+    "12345677788888887777665543321",
+    "1234566667777777766665543321.",
+    ".12344555566666665555443321..",
+    "..1123344444555544444332211..",
+    "....112233333333333332211....",
+    "......11112222222221111......",
+    "..........111111111..........",
+]
+OMEGA_WING=[
+    "............1",
+    "..........121",
+    "........12321",
+    "......1234321",
+    "....123454321",
+    "..12345554321",
+    "1234566554321",
+    "1234566554321",
+    ".12345554321.",
+    "...12344321..",
+    ".....12321....",
+    ".......121....",
+]
+OMEGA_PETAL=[
+    "....11....",
+    "..112211..",
+    ".12344321.",
+    "1234554321",
+    "1234664321",
+    ".12344321.",
+    "..122221..",
+    "....11....",
+]
+OMEGA_EYE=[
+    "...11111...",
+    ".112222211.",
+    "12334443221",
+    "12345554321",
+    "12345654321",
+    "12345554321",
+    "12334443221",
+    ".112222211.",
+    "...11111...",
+]
+
+# Small authored environmental motifs used as repeated tiles / props.
+CITY_SIGN=[
+    "111111111111",
+    "122222222221",
+    "123333333321",
+    "122222222221",
+    "111111111111",
+]
+STATION_ARCH=[
+    "111111111111111",
+    "122222222222221",
+    "123333333333321",
+    "123444444444321",
+    "123444444444321",
+    "123333333333321",
+    "122222222222221",
+    "111111111111111",
+]
+HIVE_POD=[
+    "....111....",
+    "..1122211..",
+    ".123444321.",
+    "12345554321",
+    "12345654321",
+    ".123444321.",
+    "..1222221..",
+    "....111....",
+]
+
+
+
+# ---------------------------------------------------------------------------
+# V8.3 environmental pixel-art helpers
+# ---------------------------------------------------------------------------
+
+def draw_city_building(surface,x,base,w,h,seed,far=False):
+    """Stepped, damaged skyline building with authored facade details."""
+    rng=random.Random(seed)
+    body=(25,28,42) if far else (37,38,49)
+    mid=(43,46,60) if far else (57,55,61)
+    edge=(66,66,77) if far else (91,74,68)
+    # stepped roof, antenna, and inset facade keep silhouettes from being boxes
+    roof=max(3,w//5)
+    pygame.draw.rect(surface,body,(x,base-h,w,h))
+    pygame.draw.rect(surface,mid,(x+2,base-h+4,max(1,w-4),h-6))
+    pygame.draw.rect(surface,body,(x+roof,base-h-5,max(4,w-roof*2),5))
+    if seed%3==0:
+        pygame.draw.line(surface,edge,(x+w//2,base-h-5),(x+w//2,base-h-13),1)
+        safe_set(surface,x+w//2,base-h-14,(216,74,61))
+    # vertical structural ribs
+    for rx in range(x+4,x+w-2,8):
+        pygame.draw.line(surface,edge,(rx,base-h+7),(rx,base-3),1)
+    # windows / signs with deterministic missing panels and battle damage
+    for yy in range(base-h+8,base-5,7):
+        for xx in range(x+5,x+w-3,9):
+            if rng.random()<.32: continue
+            col=(45,124,148) if (xx+yy+seed)%3 else (184,97,53)
+            safe_set(surface,xx,yy,col)
+            if not far and rng.random()<.22: safe_set(surface,xx+1,yy,col)
+    if not far and seed%4==0 and w>=18:
+        pal={'1':(16,19,30),'2':(61,29,60),'3':(229,65,164)}
+        draw_indexed_sprite(surface,CITY_SIGN,x+3,base-h+12,pal)
+    if not far and seed%5==0:
+        # broken corner silhouette
+        pygame.draw.polygon(surface,(12,13,21),[(x+w-8,base-h),(x+w,base-h),(x+w,base-h+14),(x+w-4,base-h+10)])
+
+
+def draw_ice_peak(surface,x,base,w,h,seed):
+    """Layered stair-stepped glacier with lit and shadow faces."""
+    ridge=[]
+    steps=max(4,w//6)
+    for i in range(steps+1):
+        xx=x+int(i*w/steps)
+        # asymmetrical peak contour
+        rel=i/steps
+        yy=base-int(h*(1-abs(rel-.42)/.58)) if rel<=.42 else base-int(h*(1-(rel-.42)/.58))
+        ridge.append((xx,max(base-h,yy)))
+    poly=[(x,base)]+ridge+[(x+w,base)]
+    pygame.draw.polygon(surface,(47,90,124),poly)
+    peak=ridge[max(0,min(len(ridge)-1,int(.42*steps)))]
+    pygame.draw.polygon(surface,(78,132,164),[(x,base),peak,(x+int(w*.62),base)])
+    pygame.draw.polygon(surface,(33,72,108),[peak,(x+w,base),(x+int(w*.62),base)])
+    # snow cap / specular stairs
+    pygame.draw.line(surface,(167,224,242),peak,(x+int(w*.60),base-int(h*.28)),2)
+    safe_set(surface,peak[0]-1,peak[1],WHITE)
+    if seed%2==0:
+        pygame.draw.line(surface,(24,63,96),(x+int(w*.52),base-int(h*.35)),(x+int(w*.69),base-2),1)
+
+
+def draw_station_bulkhead(surface,x,y,w,h,seed):
+    dark=(13,20,28); body=(41,54,65); mid=(67,84,94); hi=(99,126,134)
+    pygame.draw.rect(surface,dark,(x,y,w,h))
+    pygame.draw.rect(surface,body,(x+2,y+2,w-4,h-4))
+    pygame.draw.line(surface,hi,(x+3,y+5),(x+w-4,y+5),1)
+    # internal panels and bolts
+    for px in range(x+6,x+w-5,12):
+        pygame.draw.rect(surface,mid,(px,y+9,8,max(3,h-14)),1)
+        safe_set(surface,px+2,y+11,(226,169,63) if (px+seed)%3==0 else (78,199,215))
+    if seed%2==0:
+        pygame.draw.rect(surface,(18,31,38),(x+w//2-7,y+h//2-3,14,6))
+        pygame.draw.line(surface,(76,215,226),(x+w//2-5,y+h//2),(x+w//2+5,y+h//2),1)
+
+
+def draw_hive_pod(surface,x,y,phase):
+    pal={'1':(31,6,28),'2':(68,16,58),'3':(105,26,81),'4':(154,43,105),'5':(203,73,135),'6':(122,246,164)}
+    draw_indexed_sprite(surface,HIVE_POD,x,y,pal)
+    if int(phase*5)%2==0: safe_set(surface,x+5,y+4,(207,255,211))
+
+# ---------------------------------------------------------------------------
 # Stage identity data
 # ---------------------------------------------------------------------------
 
@@ -591,6 +1066,7 @@ class AudioSynth:
         self.current = None
         self.music_sound = None
         self.boss_sound = None
+        self.boss_stingers = {}
         self.weapon_sfx = [[] for _ in range(10)]
         self.sfx = {}
         self.last_error = None
@@ -842,6 +1318,17 @@ class AudioSynth:
         if kind == "mallet":
             return (self.voice(hz,duration,"sine",volume,attack=.001,decay=max(.04,duration*.72)) +
                     self.voice(hz*2.99,duration,"sine",volume*.20,attack=.001,decay=max(.03,duration*.42)))
+        if kind == "fmlead":
+            # Bell-like FM approximation: bright carrier plus inharmonic sidebands.
+            return (self.voice(hz,duration,"sine",volume*.72,attack=.002,decay=.13,vibrato=.004) +
+                    self.voice(hz*2.01,duration,"sine",volume*.24,attack=.002,decay=.10) +
+                    self.voice(hz*3.17,duration,"sine",volume*.12,attack=.001,decay=.07))
+        if kind == "pulselead":
+            return (self.voice(hz,duration,"pulse25",volume*.66,attack=.003,decay=.10,vibrato=.006) +
+                    self.voice(hz*.502,duration,"tri",volume*.22,attack=.004,decay=.12))
+        if kind == "harp":
+            return (self.voice(hz,duration,"tri",volume*.72,attack=.001,decay=max(.04,duration*.62)) +
+                    self.voice(hz*2.0,duration,"sine",volume*.19,attack=.001,decay=max(.03,duration*.42)))
         return self.voice(hz,duration,"square",volume,attack=.004,decay=.08)
 
     def _kick(self, duration=.13, strength=.18):
@@ -866,16 +1353,16 @@ class AudioSynth:
 
         # Each style defines its own harmonic/rhythmic/instrument identity.
         styles={
-            "heroic":     dict(deg=[0,5,3,7], mode=[0,4,7], lead="brass", pad="glass", basspat=[0,0,7,0,5,0,7,10], drum="drive"),
+            "heroic":     dict(deg=[0,5,3,7], mode=[0,4,7], lead="pulselead", pad="glass", basspat=[0,0,7,0,5,0,7,10], drum="drive"),
             "storm":      dict(deg=[0,7,5,3], mode=[0,3,7], lead="guitar", pad="brass", basspat=[0,7,0,10,0,5,7,3], drum="sync"),
             "industrial": dict(deg=[0,1,6,0], mode=[0,3,6], lead="guitar", pad="brass", basspat=[0,0,1,0,6,0,1,3], drum="stomp"),
-            "aquatic":    dict(deg=[0,5,8,3], mode=[0,3,7], lead="bell", pad="choir", basspat=[0,7,5,7,3,7,8,7], drum="half"),
+            "aquatic":    dict(deg=[0,5,8,3], mode=[0,3,7], lead="harp", pad="choir", basspat=[0,7,5,7,3,7,8,7], drum="half"),
             "mechanical": dict(deg=[0,3,7,6], mode=[0,3,7], lead="pluck", pad="brass", basspat=[0,0,3,0,7,6,7,3], drum="machine"),
             "organic":    dict(deg=[0,6,1,5], mode=[0,3,7], lead="glass", pad="choir", basspat=[0,6,0,1,0,5,6,1], drum="pulse"),
             "war":        dict(deg=[0,5,7,3], mode=[0,3,7], lead="guitar", pad="brass", basspat=[0,0,5,7,0,3,7,5], drum="double"),
-            "crystal":    dict(deg=[0,8,5,10], mode=[0,3,7], lead="bell", pad="glass", basspat=[0,7,8,7,5,7,10,7], drum="sparse"),
-            "unreal":     dict(deg=[0,1,8,6], mode=[0,3,6], lead="glass", pad="choir", basspat=[0,6,1,8,0,1,6,11], drum="odd"),
-            "omega":      dict(deg=[0,1,6,3], mode=[0,3,6], lead="guitar", pad="choir", basspat=[0,0,1,6,0,3,1,6], drum="final"),
+            "crystal":    dict(deg=[0,8,5,10], mode=[0,3,7], lead="fmlead", pad="glass", basspat=[0,7,8,7,5,7,10,7], drum="sparse"),
+            "unreal":     dict(deg=[0,1,8,6], mode=[0,3,6], lead="fmlead", pad="choir", basspat=[0,6,1,8,0,1,6,11], drum="odd"),
+            "omega":      dict(deg=[0,1,6,3], mode=[0,3,6], lead="pulselead", pad="choir", basspat=[0,0,1,6,0,3,1,6], drum="final"),
         }
         cfg=styles[p.music_style]
         base=45+p.key
@@ -1054,12 +1541,48 @@ class AudioSynth:
                                         base+12+noff,beat*.34,.035)
                     self.add_stereo(mix,st,self.pan_mono(sig,.58 if i%2 else -.58))
 
+        # V8.3 hook reprise: the last two bars restate a shortened lead motif
+        # one octave higher, making the loop's return point feel composed.
+        reprise=melody[:4]
+        for i,noff in enumerate(reprise):
+            st=(14*4*beat)+i*(beat/2)
+            if st>=total: break
+            sig=self.instrument(cfg["lead"],base+24+noff,beat*.38,.035 if not boss else .048)
+            self.add_stereo(mix,st,self.pan_mono(sig,-.52+i*.34))
+
         mix=self.stereo_delay(mix,
                               .22 if p.music_style in ("aquatic","crystal") else .135,
                               .29 if p.music_style in ("aquatic","crystal") else .185,
                               .24 if not boss else .18)
         mix=np.tanh(mix*1.4)*.72
         return self._sound_from_stereo(mix)
+
+    def generate_boss_stinger(self,stage_index):
+        if stage_index in self.boss_stingers:
+            return self.boss_stingers[stage_index]
+        p=STAGES[stage_index]; base=45+p.key
+        dur=1.05; mix=np.zeros((int(dur*AUDIO_RATE),2),dtype=np.float32)
+        # Stage-specific interval fingerprint from the campaign harmony.
+        intervals={
+            "heroic":[0,7,12],"storm":[0,3,10],"industrial":[0,1,6],
+            "aquatic":[0,5,10],"mechanical":[0,3,7],"organic":[0,6,1],
+            "war":[0,5,12],"crystal":[0,8,12],"unreal":[0,1,8],"omega":[0,1,6]
+        }[p.music_style]
+        for i,iv in enumerate(intervals):
+            sig=self.instrument("brass" if p.music_style not in ("aquatic","crystal","unreal") else "fmlead",
+                                base+12+iv,.42,.10-i*.012)
+            self.add_stereo(mix,.04+i*.11,self.pan_mono(sig,-.55+i*.55))
+        # Low impact + noise/energy wash gives the cue physical weight.
+        self.add_stereo(mix,.0,self.pan_mono(self._kick(.28,.30),0))
+        n=int(.55*AUDIO_RATE); tt=np.arange(n)/AUDIO_RATE
+        rng=np.random.default_rng(9300+stage_index)
+        wash=rng.uniform(-1,1,n).astype(np.float32)*np.exp(-tt*7)*.055
+        self.add_stereo(mix,.18,self.pan_mono(wash,.34 if stage_index%2 else -.34))
+        mix=self.stereo_delay(mix,.085,.13,.18)
+        mix=np.tanh(mix*1.6)*.78
+        snd=self._sound_from_stereo(mix)
+        self.boss_stingers[stage_index]=snd
+        return snd
 
     def play_stage(self, stage_index):
         if not self.enabled: return
@@ -1077,6 +1600,10 @@ class AudioSynth:
         if not self.enabled: return
         try:
             if self.current: self.current.stop()
+            stinger=self.generate_boss_stinger(stage_index)
+            if stinger:
+                stinger.set_volume(min(1.0,self.music_volume*.95))
+                stinger.play()
             self.boss_sound=self.generate_stage_mix(stage_index,True)
             self.current=self.boss_sound
             if self.current:
@@ -1108,6 +1635,13 @@ class Background:
             self.stars.append((pts,speed,bright))
         self.textures={theme:self._build_texture(theme,256) for theme in
                        ("atmosphere","lava","water","station","hive","city","ice","veil","omega")}
+        # V8.3 reuses software-floor buffers/surfaces instead of allocating a
+        # NumPy array + SDL Surface every rendered frame. This removes a major
+        # source of periodic allocator/GC hitches on Windows.
+        self._floor_buffers={}
+        self._floor_surfaces={}
+        self._floor_geometry={}
+        self._xs=np.arange(NATIVE_W,dtype=np.float32)-NATIVE_W/2
 
     def _build_texture(self, theme, size):
         yy,xx=np.indices((size,size))
@@ -1162,7 +1696,7 @@ class Background:
 
     def update(self,dt,stage):
         self.time+=dt
-        self.scroll=(self.scroll+(52+stage*4)*dt)%256
+        self.scroll+= (52+stage*4)*dt  # texture indices wrap; camera scroll must stay continuous
 
     def _gradient(self,surf,top,bottom,y0=HUD_H,y1=NATIVE_H):
         for y in range(y0,y1):
@@ -1184,32 +1718,135 @@ class Background:
 
     def _floor_cast(self,surf,theme,horizon=104,warp=0.0,fog=(0,0,0)):
         h=NATIVE_H-horizon
-        out=np.empty((h,NATIVE_W,3),dtype=np.uint8)
-        xs=np.arange(NATIVE_W,dtype=np.float32)-NATIVE_W/2
-        tex=self.textures[theme]
-        mask=255
-        for row in range(h):
-            y=horizon+row
-            dy=max(1.0,y-horizon)
+        key=(theme,horizon)
+        if key not in self._floor_buffers:
+            self._floor_buffers[key]=np.empty((h,NATIVE_W,3),dtype=np.uint8)
+            self._floor_surfaces[key]=pygame.Surface((NATIVE_W,h)).convert()
+            rows=np.arange(h,dtype=np.float32)
+            dy=np.maximum(1.0,rows)
             depth=92.0/dy
             distance=depth*42.0
-            wobble=math.sin(self.time*1.7+row*.09)*warp
-            wx=self.scroll*1.8+distance+xs*depth*.72+wobble
-            wy=self.scroll*.23+distance*.60+xs*depth*.08
-            tx=np.asarray(wx,dtype=np.int32)&mask
-            ty=np.asarray(wy,dtype=np.int32)&mask
-            line=tex[ty,tx].astype(np.float32)
-            near=row/max(1,h-1)
+            near=rows/max(1,h-1)
             factor=.30+.70*(near**.42)
-            line=line*factor+np.asarray(fog,dtype=np.float32)*(1-factor)*.28
+            self._floor_geometry[key]=(depth,distance,factor)
+        out=self._floor_buffers[key]
+        fs=self._floor_surfaces[key]
+        depth_arr,distance_arr,factor_arr=self._floor_geometry[key]
+        tex=self.textures[theme]; mask=255; xs=self._xs
+        scroll=self.scroll
+        tm=self.time
+        fogv=np.asarray(fog,dtype=np.float32)
+        for row in range(h):
+            depth=float(depth_arr[row]); distance=float(distance_arr[row])
+            wobble=math.sin(tm*1.7+row*.09)*warp
+            wx=scroll*1.8+distance+xs*depth*.72+wobble
+            wy=scroll*.23+distance*.60+xs*depth*.08
+            tx=wx.astype(np.int32)&mask
+            ty=wy.astype(np.int32)&mask
+            line=tex[ty,tx].astype(np.float32)
+            factor=float(factor_arr[row])
+            line=line*factor+fogv*(1-factor)*.28
             out[row]=np.clip(line,0,255).astype(np.uint8)
-        fs=pygame.surfarray.make_surface(np.transpose(out,(1,0,2)))
+        # Reuse the same SDL surface; no make_surface allocation in the hot path.
+        pygame.surfarray.blit_array(fs,np.transpose(out,(1,0,2)))
         surf.blit(fs,(0,horizon))
 
     def draw(self,surf,stage):
         theme=STAGES[stage-1].theme
         fn=getattr(self,f"draw_{theme}")
         fn(surf,stage)
+        self.draw_artist_layer(surf,stage)
+
+    def draw_artist_layer(self,surf,stage):
+        """Stage-specific midground detail pass shared by gameplay and test mode."""
+        theme=STAGES[stage-1].theme
+        t=self.time; sc=self.scroll
+        if theme=="space":
+            # Distant cruiser silhouettes and a sparse dust sheet sell scale.
+            for i in range(3):
+                x=int((310+i*109-t*(4+i))%430)-80
+                y=75+i*19
+                pygame.draw.line(surf,(18,29,61),(x,y),(x+28,y),2)
+                pygame.draw.line(surf,(41,62,105),(x+8,y-2),(x+23,y-2),1)
+                safe_set(surf,x+29,y,(72,190,225))
+            for i in range(9 if self.fx_level==2 else 5):
+                x=int((i*41-t*13)%290)-15; y=104+(i*23)%103
+                safe_set(surf,x,y,(43,52,80))
+        elif theme=="atmosphere":
+            # Distant terrain/city silhouettes beneath cloud deck.
+            for i in range(12):
+                x=int((i*27-sc*.16)%310)-25
+                h=5+(i*7)%13
+                pygame.draw.rect(surf,(30,58,66),(x,102-h,15,h))
+                if i%3==0:safe_set(surf,x+7,99-h,(210,175,90))
+        elif theme=="lava":
+            # Bright embers and cooler basalt overhangs improve depth separation.
+            for i in range(16 if self.fx_level==2 else 8):
+                x=int((i*37+t*(8+i%4))%280)-12
+                y=57+(i*29)%153
+                safe_set(surf,x,y,(255,196,56) if i%4==0 else (201,58,15))
+            for i in range(4):
+                x=int((i*79-sc*.41)%330)-45
+                pygame.draw.line(surf,(36,13,13),(x,151),(x+18,131),5)
+                pygame.draw.line(surf,(82,28,20),(x+2,151),(x+19,133),1)
+        elif theme=="water":
+            # Ruin columns and kelp silhouettes at different parallax rates.
+            for i in range(6):
+                x=int((i*56-sc*.24)%330)-35
+                base=197; h=27+(i*11)%42
+                pygame.draw.rect(surf,(5,48,59),(x,base-h,9,h))
+                pygame.draw.rect(surf,(17,92,93),(x+2,base-h+4,5,h-7),1)
+                pygame.draw.line(surf,(24,119,101),(x+9,base),(x+15,base-h//2),2)
+            for i in range(11):
+                x=int((i*31-sc*.36)%300)-20; y=119+(i*23)%94
+                safe_set(surf,x,y,(87,200,190))
+        elif theme=="station":
+            # Overhead gantries and foreground machinery create a dense interior.
+            for i in range(5):
+                x=int((i*64-sc*.42)%340)-45
+                draw_station_bulkhead(surf,x,48,38,24,900+i)
+                pygame.draw.line(surf,(35,54,62),(x+6,72),(x+3,103),3)
+                pygame.draw.line(surf,(88,116,122),(x+8,72),(x+5,103),1)
+        elif theme=="hive":
+            for i in range(8):
+                x=int((i*43-sc*.34)%320)-25; y=66+(i*31)%116
+                draw_hive_pod(surf,x,y,t+i*.23)
+                if i%2==0:
+                    pygame.draw.line(surf,(73,20,62),(x+5,y+7),(x-4,y+25),3)
+        elif theme=="city":
+            # Near silhouettes, searchlights, broken elevated transit.
+            for i in range(4):
+                x=int((i*91-sc*.52)%390)-70
+                pygame.draw.line(surf,(61,59,64),(x,119),(x+55,105),4)
+                pygame.draw.line(surf,(190,91,54),(x+15,113),(x+35,108),1)
+            for i in range(3):
+                x=int((45+i*101-t*8)%340)-40
+                pygame.draw.line(surf,(80,93,103),(x,101),(x+int(math.sin(t+i)*18),45),1)
+        elif theme=="ice":
+            # Foreground crystal chunks catch the stage lighting.
+            for i in range(7):
+                x=int((i*49-sc*.48)%330)-35; y=165+(i*17)%48
+                pts=[(x,y+12),(x+4,y),(x+8,y+12),(x+5,y+8)]
+                pygame.draw.polygon(surf,(74,142,178),pts)
+                pygame.draw.line(surf,(193,239,250),(x+4,y),(x+5,y+8),1)
+        elif theme=="veil":
+            # Floating monoliths at contradictory parallax speeds.
+            for i in range(6):
+                direction=-1 if i%2 else 1
+                x=int((i*57+t*direction*(7+i))%330)-35
+                y=52+(i*29)%121
+                h=16+(i*7)%25
+                pygame.draw.polygon(surf,(32,12,58),[(x,y),(x+8,y-5),(x+10,y+h),(x+2,y+h+5)])
+                pygame.draw.line(surf,(176,47,196),(x+8,y-4),(x+9,y+h),1)
+                safe_set(surf,x+4,y+7,(81,243,219))
+        elif theme=="omega":
+            # Large depth ribs and living-machine apertures frame the final arena.
+            for i in range(5):
+                x=int((i*73-sc*.29)%360)-55
+                pygame.draw.rect(surf,(33,8,28),(x,54,20,48))
+                pygame.draw.rect(surf,(88,17,53),(x+4,59,12,38),1)
+                pygame.draw.circle(surf,(192,34,91),(x+10,76),4,1)
+                safe_set(surf,x+9,75,(255,206,148))
 
     def draw_space(self,surf,stage):
         self._gradient(surf,(3,4,18),(11,5,32))
@@ -1309,40 +1946,40 @@ class Background:
             pygame.draw.circle(surf,(99,190,198),(x,y),1,1)
 
     def draw_station(self,surf,stage):
-        self._gradient(surf,(7,11,18),(14,21,27),HUD_H,105)
-        # Repeating corridor ribs.
+        self._gradient(surf,(5,9,15),(29,42,50),HUD_H,103)
+        # Repeating but detailed industrial bulkheads / observation bays.
+        for i in range(6):
+            x=int((i*58-self.scroll*.18)%360)-50
+            draw_station_bulkhead(surf,x,37,44,43,500+i)
+            # conduit stacks and animated service lights
+            pygame.draw.line(surf,(29,49,57),(x+7,80),(x+5,102),4)
+            pygame.draw.line(surf,(86,117,123),(x+9,80),(x+7,102),1)
+            safe_set(surf,x+34,43,(245,177,62) if int(self.time*4+i)%2 else (70,205,221))
+        # background crane rail / door tracks
+        pygame.draw.line(surf,(72,88,95),(0,88),(NATIVE_W,88),3)
+        pygame.draw.line(surf,(28,151,168),(0,89),(NATIVE_W,89),1)
+        self._floor_cast(surf,"station",101,.15,(11,18,23))
+        # foreground floor lamps
         for i in range(9):
-            x=int((i*46-self.scroll*.5)%360)-52
-            pygame.draw.rect(surf,(42,51,60),(x,33,8,77))
-            pygame.draw.rect(surf,(81,93,101),(x+2,37,2,69))
-            pygame.draw.line(surf,(26,116,135),(x+7,52),(x+7,96),1)
-        # Window strip reveals space.
-        pygame.draw.rect(surf,(4,8,21),(0,63,NATIVE_W,19))
-        for i in range(14):
-            x=int((i*31-self.time*12)%NATIVE_W); safe_set(surf,x,70,(120,190,230))
-        self._floor_cast(surf,"station",105,0,(9,15,20))
-        # Moving mechanical arms foreground.
-        for i in range(3):
-            x=int((70+i*96-self.scroll*.8)%360)-50
-            pygame.draw.rect(surf,(52,57,64),(x,126,6,70))
-            pygame.draw.line(surf,(96,105,112),(x+3,127),(x+19,143),3)
-            pygame.draw.circle(surf,(235,157,51),(x+20,144),3)
+            x=int((i*39-self.scroll*.64)%310)-20; y=180+(i%3)*13
+            pygame.draw.rect(surf,(17,26,31),(x-3,y-2,7,4))
+            safe_set(surf,x,y,(79,221,231) if i%2 else (240,169,54))
 
     def draw_hive(self,surf,stage):
-        self._gradient(surf,(18,5,20),(48,10,39))
-        # Pulsing organic wall lobes.
-        for i in range(9):
-            x=int((i*39-self.scroll*.18)%330)-30
-            r=17+int(math.sin(self.time*2+i)*3)
-            pygame.draw.ellipse(surf,(67,18,57),(x,39+(i%3)*15,r*2,r+14))
-            pygame.draw.ellipse(surf,(104,29,77),(x+5,44+(i%3)*15,r,r+4),1)
-        # Hanging membranes.
-        for i in range(10):
-            x=int((i*29-self.scroll*.25)%290)-15
-            length=16+(i*11)%34
-            pygame.draw.line(surf,(91,28,73),(x,HUD_H),(x+int(math.sin(self.time+i)*4),HUD_H+length),3)
-        self._floor_cast(surf,"hive",103,1.7,(38,8,30))
-        # Bioluminescent nodes.
+        self._gradient(surf,(13,4,17),(47,11,40),HUD_H,103)
+        # Layered chitin ribs with highlight/shadow faces.
+        for i in range(12):
+            x=int((i*31-self.scroll*.25)%315)-30
+            length=20+(i*11)%43
+            bend=int(math.sin(self.time*.6+i)*5)
+            pygame.draw.line(surf,(41,10,38),(x,HUD_H),(x+bend,HUD_H+length),6)
+            pygame.draw.line(surf,(105,28,81),(x+1,HUD_H),(x+bend+1,HUD_H+length),2)
+            if i%3==0:safe_set(surf,x+2,HUD_H+length-2,(164,55,112))
+        # Translucent egg/pod field behind the combat plane.
+        for i in range(7):
+            x=int((i*51-self.scroll*.17)%330)-35; y=61+(i*23)%38
+            draw_hive_pod(surf,x,y,self.time+i)
+        self._floor_cast(surf,"hive",103,1.55,(38,8,30))
         for i in range(12):
             x=int((i*53-self.scroll*.45)%330)-30; y=127+(i*17)%79
             pulse=2+(int(self.time*5+i)%2)
@@ -1350,79 +1987,92 @@ class Background:
             safe_set(surf,x-1,y-1,(169,255,194))
 
     def draw_city(self,surf,stage):
-        self._gradient(surf,(12,10,25),(70,42,40),HUD_H,105)
-        # Multiple skyline layers.
-        for layer,(spd,col,base) in enumerate([(7,(25,27,42),99),(15,(39,40,51),108),(27,(51,48,53),117)]):
-            for i in range(9):
-                x=int((i*43-self.time*spd)%340)-35
-                h=22+((i*17+layer*11)%52)
-                pygame.draw.rect(surf,col,(x,base-h,25,h))
-                if layer>0:
-                    for wy in range(base-h+5,base-3,8):
-                        safe_set(surf,x+5,wy,(174,93,50)); safe_set(surf,x+15,wy,(39,104,127))
-        self._floor_cast(surf,"city",109,0,(23,22,27))
-        # Smoke/fire columns.
+        self._gradient(surf,(9,9,22),(63,34,36),HUD_H,107)
+        # Three hand-detailed skyline layers rather than anonymous rectangles.
+        layers=[(5,(0),98,True),(12,100,108,True),(23,200,118,False)]
+        for layer,(spd,seedbase,base,far) in enumerate(layers):
+            for i in range(8):
+                x=int((i*47-self.time*spd)%(NATIVE_W+100))-50
+                h=24+((i*19+layer*13)%55); w=22+((i*7+layer*3)%12)
+                draw_city_building(surf,x,base,w,h,seedbase+i,far)
+        # Distant fires/smoke animate independently from the skyline.
         for i in range(5):
-            x=int((38+i*61-self.scroll*.20)%320)-25
-            y=91-(i%2)*14
-            pygame.draw.circle(surf,(86,62,61),(x,y),5)
-            pygame.draw.circle(surf,(52,47,54),(x+3,y-6),7)
-            if i%2==0: pygame.draw.line(surf,ORANGE,(x,y+8),(x+2,y+13),2)
+            x=int((38+i*61-self.scroll*.20)%320)-25; y=91-(i%2)*14
+            pygame.draw.circle(surf,(73,52,54),(x,y),5)
+            pygame.draw.circle(surf,(43,41,49),(x+3,y-6),7)
+            if i%2==0:
+                pygame.draw.line(surf,ORANGE,(x,y+8),(x+2,y+13),2)
+                safe_set(surf,x+1,y+8,YELLOW)
+        self._floor_cast(surf,"city",109,0,(23,22,27))
 
     def draw_ice(self,surf,stage):
-        self._gradient(surf,(5,15,36),(40,81,118),HUD_H,103)
-        # Giant planet in sky.
-        pygame.draw.circle(surf,(45,78,121),(200,56),31)
-        pygame.draw.circle(surf,(87,122,157),(191,48),21)
-        pygame.draw.arc(surf,(165,211,232),(166,22,69,69),.5,2.6,2)
-        # Distant glacier silhouettes.
-        for i in range(10):
-            x=int((i*36-self.scroll*.13)%320)-30
-            h=17+(i*13)%38
-            pygame.draw.polygon(surf,(58,101,132),[(x,104),(x+10,104-h),(x+19,90),(x+29,104)])
-            pygame.draw.line(surf,(142,206,228),(x+10,104-h),(x+19,90),1)
-        self._floor_cast(surf,"ice",103,.5,(21,55,83))
-        # Blowing snow.
-        for i in range(34 if self.fx_level==2 else 18 if self.fx_level==1 else 8):
-            x=int((i*23-self.time*(22+i%6))%NATIVE_W)
-            y=HUD_H+(i*37)%198
-            safe_set(surf,x,y,(190,229,244))
+        self._gradient(surf,(4,13,34),(38,78,115),HUD_H,103)
+        # Giant banded planet and atmospheric rim.
+        pygame.draw.circle(surf,(36,66,108),(202,55),33)
+        pygame.draw.circle(surf,(73,108,147),(193,47),23)
+        pygame.draw.arc(surf,(180,225,240),(167,20,71,71),.4,2.7,2)
+        pygame.draw.line(surf,(113,157,187),(177,43),(219,54),1)
+        # Layered authored glacier ridges replace simple repeated triangles.
+        for i in range(8):
+            x=int((i*46-self.scroll*.13)%360)-50
+            h=25+(i*17)%44; w=38+(i*9)%20
+            draw_ice_peak(surf,x,105,w,h,700+i)
+        self._floor_cast(surf,"ice",103,.45,(21,55,83))
+        # Blowing snow in multiple sizes/depths.
+        count=40 if self.fx_level==2 else 22 if self.fx_level==1 else 9
+        for i in range(count):
+            x=int((i*23-self.time*(20+i%7))%NATIVE_W); y=HUD_H+(i*37)%198
+            col=(217,244,251) if i%5==0 else (162,213,235)
+            safe_set(surf,x,y,col)
+            if self.fx_level==2 and i%9==0:safe_set(surf,x+1,y,col)
 
     def draw_veil(self,surf,stage):
-        self._gradient(surf,(8,3,22),(30,7,54))
-        # Ringworld arcs.
-        pygame.draw.arc(surf,(76,33,121),(-70,18,390,176),3.25,6.15,7)
-        pygame.draw.arc(surf,(192,57,206),(-72,21,394,178),3.35,6.05,1)
+        self._gradient(surf,(6,2,19),(28,6,51))
+        # Layered ringworld arcs and broken inner rails.
+        pygame.draw.arc(surf,(51,22,91),(-75,12,405,187),3.20,6.20,9)
+        pygame.draw.arc(surf,(115,35,154),(-72,18,398,181),3.28,6.12,3)
+        pygame.draw.arc(surf,(220,62,221),(-70,21,394,178),3.35,6.05,1)
+        for i in range(8):
+            x=int((i*49+self.time*(-4 if i%2 else 5))%315)-30
+            pygame.draw.line(surf,(52,21,85),(x,51),(x+22,77),3)
+            safe_set(surf,x+11,64,(83,239,217) if i%2 else MAGENTA)
         self._stars(surf,HUD_H,105,-.7,(1.0,.5,1.0))
-        self._floor_cast(surf,"veil",101,8.0,(26,3,39))
-        # Reality tears.
+        self._floor_cast(surf,"veil",101,7.0,(26,3,39))
+        # Reality tears with offset chromatic echoes.
         for i in range(5):
-            x=int((i*63+self.time*(7 if i%2 else -5))%300)-20
-            y=50+(i*33)%130
-            h=18+(i*9)%30
-            pygame.draw.line(surf,(73,255,220),(x,y),(x+int(math.sin(self.time*3+i)*8),y+h),1)
-            pygame.draw.line(surf,(227,60,232),(x+3,y),(x+4,y+h),1)
+            x=int((i*63+self.time*(7 if i%2 else -5))%300)-20; y=50+(i*33)%130; h=18+(i*9)%30
+            bend=int(math.sin(self.time*3+i)*8)
+            pygame.draw.line(surf,(73,255,220),(x,y),(x+bend,y+h),1)
+            pygame.draw.line(surf,(227,60,232),(x+3,y),(x+bend+4,y+h),1)
+            safe_set(surf,x+1,y+h//2,WHITE)
 
     def draw_omega(self,surf,stage):
-        self._gradient(surf,(3,3,8),(31,5,22))
-        # Enormous living-machine core in depth.
-        pulse=4+int((math.sin(self.time*3)+1)*2)
-        pygame.draw.circle(surf,(60,12,42),(198,69),37+pulse)
-        pygame.draw.circle(surf,(116,19,64),(198,69),26+pulse,3)
-        pygame.draw.circle(surf,(255,73,117),(198,69),10+pulse)
-        pygame.draw.circle(surf,(255,225,169),(194,65),3)
-        # Conduit ribs.
+        self._gradient(surf,(2,2,7),(29,4,20))
+        # Enormous living-machine iris in depth, now layered with armor plates.
+        pulse=3+int((math.sin(self.time*3)+1)*2)
+        cx,cy=199,67
+        pygame.draw.circle(surf,(28,6,23),(cx,cy),42+pulse)
+        for i in range(8):
+            a=i*math.tau/8+self.time*.06
+            px=cx+int(math.cos(a)*31); py=cy+int(math.sin(a)*22)
+            pygame.draw.rect(surf,(70,13,49),(px-5,py-3,10,6))
+            pygame.draw.line(surf,(145,27,75),(px-3,py-2),(px+3,py-2),1)
+        pygame.draw.circle(surf,(92,15,55),(cx,cy),27+pulse,3)
+        pygame.draw.circle(surf,(221,43,103),(cx,cy),12+pulse)
+        pygame.draw.circle(surf,(255,222,166),(cx-3,cy-3),3)
+        # Multiple depth ribs with internal light strips.
         for i in range(11):
             x=int((i*31-self.scroll*.35)%300)-20
-            pygame.draw.line(surf,(65,21,54),(x,HUD_H),(x+18,105),4)
-            pygame.draw.line(surf,(151,31,78),(x+2,HUD_H),(x+20,105),1)
-        self._floor_cast(surf,"omega",101,4.0,(25,3,12))
-        # Energy filaments foreground.
+            pygame.draw.line(surf,(51,15,43),(x,HUD_H),(x+18,105),5)
+            pygame.draw.line(surf,(142,29,77),(x+2,HUD_H),(x+20,105),1)
+            if i%2==0:safe_set(surf,x+10,66+(i*7)%26,(239,70,119))
+        self._floor_cast(surf,"omega",101,3.5,(25,3,12))
         for i in range(8 if self.fx_level==2 else 5 if self.fx_level==1 else 3):
             x=int((i*49+self.time*11)%300)-20
-            pygame.draw.line(surf,(226,47,104),(x,128),(x+int(math.sin(self.time*4+i)*16),216),1)
-            if i%3==0: safe_set(surf,x,145+(i*9)%60,(255,230,173))
-
+            bend=int(math.sin(self.time*4+i)*16)
+            pygame.draw.line(surf,(226,47,104),(x,128),(x+bend,216),1)
+            pygame.draw.line(surf,(88,18,65),(x+2,128),(x+bend+3,216),1)
+            if i%3==0:safe_set(surf,x,145+(i*9)%60,(255,230,173))
 # ---------------------------------------------------------------------------
 # Bullets, explosions, pickups, hazards
 # ---------------------------------------------------------------------------
@@ -1567,19 +2217,28 @@ class Explosion:
     def draw(self,surf):
         t=1-max(0,self.life)/self.max_life
         x,y=int(self.x),int(self.y)
-        r=max(1,int(self.size*(.25+t*.85)))
-        if self.color_mode=="green": cols=[WHITE,(145,255,187),GREEN,DARK_GREEN]
-        elif self.color_mode=="ice": cols=[WHITE,ICE,(75,142,205),(26,68,112)]
-        elif self.color_mode=="void": cols=[WHITE,MAGENTA,PURPLE,(44,12,67)]
-        else: cols=[WHITE,YELLOW,ORANGE,(128,35,27)]
-        idx=min(3,int(t*4))
-        pygame.draw.circle(surf,cols[idx],(x,y),r,1)
-        if r>3: pygame.draw.circle(surf,cols[max(0,idx-1)],(x,y),max(1,r//2),1)
-        # sparks/debris
-        for i in range(4):
-            a=i*math.pi/2+.7
-            rr=int(r*(1.25+i*.12))
-            safe_set(surf,x+int(math.cos(a)*rr),y+int(math.sin(a)*rr),cols[min(idx,2)])
+        r=max(1,int(self.size*(.28+t*.92)))
+        if self.color_mode=="green": cols=[WHITE,(174,255,203),(74,235,133),(21,105,69)]
+        elif self.color_mode=="ice": cols=[WHITE,ICE,(80,151,210),(23,63,104)]
+        elif self.color_mode=="void": cols=[WHITE,(255,107,226),MAGENTA,(62,15,83)]
+        else: cols=[WHITE,(255,236,112),ORANGE,(132,34,24)]
+        # Flash/core -> expanding hot fragments -> cooling outer debris.
+        if t<.16:
+            pygame.draw.rect(surf,cols[0],(x-r//2,y-r//2,max(2,r),max(2,r)))
+            pygame.draw.circle(surf,cols[1],(x,y),max(2,r//2))
+        else:
+            outer=cols[2] if t<.62 else cols[3]
+            pygame.draw.circle(surf,outer,(x,y),max(2,r),1)
+            pygame.draw.circle(surf,cols[1],(x,y),max(1,int(r*(1-t*.65))))
+            if t>.42:
+                pygame.draw.circle(surf,cols[3],(x+2,y+1),max(1,r//2),1)
+        # Eight deterministic fragments create a sprite-like irregular burst.
+        for i in range(8):
+            a=i*math.tau/8+.33
+            rr=int(r*(1.0+(i%3)*.28)*min(1,t*1.8))
+            px=x+int(math.cos(a)*rr); py=y+int(math.sin(a)*rr)
+            safe_set(surf,px,py,cols[1] if i%3==0 else cols[2])
+            if i%2==0 and t>.35:safe_set(surf,px+1,py,cols[3])
 
 
 @dataclass
@@ -1746,7 +2405,7 @@ class Player:
         self.max_health=100; self.health=100; self.lives=3
         self.weapon=0; self.unlocked=[True]+[False]*9
         self.fire_timer=0.0; self.invuln=1.3; self.weapon_phase=0.0; self.orbit_phase=0.0
-        self.bank=0.0
+        self.bank=0.0; self.anim_time=0.0
 
     def reset_position(self): self.x,self.y=43.0,136.0; self.invuln=1.7
     def rect(self): return pygame.Rect(int(self.x-7),int(self.y-5),14,10)
@@ -1774,7 +2433,7 @@ class Player:
         self.bank=lerp(self.bank,dy,min(1,dt*8))
         self.x=clamp(self.x+dx*self.speed*dt,11,NATIVE_W-16)
         self.y=clamp(self.y+dy*self.speed*dt,HUD_H+9,NATIVE_H-11)
-        self.fire_timer-=dt; self.invuln=max(0,self.invuln-dt); self.orbit_phase=(self.orbit_phase+dt*4.4)%(math.tau)
+        self.fire_timer-=dt; self.invuln=max(0,self.invuln-dt); self.orbit_phase=(self.orbit_phase+dt*4.4)%(math.tau); self.anim_time+=dt
         if (keys[pygame.K_SPACE] or keys[pygame.K_z]) and self.fire_timer<=0:
             Weapon.fire(self.weapon,self,game); self.fire_timer=Weapon.COOLDOWNS[self.weapon]
 
@@ -1798,30 +2457,43 @@ class Player:
     def draw(self,surf):
         if self.invuln>0 and int(self.invuln*14)%2==0:return
         x,y=int(self.x),int(self.y)
-        # Palette-indexed authored ship sprite. Banking shifts the sprite by one
-        # pixel instead of deforming its silhouette with arbitrary polygons.
         bank=int(round(self.bank))
         pal={
-            '1':(10,27,57), '2':(25,61,104), '3':(43,107,151),
-            '4':(72,170,199), '5':(132,223,235), '6':WHITE,
-            '7':ORANGE, '8':(119,236,255),
+            '1':(7,20,45), '2':(18,48,88), '3':(37,92,139),
+            '4':(67,158,192), '5':(126,218,235), '6':WHITE,
+            '7':ORANGE, '8':(112,235,255),
         }
+        # A one-pixel dark underside offset makes the ship read as a volume.
+        shadow_pal={k:tuple(max(0,c-24) for c in v) if isinstance(v,tuple) else v for k,v in pal.items()}
+        draw_indexed_sprite(surf,PLAYER_PIXELS,x-15,y-5+bank,shadow_pal)
         draw_indexed_sprite(surf,PLAYER_PIXELS,x-15,y-6+bank,pal)
-        # Animated exhaust is a separate metasprite/effect layer.
-        flame=4+(pygame.time.get_ticks()//55)%4
+        # Layered engine flame is simulation-time based (not wall-clock based),
+        # avoiding visual phase jumps after a slow frame.
+        flame=4+int((math.sin(self.anim_time*24)+1)*1.5)
         for fx in range(flame):
-            col=YELLOW if fx<2 else ORANGE if fx<4 else (149,45,50)
+            col=WHITE if fx==0 else YELLOW if fx<2 else ORANGE if fx<4 else (146,44,54)
             safe_set(surf,x-14-fx,y,col)
-            if fx<3:safe_set(surf,x-13-fx,y+1,col)
-        # Canopy gleam and weapon hardpoint flash add sub-frame life.
+            if fx<4:safe_set(surf,x-13-fx,y+1,col)
+        # Canopy reflection, navigation lights, and moving wing glints.
         safe_set(surf,x+2,y-3+bank,WHITE)
-        if self.fire_timer>0 and self.fire_timer<.045:
-            safe_set(surf,x+13,y,WHITE); safe_set(surf,x+14,y,CYAN)
+        safe_set(surf,x-2,y-4+bank,(97,221,243))
+        blink=int(self.anim_time*8)%2
+        safe_set(surf,x-5,y-5+bank,(255,103,65) if blink else (113,48,58))
+        safe_set(surf,x-5,y+5+bank,(91,232,190) if not blink else (35,104,96))
+        if self.fire_timer>0 and self.fire_timer<.05:
+            pygame.draw.line(surf,WHITE,(x+12,y),(x+15,y),2)
+            safe_set(surf,x+16,y,CYAN)
+        if self.invuln>0:
+            # sparse energy shell pixels rather than disappearing entirely
+            for a in range(0,360,60):
+                aa=math.radians(a+self.anim_time*80)
+                safe_set(surf,x+int(math.cos(aa)*17),y+int(math.sin(aa)*10),(109,231,255))
         if self.weapon==7:
             for ox,oy in self.orbiter_positions():
                 ox,oy=int(ox),int(oy)
                 orb=["..1..",".232.","12321",".242.","..1.."]
-                draw_indexed_sprite(surf,orb,ox-2,oy-2,{'1':(11,45,61),'2':(43,142,150),'3':WHITE,'4':GREEN})
+                draw_indexed_sprite(surf,orb,ox-2,oy-2,{'1':(8,36,53),'2':(31,128,143),'3':WHITE,'4':GREEN})
+                safe_set(surf,ox+3,oy,(119,255,197))
 
 # ---------------------------------------------------------------------------
 # Enemy archetypes and stage-local visual families
@@ -1921,35 +2593,59 @@ class Enemy:
     def draw(self,surf):
         x,y=int(self.x),int(self.y); theme=STAGES[self.stage-1].theme
         p=STAGES[self.stage-1].palette
-        # Material-aware indexed palette. Stage 3 deliberately uses cool rim
-        # lighting and an almost-black obsidian outline so enemies never merge
-        # into the orange/red cavern texture.
         if theme=='lava':
-            pal={'1':(3,5,14),'2':(30,24,36),'3':(61,43,52),'4':(101,166,190),'5':(184,231,235),'8':(255,119,34)}
+            pal={'1':(2,4,12),'2':(24,21,33),'3':(54,42,55),'4':(92,160,187),'5':(188,236,240),'8':(255,119,34)}
         elif theme=='water':
-            pal={'1':(1,21,35),'2':(6,58,76),'3':(13,104,117),'4':(43,178,181),'5':(150,255,235),'8':(82,224,255)}
+            pal={'1':(1,18,32),'2':(5,51,70),'3':(10,96,112),'4':(37,169,179),'5':(153,255,238),'8':(82,224,255)}
         elif theme=='ice':
-            pal={'1':(7,25,48),'2':(37,80,117),'3':(76,139,172),'4':(139,210,233),'5':WHITE,'8':(91,183,255)}
+            pal={'1':(6,21,43),'2':(31,71,108),'3':(67,128,163),'4':(132,205,231),'5':WHITE,'8':(91,183,255)}
         elif theme=='hive':
-            pal={'1':(28,7,30),'2':(73,18,64),'3':(123,34,91),'4':(177,58,118),'5':(142,255,177),'8':(72,231,137)}
+            pal={'1':(25,5,27),'2':(66,15,59),'3':(117,31,87),'4':(172,55,116),'5':(143,255,180),'8':(72,231,137)}
         elif theme=='veil':
-            pal={'1':(12,5,28),'2':(58,24,104),'3':(108,39,155),'4':(207,63,216),'5':(104,255,228),'8':WHITE}
+            pal={'1':(10,3,26),'2':(53,20,99),'3':(105,35,152),'4':(205,61,216),'5':(104,255,228),'8':WHITE}
         elif theme=='omega':
-            pal={'1':(14,5,16),'2':(63,15,46),'3':(118,24,67),'4':(207,43,98),'5':(255,220,157),'8':RED}
+            pal={'1':(12,4,14),'2':(58,13,43),'3':(112,22,64),'4':(203,41,96),'5':(255,220,157),'8':RED}
         else:
-            pal={'1':(8,17,35),'2':p[0],'3':p[1],'4':p[2],'5':p[3],'8':ORANGE}
+            pal={'1':(7,15,31),'2':p[0],'3':p[1],'4':p[2],'5':p[3],'8':ORANGE}
         rows=ENEMY_PIXEL_BANK[self.archetype]
-        draw_indexed_sprite(surf,rows,x-len(rows[0])//2,y-len(rows)//2,pal,flip_x=self.from_rear)
-        # Stage-specific authored accents, kept sparse so silhouettes remain clean.
+        flip=self.from_rear
+        draw_indexed_sprite(surf,rows,x-len(rows[0])//2,y-len(rows)//2,pal,flip_x=flip)
+        anim=int(self.age*9)%2
+        direction=1 if flip else -1
+        # Distinct archetype hardpoints/animation so types are recognizable in motion.
+        if self.archetype=='interceptor':
+            safe_set(surf,x+direction*6,y-4+(1 if anim else 0),pal['5'])
+            safe_set(surf,x+direction*6,y+4-(1 if anim else 0),pal['5'])
+        elif self.archetype=='heavy':
+            pygame.draw.line(surf,pal['1'],(x+direction*7,y-5),(x+direction*11,y-5),2)
+            pygame.draw.line(surf,pal['1'],(x+direction*7,y+5),(x+direction*11,y+5),2)
+            safe_set(surf,x+direction*11,y-5,pal['8']); safe_set(surf,x+direction*11,y+5,pal['8'])
+        elif self.archetype=='artillery':
+            pygame.draw.line(surf,pal['3'],(x+direction*5,y),(x+direction*12,y),2)
+            safe_set(surf,x+direction*13,y,pal['5'])
+        else:
+            # articulated claw tips pulse in/out during charge behavior
+            claw=8+anim*2
+            safe_set(surf,x+direction*claw,y-6,pal['5']); safe_set(surf,x+direction*claw,y+6,pal['5'])
+        # Engine / propulsion cue prevents sprites from reading as static icons.
+        exhaust_x=x-direction*8
+        safe_set(surf,exhaust_x,y,pal['8'])
+        if anim:safe_set(surf,exhaust_x-direction*2,y,ORANGE if theme not in ('water','ice') else pal['5'])
+        # Stage-specific material accents.
         if theme=='atmosphere':
             safe_set(surf,x-3,y-5,pal['5']); safe_set(surf,x+3,y+5,pal['4'])
         elif theme=='lava':
-            safe_set(surf,x-5,y-4,pal['5']); safe_set(surf,x-4,y-3,pal['4'])
-            safe_set(surf,x,y,pal['8'])
+            safe_set(surf,x-5,y-4,pal['5']); safe_set(surf,x-4,y-3,pal['4']); safe_set(surf,x,y,pal['8'])
+        elif theme=='water':
+            safe_set(surf,x+2,y-5,pal['5']); safe_set(surf,x+4,y+4,pal['4'])
         elif theme=='station':
             safe_set(surf,x-5,y+4,(255,177,67)); safe_set(surf,x+4,y-3,(128,231,243))
+        elif theme=='hive':
+            safe_set(surf,x-2,y,pal['5']); safe_set(surf,x+3,y+2,pal['8'])
         elif theme=='city':
             safe_set(surf,x-4,y-4,(233,184,75)); safe_set(surf,x+2,y+3,(195,77,50))
+        elif theme=='ice':
+            safe_set(surf,x-5,y-5,WHITE); safe_set(surf,x+4,y+4,pal['4'])
         elif theme=='veil':
             safe_set(surf,x-8,y-6,pal['5']); safe_set(surf,x+8,y+6,pal['4'])
 
@@ -1975,9 +2671,14 @@ class Boss:
         # Collision silhouettes track the larger authored metasprites.
         if self.stage==1:return pygame.Rect(int(self.x-40),int(self.y-24),82,48)
         if self.stage==2:return pygame.Rect(int(self.x-45),int(self.y-33),92,65)
-        if self.stage==3:return pygame.Rect(int(self.x-38),int(self.y-39),77,70)
+        if self.stage==3:return pygame.Rect(int(self.x-39),int(self.y-42),82,76)
         if self.stage==4:return pygame.Rect(int(self.x-24),int(self.y-25),86,50)
-        if self.stage==8:return pygame.Rect(int(self.x-r-16),int(self.y-r),int(r*2+28),int(r*2))
+        if self.stage==5:return pygame.Rect(int(self.x-30),int(self.y-27),61,55)
+        if self.stage==6:return pygame.Rect(int(self.x-38),int(self.y-32),72,65)
+        if self.stage==7:return pygame.Rect(int(self.x-25),int(self.y-30),56,61)
+        if self.stage==8:return pygame.Rect(int(self.x-31),int(self.y-29),98,58)
+        if self.stage==9:return pygame.Rect(int(self.x-42),int(self.y-34),84,68)
+        if self.stage==10:return pygame.Rect(int(self.x-50),int(self.y-38),100,76)
         return pygame.Rect(int(self.x-r),int(self.y-r),int(r*2),int(r*2))
 
     def damage_multiplier(self,weapon_index):
@@ -2270,51 +2971,48 @@ class Boss:
 
     def draw_pyroclast(self,surf):
         x,y=int(self.x),int(self.y)
-        # Strong readable material ramp: almost-black silhouette, cool obsidian
-        # edge, then volcanic rock and extremely bright internal magma.
+        # V8.3 profile redesign: a hunched horned lava beast facing the player.
+        # It has an actual snout/jaw, shoulder mass, forelimbs, legs and tail.
         if self.shell:
-            pal={'1':(8,6,7),'2':(28,27,28),'3':(56,51,49),'4':(92,78,68),
-                 '5':(131,104,82),'6':(190,82,38),'7':(255,91,20),'8':(181,225,239)}
+            pal={'1':(6,6,8),'2':(25,27,31),'3':(49,52,56),'4':(78,82,82),
+                 '5':(116,101,82),'6':(165,75,39),'7':(78,163,193),'8':(198,238,247)}
         else:
-            pal={'1':(15,5,5),'2':(48,12,8),'3':(88,22,11),'4':(139,35,12),
-                 '5':(204,56,13),'6':(255,100,18),'7':(255,209,58),'8':WHITE}
-        # Torso first, with a slight breathing/heat heave.
-        heave=int(math.sin(self.age*2.1)*1.5)
-        draw_indexed_sprite(surf,PYRO_TORSO,x-15,y-6+heave,pal)
-        # Horned skull sits above the body and moves independently.
-        head_y=y-25+int(math.sin(self.age*2.7)*2)
-        draw_indexed_sprite(surf,PYRO_HEAD,x-9,head_y,pal)
-        # Massive forelimbs swing instead of staying as rigid triangles.
-        arm_swing=int(math.sin(self.age*2.0)*3)
-        draw_indexed_sprite(surf,PYRO_ARM_L,x-32,y-3+arm_swing,pal)
-        draw_indexed_sprite(surf,PYRO_ARM_R,x+17,y-3-arm_swing,pal)
-        draw_indexed_sprite(surf,PYRO_CLAW,x-35,y+12+arm_swing,pal)
-        draw_indexed_sprite(surf,PYRO_CLAW,x+29,y+12-arm_swing,pal,flip_x=True)
-        # Jaw / eye focal points make the creature's face readable instantly.
-        eye_col=(170,235,255) if self.shell else WHITE
-        safe_set(surf,x-4,head_y+6,eye_col); safe_set(surf,x+5,head_y+6,eye_col)
-        pygame.draw.line(surf,(12,4,4),(x-4,head_y+12),(x+6,head_y+12),2)
-        for tooth_x in (-2,2,6):
-            safe_set(surf,x+tooth_x,head_y+13,(230,222,180))
-        # Animated magma channels glow through the chest/arms. In shell mode
-        # they contract and cool, visually communicating the resistance cycle.
-        fissure=(122,213,232) if self.shell else (255,224,75)
-        fissure2=(73,137,167) if self.shell else (255,92,16)
-        channels=[(-7,-1,-3,7),(4,-2,8,6),(-1,7,2,14),(-21,4,-18,10),(22,3,25,10)]
-        for i,(ax,ay,bx,by) in enumerate(channels):
-            if self.shell and i%2: continue
-            pygame.draw.line(surf,fissure2,(x+ax,y+ay+heave),(x+bx,y+by+heave),2)
-            safe_set(surf,x+bx,y+by+heave,fissure)
-        # Radiant core in the sternum rather than an ambiguous floating circle.
-        core_r=4+int((math.sin(self.age*4.5)+1))
-        pygame.draw.circle(surf,(35,8,5),(x,y+4+heave),core_r+3)
-        pygame.draw.circle(surf,fissure2,(x,y+4+heave),core_r)
-        safe_set(surf,x-1,y+3+heave,fissure)
-        # Hardened-state outline reads as cooled obsidian armor.
+            pal={'1':(14,4,4),'2':(43,9,6),'3':(78,16,7),'4':(126,27,8),
+                 '5':(190,45,8),'6':(245,75,11),'7':(255,161,29),'8':(255,239,129)}
+        heave=int(math.sin(self.age*2.0)*2)
+        # Tail and rear mass sit behind the body.
+        draw_indexed_sprite(surf,PYRO_PROFILE_TAIL,x+6,y+6+heave,pal)
+        draw_indexed_sprite(surf,PYRO_PROFILE_TORSO,x-4,y-7+heave,pal)
+        # Rear leg creates a grounded creature stance instead of a floating ring.
+        step=int(math.sin(self.age*1.6)*2)
+        draw_indexed_sprite(surf,PYRO_PROFILE_LEG,x+5,y+14+step,pal)
+        # Shoulder / attacking arm reaches toward the player.
+        swing=int(math.sin(self.age*2.3)*3)
+        draw_indexed_sprite(surf,PYRO_PROFILE_ARM,x-23,y-2+swing,pal)
+        draw_indexed_sprite(surf,PYRO_PROFILE_CLAW,x-31,y+7+swing,pal)
+        # Large side-profile head and lower jaw, offset left from torso.
+        hy=y-25+int(math.sin(self.age*2.7)*2)
+        draw_indexed_sprite(surf,PYRO_PROFILE_HEAD,x-25,hy,pal)
+        jaw_open=2+int((math.sin(self.age*3.4)+1)*1.5)
+        draw_indexed_sprite(surf,PYRO_PROFILE_JAW,x-24,hy+10+jaw_open,pal)
+        eye=(170,235,255) if self.shell else WHITE
+        safe_set(surf,x-13,hy+6,eye); safe_set(surf,x-14,hy+6,eye)
+        # Chest and shoulder magma fissures animate independently.
+        hot=(92,190,217) if self.shell else (255,223,83)
+        hot2=(47,111,145) if self.shell else (255,83,12)
+        for ax,ay,bx,by in [(-1,-2,4,5),(8,1,12,8),(-12,4,-8,11),(5,10,8,15)]:
+            pygame.draw.line(surf,hot2,(x+ax,y+ay+heave),(x+bx,y+by+heave),2)
+            safe_set(surf,x+bx,y+by+heave,hot)
+        # Sternum core visibly dims in the armored state.
+        core=3+int((math.sin(self.age*4.5)+1)*1.5)
+        pygame.draw.circle(surf,(26,6,4),(x+4,y+4+heave),core+2)
+        pygame.draw.circle(surf,hot2,(x+4,y+4+heave),core)
+        safe_set(surf,x+3,y+3+heave,hot)
         if self.shell:
-            pygame.draw.arc(surf,(135,165,174),(x-20,y-13,41,40),.15,3.0,1)
-            pygame.draw.arc(surf,(79,101,112),(x-20,y-13,41,40),3.2,6.0,1)
-        self._damage_fx(surf,[(-15,-3),(13,12),(-2,-20),(22,3)])
+            # cool rim along the top of the beast to communicate hardened armor
+            pygame.draw.line(surf,(119,169,186),(x-25,hy+1),(x-10,hy-5),1)
+            pygame.draw.line(surf,(91,139,160),(x-2,y-8+heave),(x+15,y-4+heave),1)
+        self._damage_fx(surf,[(-18,-13),(6,8),(-10,13),(16,-2)])
 
     def draw_leviathan(self,surf):
         x,y=int(self.x),int(self.y)
@@ -2345,109 +3043,193 @@ class Boss:
 
     def draw_sentinel(self,surf):
         x,y=int(self.x),int(self.y)
-        # Modular rotating fortress.
-        pygame.draw.circle(surf,(37,46,55),(x,y),27); pygame.draw.circle(surf,(90,102,108),(x,y),23,2)
-        pygame.draw.circle(surf,(21,31,39),(x,y),13); pygame.draw.circle(surf,(54,207,220),(x,y),8)
-        safe_set(surf,x-2,y-2,WHITE)
-        # articulated turrets, visually damaged by phase.
-        positions=[(-22,-16),(-22,16),(15,-22),(15,22)]
-        for i,(ox,oy) in enumerate(positions):
-            if self.component_state>=2 and i in (0,3): continue
-            pygame.draw.rect(surf,(65,75,82),(x+ox-5,y+oy-4,10,8))
-            pygame.draw.line(surf,(188,125,50),(x+ox-5,y+oy),(x+ox-13,y+oy),2)
-        # shield ring phase 1
+        pal={'1':(7,13,20),'2':(22,34,43),'3':(43,59,68),'4':(73,94,101),
+             '5':(109,140,143),'6':(169,204,201),'7':(232,170,65),'8':(77,222,235)}
+        # Main armored chassis faces left and has an obvious weapon axis.
+        draw_indexed_sprite(surf,SENTINEL_CHASSIS,x-20,y-7,pal)
+        draw_indexed_sprite(surf,SENTINEL_GUN,x-38,y-2,pal)
+        # Four independently animated defense pods connected by articulated struts.
+        pods=[(-8,-20),(17,-16),(-8,13),(17,10)]
+        for i,(ox,oy) in enumerate(pods):
+            if self.component_state>=2 and i in (0,3):
+                # destroyed module: short spar + sparks
+                pygame.draw.line(surf,pal['3'],(x+ox,y+oy),(x+ox+(5 if ox<0 else -5),y+oy+4),2)
+                if int(self.age*10+i)%3==0:safe_set(surf,x+ox,y+oy,ORANGE)
+                continue
+            wob=int(math.sin(self.age*3+i)*2)
+            anchor=(x+(-3 if ox<0 else 8),y+(-5 if oy<0 else 5))
+            podc=(x+ox,y+oy+wob)
+            pygame.draw.line(surf,pal['2'],anchor,podc,4)
+            pygame.draw.line(surf,pal['5'],anchor,podc,1)
+            draw_indexed_sprite(surf,SENTINEL_POD,podc[0]-5,podc[1]-4,pal)
+            # small tracking emitter
+            safe_set(surf,podc[0]-4,podc[1],pal['7'])
+        # Central AI lens / reactor in the hull.
+        pulse=2+int((math.sin(self.age*5)+1))
+        pygame.draw.circle(surf,pal['1'],(x+3,y),7)
+        pygame.draw.circle(surf,pal['8'],(x+3,y),pulse+2)
+        safe_set(surf,x+2,y-1,WHITE)
+        # Shield reads as a technological shell rather than defining the silhouette.
         if self.phase==1:
-            pygame.draw.circle(surf,(76,220,234),(x,y),31,1)
-            for a in range(0,360,45):
-                aa=math.radians(a+self.age*20); safe_set(surf,x+int(math.cos(aa)*31),y+int(math.sin(aa)*31),WHITE)
-        self._damage_fx(surf,[(-14,-11),(12,13),(-19,9),(16,-15)])
+            for a in range(0,360,30):
+                aa=math.radians(a+self.age*28)
+                px=x+int(math.cos(aa)*31); py=y+int(math.sin(aa)*24)
+                safe_set(surf,px,py,pal['8'] if a%60 else WHITE)
+        # panel seams and warning lamps
+        pygame.draw.line(surf,pal['6'],(x-7,y-5),(x+14,y-5),1)
+        safe_set(surf,x+14,y+5,pal['7'])
+        self._damage_fx(surf,[(-13,-8),(12,9),(-20,6),(17,-10)])
 
     def draw_mother(self,surf):
-        x,y=int(self.x),int(self.y); pulse=2+int((math.sin(self.age*3)+1)*2)
-        # Organic queen fused with machine ribs.
-        pygame.draw.ellipse(surf,(50,12,45),(x-30,y-26,54,52))
-        pygame.draw.ellipse(surf,(104,26,79),(x-23,y-21,40,42))
-        pygame.draw.ellipse(surf,(36,11,35),(x-15,y-16,25,32))
-        pygame.draw.circle(surf,(92,235,140),(x-4,y),7+pulse)
-        pygame.draw.circle(surf,(205,255,210),(x-6,y-2),3)
-        # limbs/cables
+        x,y=int(self.x),int(self.y)
+        pal={'1':(24,5,24),'2':(54,10,49),'3':(91,18,72),'4':(131,29,92),
+             '5':(180,48,118),'6':(216,83,143),'7':(95,235,144),'8':(205,255,214)}
+        pulse=int((math.sin(self.age*2.7)+1)*1.5)
+        # Huge egg-bearing abdomen trails right; head/jaws face left.
+        draw_indexed_sprite(surf,MOTHER_ABDOMEN,x-2,y-9,pal)
+        draw_indexed_sprite(surf,MOTHER_HEAD,x-27,y-12,pal)
+        mandible_y=y+1+int(math.sin(self.age*3.1)*2)
+        draw_indexed_sprite(surf,MOTHER_MANDIBLE,x-30,mandible_y,pal)
+        # Three visible egg sacs, deliberately embedded in the abdomen.
+        for i,(ox,oy) in enumerate(((8,-5),(14,5),(4,9))):
+            draw_indexed_sprite(surf,MOTHER_EGG,x+ox,y+oy,pal)
+            if int(self.age*4+i)%2==0:safe_set(surf,x+ox+3,y+oy+2,pal['8'])
+        # Biomechanical spine / reactor piping.
+        pygame.draw.line(surf,(53,70,68),(x+5,y-10),(x+26,y-18),3)
+        pygame.draw.line(surf,pal['7'],(x+7,y-10),(x+25,y-18),1)
+        pygame.draw.line(surf,(53,70,68),(x+7,y+9),(x+27,y+18),3)
+        pygame.draw.line(surf,pal['7'],(x+9,y+9),(x+26,y+18),1)
+        # Six tentacles bend and terminate in claw-like tips.
         for i in range(6):
-            a=-1.6+i*.64; ex=x+int(math.cos(a)*36); ey=y+int(math.sin(a)*30)
-            pygame.draw.line(surf,(82,26,70),(x-10,y), (ex,ey),4)
-            pygame.draw.line(surf,(158,45,107),(x-10,y),(ex,ey),1)
-        for oy in (-18,18):
-            pygame.draw.rect(surf,(44,54,61),(x+12,y+oy-5,15,10)); pygame.draw.line(surf,GREEN,(x+14,y+oy),(x+25,y+oy),1)
-        self._damage_fx(surf,[(-13,-15),(8,17),(-21,2),(14,-10)])
+            a=-1.75+i*.66
+            ex=x-2+int(math.cos(a)*35); ey=y+int(math.sin(a)*27)
+            mid=(x-4+int(math.cos(a)*20),y+int(math.sin(a+.25)*15))
+            pygame.draw.line(surf,pal['2'],(x-2,y),mid,4)
+            pygame.draw.line(surf,pal['5'],mid,(ex,ey),2)
+            safe_set(surf,ex,ey,pal['7'])
+        # Face/eye focus is intentionally bright and directional.
+        safe_set(surf,x-18,y-5,pal['8']); safe_set(surf,x-19,y-5,WHITE)
+        pygame.draw.circle(surf,pal['7'],(x+6,y),4+pulse,1)
+        self._damage_fx(surf,[(-11,-7),(10,10),(-21,3),(18,-12)])
 
     def draw_ares(self,surf):
         x,y=int(self.x),int(self.y)
-        # Humanoid siege cyborg upper body, intentionally cartoon-readable.
-        pygame.draw.polygon(surf,(35,38,49),[(x-20,y-13),(x-8,y-26),(x+9,y-24),(x+20,y-10),(x+18,y+20),(x-16,y+22)])
-        pygame.draw.polygon(surf,(88,73,70),[(x-15,y-10),(x-5,y-20),(x+7,y-18),(x+15,y-7),(x+12,y+15),(x-12,y+16)])
-        # head
-        pygame.draw.rect(surf,(45,47,55),(x-11,y-27,17,11)); pygame.draw.rect(surf,RED,(x-8,y-24,10,2)); safe_set(surf,x-7,y-24,YELLOW)
-        # weapon arms
-        pygame.draw.polygon(surf,(46,48,55),[(x-16,y-8),(x-37,y-13),(x-41,y-4),(x-20,y+3)])
-        pygame.draw.rect(surf,(123,71,52),(x-42,y-10,19,6)); pygame.draw.line(surf,ORANGE,(x-42,y-7),(x-48,y-7),2)
-        pygame.draw.polygon(surf,(46,48,55),[(x+14,y-6),(x+34,y-17),(x+40,y-9),(x+21,y+5)])
-        pygame.draw.circle(surf,(221,144,56),(x+31,y-10),4)
-        # spine/core
-        pygame.draw.rect(surf,(24,31,38),(x-3,y-9,8,27)); pygame.draw.line(surf,(241,94,56),(x+1,y-6),(x+1,y+14),2)
-        self._damage_fx(surf,[(-10,8),(10,-14),(-29,-8),(18,10)])
+        pal={'1':(9,12,18),'2':(28,33,41),'3':(53,58,65),'4':(87,76,72),
+             '5':(129,83,65),'6':(181,123,76),'7':(244,91,55),'8':(255,207,91)}
+        recoil=3 if self.timer_a>.0 and self.timer_a<.12 else 0
+        # Two mechanical legs establish a readable humanoid siege-machine stance.
+        stride=int(math.sin(self.age*1.4)*2)
+        draw_indexed_sprite(surf,ARES_LEG,x-5,y+10+stride,pal)
+        draw_indexed_sprite(surf,ARES_LEG,x+9,y+10-stride,pal,flip_x=True)
+        # Armored torso and distinct head/visor.
+        draw_indexed_sprite(surf,ARES_TORSO,x-8,y-11,pal)
+        draw_indexed_sprite(surf,ARES_HEAD,x-9,y-25,pal)
+        safe_set(surf,x-2,y-21,pal['8'])
+        # Huge primary siege cannon points left at the player.
+        draw_indexed_sprite(surf,ARES_ARM,x-20,y-8,pal)
+        draw_indexed_sprite(surf,ARES_CANNON,x-42-recoil,y-6,pal)
+        safe_set(surf,x-43-recoil,y-4,WHITE if recoil else pal['7'])
+        # Secondary articulated arm and shoulder missile housing.
+        arm_y=y-3+int(math.sin(self.age*2.2)*2)
+        draw_indexed_sprite(surf,ARES_ARM,x+11,arm_y,pal,flip_x=True)
+        draw_indexed_sprite(surf,ARES_SHOULDER,x+8,y-20,pal)
+        for m in range(3):safe_set(surf,x+11+m*2,y-17,pal['7'])
+        # Exposed reactor spine / piston detail.
+        pygame.draw.rect(surf,pal['1'],(x+1,y-4,5,21))
+        pygame.draw.line(surf,pal['7'],(x+3,y-2),(x+3,y+14),1)
+        for yy in range(y,y+14,4):safe_set(surf,x+4,yy,pal['8'])
+        self._damage_fx(surf,[(-7,5),(12,-13),(-27,-4),(7,18)])
 
     def draw_wyrm(self,surf):
         x,y=int(self.x),int(self.y)
-        # Segments form a dynamically undulating mechanical serpent.
-        for i in range(6,0,-1):
-            sx=x+i*9; sy=y+int(math.sin(self.age*4-i*.65)*10)
-            pygame.draw.ellipse(surf,(35,79,112),(sx-9,sy-7,18,14))
-            pygame.draw.arc(surf,ICE,(sx-8,sy-6,16,12),.2,2.9,1)
-            safe_set(surf,sx-2,sy-3,WHITE)
-        pygame.draw.polygon(surf,(29,66,101),[(x-28,y),(x-18,y-17),(x+8,y-20),(x+25,y),(x+8,y+20),(x-18,y+17)])
-        pygame.draw.polygon(surf,(84,151,184),[(x-22,y),(x-12,y-12),(x+9,y-14),(x+19,y),(x+7,y+12),(x-12,y+11)])
-        pygame.draw.polygon(surf,ICE,[(x-9,y-11),(x-2,y-24),(x+4,y-12)])
-        pygame.draw.polygon(surf,(13,32,56),[(x-24,y),(x-10,y-5),(x-6,y),(x-10,y+5)])
-        pygame.draw.circle(surf,(121,232,255),(x-5,y-5),3)
-        self._damage_fx(surf,[(-10,12),(8,-13),(-19,-5),(15,8)])
+        pal={'1':(5,18,35),'2':(18,48,77),'3':(38,82,116),'4':(68,126,159),
+             '5':(105,175,202),'6':(159,224,240),'7':ICE,'8':WHITE}
+        # Tail/body is built from authored armor segments, diminishing into depth.
+        for i in range(8,0,-1):
+            sx=x+i*9; sy=y+int(math.sin(self.age*3.2-i*.62)*9)
+            draw_indexed_sprite(surf,WYRM_SEGMENT,sx-6,sy-4,pal)
+            if i%2==0:
+                draw_indexed_sprite(surf,WYRM_FIN,sx-3,sy-10,pal)
+            safe_set(surf,sx,sy-3,pal['7'])
+        # Jawed dragon/serpent head faces left, with an independently opening jaw.
+        head_y=y-7+int(math.sin(self.age*2.0)*2)
+        draw_indexed_sprite(surf,WYRM_HEAD,x-29,head_y,pal)
+        gape=1+int((math.sin(self.age*3.5)+1)*1.5)
+        draw_indexed_sprite(surf,WYRM_JAW,x-27,head_y+9+gape,pal)
+        # crown of ice spines and eye
+        for ox in (-12,-5,3):
+            draw_indexed_sprite(surf,WYRM_FIN,x+ox,head_y-8,pal)
+        safe_set(surf,x-16,head_y+5,pal['8']); safe_set(surf,x-17,head_y+5,WHITE)
+        # freezing vapor pixels trail from the jaw
+        if int(self.age*8)%2==0:
+            safe_set(surf,x-31,head_y+11,(192,242,255)); safe_set(surf,x-34,head_y+12,(116,191,224))
+        self._damage_fx(surf,[(-13,9),(8,-10),(-23,-3),(17,6)])
 
     def draw_sovereign(self,surf):
-        x,y=int(self.x),int(self.y)
-        # Disconnected floating pieces around an impossible central face.
-        rot=self.age*.8
-        pygame.draw.polygon(surf,(39,17,71),[(x,y-18),(x+14,y),(x,y+18),(x-14,y)])
-        pygame.draw.polygon(surf,(122,38,146),[(x,y-13),(x+10,y),(x,y+13),(x-10,y)])
-        pygame.draw.circle(surf,(83,255,225),(x,y),5); safe_set(surf,x-1,y-1,WHITE)
-        for i in range(6):
-            a=rot+i*math.tau/6; rr=25+(i%2)*6; sx=x+int(math.cos(a)*rr); sy=y+int(math.sin(a)*rr)
-            pygame.draw.polygon(surf,(73,31,112),[(sx,sy-6),(sx+5,sy),(sx,sy+6),(sx-5,sy)])
-            safe_set(surf,sx,sy,MAGENTA if i%2 else GREEN)
-        # impossible mirror line
-        pygame.draw.line(surf,(207,58,220),(x-29,y+int(math.sin(rot)*5)),(x+29,y-int(math.sin(rot)*5)),1)
+        x,y=int(self.x),int(self.y); rot=self.age*.85
+        pal={'1':(10,4,24),'2':(33,12,61),'3':(67,22,103),'4':(105,34,143),
+             '5':(158,48,185),'6':(220,67,221),'7':(84,245,218),'8':WHITE}
+        # Wing-like impossible planes frame a recognizable masked central entity.
+        sway=int(math.sin(rot)*3)
+        draw_indexed_sprite(surf,SOVEREIGN_WING,x-31,y-13+sway,pal)
+        draw_indexed_sprite(surf,SOVEREIGN_WING,x+18,y-13-sway,pal,flip_x=True)
+        draw_indexed_sprite(surf,SOVEREIGN_FACE,x-12,y-7,pal)
+        # central vertical eye/mask opening
+        pygame.draw.rect(surf,pal['1'],(x-2,y-8,5,17))
+        pygame.draw.line(surf,pal['7'],(x,y-5),(x,y+5),2)
+        safe_set(surf,x,y,WHITE)
+        # Orbiting authored shards at two depths; phase changes their geometry.
+        count=6+self.phase*2
+        for i in range(count):
+            a=rot*(1 if i%2==0 else -1)+i*math.tau/count
+            rr=24+(i%3)*5+self.phase*2
+            sx=x+int(math.cos(a)*rr); sy=y+int(math.sin(a)*rr*.72)
+            draw_indexed_sprite(surf,SOVEREIGN_SHARD,sx-4,sy-4,pal,flip_x=(i%2==1))
+            safe_set(surf,sx,sy,pal['7'] if i%2 else pal['6'])
+        # offset mirror ghosts create a deliberate impossible-depth effect
+        if self.phase>=2:
+            pygame.draw.line(surf,(70,245,222),(x-35,y-10+sway),(x+35,y+8-sway),1)
+            pygame.draw.line(surf,(223,62,229),(x-35,y+11-sway),(x+35,y-7+sway),1)
         self._damage_fx(surf,[(-8,-10),(10,8),(-17,11),(18,-9)])
 
     def draw_omega(self,surf):
-        x,y=int(self.x),int(self.y); r=self.radius
-        # Layered technological/organic super-entity. Each phase exposes more core.
-        pygame.draw.polygon(surf,(22,9,24),[(x-r,y),(x-25,y-29),(x+8,y-r),(x+31,y-22),(x+r,y),(x+25,y+29),(x-8,y+r),(x-31,y+22)])
-        pygame.draw.polygon(surf,(72,20,54),[(x-r+7,y),(x-19,y-24),(x+7,y-r+7),(x+25,y-17),(x+r-7,y),(x+18,y+23),(x-7,y+r-7),(x-25,y+17)])
-        # armor petals
-        for i in range(8):
-            a=self.age*.12+i*math.tau/8; rr=25
-            sx=x+int(math.cos(a)*rr); sy=y+int(math.sin(a)*rr)
-            pygame.draw.rect(surf,(50,31,55),(sx-4,sy-4,8,8))
-            safe_set(surf,sx,sy,(239,54,109))
-        core_r=8+self.phase*3
-        pygame.draw.circle(surf,(28,4,13),(x,y),core_r+6)
-        pygame.draw.circle(surf,(230,42,98),(x,y),core_r)
-        pygame.draw.circle(surf,(255,220,157),(x-3,y-3),max(2,core_r//3))
+        x,y=int(self.x),int(self.y)
+        pal={'1':(8,3,10),'2':(31,8,27),'3':(65,12,47),'4':(105,18,65),
+             '5':(157,25,82),'6':(220,38,105),'7':(255,126,136),'8':(255,231,172)}
+        # A colossal masked machine-organism: wings/shell first, then face/core.
+        wing_open=3+self.phase*3+int(math.sin(self.age*1.5)*2)
+        draw_indexed_sprite(surf,OMEGA_WING,x-40-wing_open,y-12,pal)
+        draw_indexed_sprite(surf,OMEGA_WING,x+25+wing_open,y-12,pal,flip_x=True)
+        draw_indexed_sprite(surf,OMEGA_MASK,x-15,y-7,pal)
+        # Phase 1 retains six armor petals; later phases peel them away.
+        petal_count=6 if self.phase==1 else 4 if self.phase==2 else 2
+        for i in range(petal_count):
+            a=self.age*.18+i*math.tau/petal_count
+            rr=29+self.phase*2
+            px=x+int(math.cos(a)*rr); py=y+int(math.sin(a)*rr*.78)
+            draw_indexed_sprite(surf,OMEGA_PETAL,px-4,py-3,pal,flip_x=(i%2==1))
+        # Central eye/intelligence grows as armor is lost.
+        eye_scale=1
+        draw_indexed_sprite(surf,OMEGA_EYE,x-5,y-4,pal,scale=eye_scale)
+        pygame.draw.circle(surf,pal['1'],(x,y),4+self.phase)
+        pygame.draw.circle(surf,pal['7'],(x,y),2+self.phase)
+        safe_set(surf,x-1,y-1,pal['8'])
+        # Organic conduits emerge in phase 2, then sever into free-floating nodes.
         if self.phase>=2:
-            # organic inner tendrils exposed
             for i in range(6):
-                a=i*math.tau/6+self.age*.4
-                pygame.draw.line(surf,(144,29,76),(x,y),(x+int(math.cos(a)*34),y+int(math.sin(a)*26)),3)
+                a=i*math.tau/6+self.age*.42
+                ex=x+int(math.cos(a)*(35+self.phase*3)); ey=y+int(math.sin(a)*(24+self.phase*2))
+                pygame.draw.line(surf,pal['3'],(x,y),(ex,ey),3)
+                pygame.draw.line(surf,pal['6'],(x,y),(ex,ey),1)
+                if self.phase==3:
+                    draw_indexed_sprite(surf,OMEGA_PETAL,ex-4,ey-3,pal)
         if self.phase==3:
-            pygame.draw.circle(surf,(254,90,137),(x,y),r+8,1)
-            pygame.draw.circle(surf,(255,224,160),(x,y),r+13,1)
+            # final reality-break corona uses discontinuous authored pixels, not circles
+            for i in range(24):
+                a=self.age*.7+i*math.tau/24
+                rr=41+(i%3)*4
+                px=x+int(math.cos(a)*rr); py=y+int(math.sin(a)*rr*.72)
+                safe_set(surf,px,py,pal['8'] if i%4==0 else pal['6'])
         self._damage_fx(surf,[(-19,-15),(17,18),(-27,7),(21,-13),(0,24)])
 
 # ---------------------------------------------------------------------------
@@ -2473,10 +3255,11 @@ class Game:
         self._load_settings_file()
 
         pygame.display.set_caption(f"OMEGA HORIZON {BUILD_ID} - 16 BIT PSEUDO 3D SHMUP")
-        self.window=None
+        self.window=None; self.present_surface=None; self.present_size=None
         self.set_display_mode()
         self.canvas=pygame.Surface((NATIVE_W,NATIVE_H)).convert()
         self.clock=pygame.time.Clock(); self.running=True
+        self.frame_hitch_count=0
 
         self.background=Background(); self.background.fx_level=int(self.settings["effects"])
         self.audio=AudioSynth(); self.audio.set_volumes(self.settings["music_volume"],self.settings["sfx_volume"])
@@ -2541,12 +3324,14 @@ class Game:
         if self.settings.get("fullscreen",False):
             try:
                 self.window=pygame.display.set_mode((0,0),pygame.FULLSCREEN)
+                self.present_surface=None; self.present_size=None
                 return
             except Exception:
                 self.settings["fullscreen"]=False
         scale=int(clamp(int(self.settings.get("window_scale",4)),2,5))
         self.settings["window_scale"]=scale
         self.window=pygame.display.set_mode((NATIVE_W*scale,NATIVE_H*scale))
+        self.present_surface=None; self.present_size=None
 
     def apply_settings(self):
         self.background.fx_level=int(self.settings["effects"]) if hasattr(self,"background") else int(self.settings["effects"])
@@ -3051,19 +3836,30 @@ class Game:
     # ------------------------ HUD / rendering -------------------------
 
     def draw_hud(self):
-        s=self.canvas
-        pygame.draw.rect(s,(5,9,22),(0,0,NATIVE_W,HUD_H)); pygame.draw.line(s,(52,130,170),(0,20),(NATIVE_W,20))
-        draw_text(s,f"STAGE {self.stage:02d}",3,2,CYAN); draw_text(s,f"SCORE {self.score:07d}",65,2,WHITE); draw_text(s,f"LIVES {max(0,self.player.lives)}",183,2,YELLOW)
+        s=self.canvas; accent=STAGES[self.stage-1].palette[2]
+        # beveled two-row status plate with stage accent rather than a flat bar
+        pygame.draw.rect(s,(3,7,17),(0,0,NATIVE_W,HUD_H))
+        pygame.draw.line(s,(21,39,56),(0,19),(NATIVE_W,19))
+        pygame.draw.line(s,accent,(0,20),(NATIVE_W,20))
+        draw_text(s,f"STAGE {self.stage:02d}",3,2,CYAN)
+        draw_text(s,f"SCORE {self.score:07d}",65,2,WHITE)
+        draw_text(s,f"LIVES {max(0,self.player.lives)}",183,2,YELLOW)
         name=WEAPON_NAMES[self.player.weapon]
         draw_text(s,f"WEAPON: {name}",3,11,(180,240,255))
         bx,by,bw,bh=180,11,71,7; draw_text(s,"HP",164,11,WHITE)
-        pygame.draw.rect(s,(20,24,35),(bx,by,bw,bh)); pygame.draw.rect(s,GRAY,(bx,by,bw,bh),1)
-        fill=int((bw-2)*max(0,self.player.health)/self.player.max_health); hpcol=GREEN if self.player.health>50 else YELLOW if self.player.health>25 else RED
-        if fill>0:pygame.draw.rect(s,hpcol,(bx+1,by+1,fill,bh-2))
+        pygame.draw.rect(s,(13,18,28),(bx,by,bw,bh)); pygame.draw.rect(s,(91,108,126),(bx,by,bw,bh),1)
+        fill=int((bw-2)*max(0,self.player.health)/self.player.max_health)
+        hpcol=GREEN if self.player.health>50 else YELLOW if self.player.health>25 else RED
+        if fill>0:
+            pygame.draw.rect(s,hpcol,(bx+1,by+1,fill,bh-2))
+            if fill>3:pygame.draw.line(s,tuple(min(255,c+35) for c in hpcol),(bx+2,by+2),(bx+fill-1,by+2),1)
         if self.boss and not self.boss.dead:
-            bw2=112; bx2=NATIVE_W//2-bw2//2
-            pygame.draw.rect(s,(10,9,20),(bx2,23,bw2,6)); ratio=max(0,self.boss.health/self.boss.max_health)
-            pygame.draw.rect(s,RED,(bx2+1,24,int((bw2-2)*ratio),4)); draw_text(s,"BOSS",bx2-29,23,MAGENTA)
+            bw2=109; bx2=82
+            pygame.draw.rect(s,(7,6,13),(bx2,23,bw2,6))
+            pygame.draw.rect(s,(77,33,64),(bx2,23,bw2,6),1)
+            ratio=max(0,self.boss.health/self.boss.max_health)
+            pygame.draw.rect(s,RED,(bx2+1,24,int((bw2-2)*ratio),4))
+            draw_text(s,"BOSS",45,23,MAGENTA)
 
     def draw_gameplay(self):
         self.background.draw(self.canvas,self.stage)
@@ -3158,7 +3954,7 @@ class Game:
         for i,col in enumerate(((255,229,91),ORANGE,(153,48,54),(76,35,70))):
             pygame.draw.line(self.canvas,col,(51-i*3,112),(44-i*5,112),max(1,4-i))
         draw_text(self.canvas,"OMEGA HORIZON",38,45,CYAN,2,True)
-        draw_text(self.canvas,"V8.2 BOSS ART SYSTEMS",62,72,YELLOW)
+        draw_text(self.canvas,"V8.3 VISUAL FIDELITY",67,72,YELLOW)
         draw_text(self.canvas,"ENTER NEW GAME",84,154,WHITE)
         draw_text(self.canvas,"L LOAD  F2 SETTINGS",70,168,(170,210,230))
         draw_text(self.canvas,"MOVE WASD  FIRE Z",74,181,(170,210,230))
@@ -3166,7 +3962,7 @@ class Game:
         if self.test_mode:
             draw_text(self.canvas,"TEST MODE ENABLED  F1",68,204,MAGENTA)
         else:
-            draw_text(self.canvas,"BUILD V8.2",100,207,(75,128,160))
+            draw_text(self.canvas,"BUILD V8.3",100,207,(75,128,160))
         self.draw_menu_message()
 
     def draw(self):
@@ -3201,16 +3997,26 @@ class Game:
         ww,wh=self.window.get_size()
         scale=max(1,min(ww//NATIVE_W,wh//NATIVE_H))
         tw,th=NATIVE_W*scale,NATIVE_H*scale
-        scaled=pygame.transform.scale(self.canvas,(tw,th))
+        if self.present_surface is None or self.present_size!=(tw,th):
+            self.present_surface=pygame.Surface((tw,th)).convert()
+            self.present_size=(tw,th)
+        pygame.transform.scale(self.canvas,(tw,th),self.present_surface)
         self.window.fill(BLACK)
-        self.window.blit(scaled,((ww-tw)//2,(wh-th)//2))
+        self.window.blit(self.present_surface,((ww-tw)//2,(wh-th)//2))
         pygame.display.flip()
 
     def run(self):
+        # Retro fixed-step pacing: exactly one 1/60 simulation step per
+        # presented frame. If Windows stalls briefly, gameplay pauses for that
+        # frame rather than jumping several simulation steps forward at once.
         while self.running:
-            dt=min(1/20,self.clock.tick(FPS)/1000.0)
-            for event in pygame.event.get():self.handle_event(event)
-            self.update(dt); self.draw()
+            frame_dt=min(.10,self.clock.tick_busy_loop(FPS)/1000.0)
+            if frame_dt>FIXED_DT*1.75:
+                self.frame_hitch_count+=1
+            for event in pygame.event.get():
+                self.handle_event(event)
+            self.update(FIXED_DT)
+            self.draw()
         self.audio.stop_music(); pygame.quit()
 
 # ---------------------------------------------------------------------------
@@ -3218,49 +4024,63 @@ class Game:
 # ---------------------------------------------------------------------------
 
 def packaged_smoke_test():
-    """Exercise V8.2 art, menus, saves, settings, all stages and stereo SFX."""
+    """Exercise V8.3 art, rendering stability, menus, saves and stereo audio."""
     g=Game()
     try:
-        assert BUILD_ID=="V8.2-BOSS-ART-SYSTEMS"
+        assert BUILD_ID=="V8.3-VISUAL-FIDELITY"
         assert WEAPON_NAMES[4]=="HOMING ROCKET"
         assert g.player.unlocked==[True]+[False]*9
+        assert FIXED_DT==1.0/FPS
         assert len({(p.music_style,p.bpm,p.key) for p in STAGES})==10
-        assert len(PYRO_HEAD)>=15 and len(PYRO_TORSO)>=18
-        assert len(CARRIER_BODY)>=12 and len(LEVIATHAN_HEAD)>=16
+        # Full-boss artist assets required by this release.
+        for art in (PYRO_PROFILE_HEAD,SENTINEL_CHASSIS,MOTHER_ABDOMEN,ARES_TORSO,
+                    WYRM_HEAD,SOVEREIGN_FACE,OMEGA_MASK):
+            assert len(art)>=7
+        assert len(CARRIER_BODY)>=12 and len(LEVIATHAN_HEAD)>=16 and len(BASTION_HULL)>=12
 
-        # Audio architecture remains truly stereo and volume-adjustable.
+        # Camera scroll must remain continuous across the old 256 wrap point.
+        bg=Background(); bg.scroll=255.75
+        bg.update(FIXED_DT,3)
+        assert bg.scroll>255.75, "camera scroll wrapped and would cause a visual jump"
+        bg.draw(g.canvas,3)
+        floor_ids={k:id(v) for k,v in bg._floor_surfaces.items()}
+        bg.draw(g.canvas,3)
+        assert floor_ids=={k:id(v) for k,v in bg._floor_surfaces.items()}, "floor surfaces were reallocated"
+
+        # Audio remains true stereo; boss stingers are stage-specific.
         if pygame.mixer.get_init() is not None and g.audio.enabled:
-            assert len(g.audio.weapon_sfx)==10
-            assert all(len(v)==3 for v in g.audio.weapon_sfx)
+            assert len(g.audio.weapon_sfx)==10 and all(len(v)==3 for v in g.audio.weapon_sfx)
             g.audio.set_volumes(.5,.6)
-            assert abs(g.audio.music_volume-.5)<.01 and abs(g.audio.sfx_volume-.6)<.01
+            st=g.audio.generate_boss_stinger(2)
+            arr=pygame.sndarray.array(st)
+            assert arr.ndim==2 and arr.shape[1]==2 and np.any(arr[:,0]!=arr[:,1])
 
-        # Draw every campaign environment and all enemy/boss families.
+        # Draw all ten enriched environments, enemy families and bosses.
         for stage in range(1,11):
             g.stage=stage; g.background.draw(g.canvas,stage)
             for i,arch in enumerate(ARCHETYPES):
-                e=Enemy(155+i*18,65+i*27,stage,999+i,i,arch); e.draw(g.canvas)
+                e=Enemy(145+i*20,58+i*31,stage,999+i,i,arch); e.draw(g.canvas)
             boss=Boss(stage); boss.intro=0; boss.draw(g.canvas)
+            assert boss.rect().width>=50
 
-        # Save/load checkpoint and developer tools.
+        # Save/load checkpoint and developer tools remain intact.
         g.reset_new_game(); g.begin_play()
         g.stage=3; g.score=12345; g.player.health=61; g.player.lives=4
         g.player.unlocked[:4]=[True]*4; g.player.weapon=3
-        assert g.save_game()
-        g.score=0; g.player.health=5
-        assert g.load_game()
-        assert g.stage==3 and g.score==12345 and int(g.player.health)==61
+        assert g.save_game(); g.score=0; g.player.health=5
+        assert g.load_game(); assert g.stage==3 and g.score==12345 and int(g.player.health)==61
         g.activate_test_mode(); assert g.test_mode
-        g.test_spawn_boss(3); assert g.boss and g.boss.stage==3
+        g.test_spawn_boss(8); assert g.boss and g.boss.stage==8
         g.unlock_all_test_weapons(); assert all(g.player.unlocked)
         g.god_mode=True; hp=g.player.health; g.player.invuln=0; g.player.hit(99,g); assert g.player.health==hp
 
-        # Menu render paths and one real gameplay frame.
+        # Menu render paths and several fixed simulation frames.
         g.state="pause"; g.draw()
         g.open_settings("pause"); g.draw()
         g.open_test_menu("settings"); g.draw()
-        g.state="play"; g.update(1/60); g.draw()
-        g.audio.stop_music()
+        g.state="play"
+        for _ in range(6):g.update(FIXED_DT)
+        g.draw(); g.audio.stop_music()
     finally:
         pygame.quit()
     return 0

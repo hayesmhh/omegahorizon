@@ -1,106 +1,79 @@
-OMEGA HORIZON V8.2 - BOSS ARTIST PASS & SYSTEMS
-================================================
+OMEGA HORIZON V8.3 - FULL VISUAL FIDELITY PASS
+===============================================
 
-V8.2 continues the V8.1 artist-direction work and adds the development/player
-systems needed to test and play the expanding ten-stage campaign efficiently.
+V8.3 continues the broad late-16-bit visual overhaul rather than limiting the
+artist pass to one or two bosses.
 
-BOSS ARTIST PASS
-----------------
-- PYROCLAST is completely rebuilt as an authored metasprite lava creature:
-  horned skull/head, eyes, jaw/teeth, broad torso, separate animated arms and
-  claws, internal molten core/fissures, and a visually distinct obsidian-shell
-  state. It should read as a magma monster before its details are examined.
-- VALKYRIE CARRIER now uses an authored capital-ship body with command bridge,
-  fighter bays, fins, identification lighting, and four engine nozzles.
-- ABYSSAL LEVIATHAN now has an authored predatory head, jaw/teeth, eye/lure,
-  fins, and repeated armored/bioluminescent body segments.
-- TEMPEST BASTION retains the successful V8.1 airborne-fortress metasprite.
-- Boss collision silhouettes were updated to better match the new large art.
+PRIMARY V8.3 CHANGES
+--------------------
+- Full artist/metasprite redraws for the previously abstract boss designs:
+  Pyroclast, Citadel Sentinel, Mother Null, Ares-IX, Cryon Wyrm,
+  Parallax Sovereign and OMEGA.
+- Pyroclast is now a side-profile horned lava beast with head/jaw, torso,
+  forelimb/claw, legs, tail and magma channels rather than a circular golem.
+- Ares-IX now reads as an articulated siege mech with legs, head/visor,
+  torso, primary cannon, secondary arm, shoulder weapons and reactor spine.
+- Cryon Wyrm now has a jawed head and a long chain of authored serpent armor
+  segments and ice fins.
+- Broad environment art pass: more detailed city buildings, station
+  bulkheads, hive pods/ribs, glacier ridges, reality monoliths and Omega
+  machinery/depth structures.
+- Normal enemy archetypes receive animated hardpoints, propulsion cues and
+  stronger stage-material detailing.
+- Player-ship lighting/engine effects and invulnerability presentation are
+  upgraded.
+- Explosions are layered flash/fire/smoke/debris-style effects rather than
+  primarily expanding outline circles.
+- HUD receives a smaller beveled stage-accented presentation.
 
-AUDIO ESCALATION
-----------------
-- Stage arrangements grow from 12 to 16 bars.
-- Stage-specific ambient sound beds are mixed into the actual stereo music.
-- Boss arrangements add low ostinatos and stereo call/response phrases rather
-  than merely increasing BPM.
-- Existing unique stereo weapon sounds remain intact.
-- Music and SFX volume are now independently adjustable in-game.
+SCREEN JUMP / REPEAT FIX
+------------------------
+V8.2 periodically wrapped Background.scroll at exactly 256 even though the
+software perspective sampler multiplied that camera value by 1.8 and 0.23.
+255.9 -> 0 therefore did NOT represent an equivalent texture position and
+could cause the whole floor/background to visibly snap or appear to repeat.
 
-PAUSE / SETTINGS MENU
----------------------
-Press P or Esc during gameplay.
+V8.3 keeps camera scroll continuous and performs wrapping only when texture
+indices are sampled.
 
-Pause menu:
-- Resume
-- Save Game
-- Load Game
-- Settings
-- Test Menu (only after TEST MODE activation)
-- Quit to Title
+V8.3 also:
+- uses one exact 1/60 simulation step per presented frame;
+- deliberately avoids multi-step catch-up after a stall, preventing catch-up jumps;
+- uses tick_busy_loop for steadier desktop pacing;
+- reuses NumPy floor buffers and SDL floor surfaces rather than allocating new
+  floor surfaces every frame.
 
-Settings:
-- Music volume 0-100
-- SFX volume 0-100
-- Fullscreen on/off
-- Integer window scale 2x-5x
-- Effects density Low/Medium/High
+AUDIO V8.3
+----------
+- Existing distinct 16-bar stage compositions remain.
+- Additional FM-like, pulse-lead and harp timbres are used by selected stages.
+- Final-section melodic hook reprises strengthen loop identity.
+- Every stage has its own synthesized stereo boss-entry stinger.
+- True stereo music, positional SFX and all unique weapon sounds remain.
 
-The game ALWAYS renders internally at 256x224. Window/fullscreen presentation
-uses nearest-neighbor integer scaling and letterboxing where required.
-
-SAVE / LOAD
------------
-F5 = quick save
-F9 = quick load
-
-The manual and quick save system uses reliable stage checkpoints rather than
-trying to serialize every projectile and enemy on an arbitrary frame. It saves:
-- current stage
-- score
-- lives
-- health
-- unlocked weapons
-- active weapon
-
-Loading resumes at the beginning of the saved stage with those campaign stats.
-Save and settings files live in the Windows per-user LOCALAPPDATA\OmegaHorizon
-folder. Missing/corrupt saves are handled without crashing.
-
-DEVELOPER / CHEAT TEST MODE
+TEST MODE / SAVE / SETTINGS
 ---------------------------
-At the TITLE SCREEN type:
+All V8.2 systems remain:
+- Type TERMINUS on the title screen, then F1, for the developer test menu.
+- Jump directly to any stage or spawn any stage boss.
+- Unlock all weapons, refill health/lives, toggle God Mode.
+- F5 quick-save / F9 quick-load.
+- Pause menu and settings for music, SFX, fullscreen, scale and effects.
 
-    TERMINUS
+GITHUB BUILD
+------------
+1. Replace the files in your existing GitHub repository with this package.
+2. Commit to the default branch.
+3. Open Actions.
+4. Run: Build Omega Horizon V8.3 for Windows
+5. Wait for every check to turn green, especially:
+       Smoke-test the PACKAGED V8.3 EXE
+6. Download only:
+       OmegaHorizon-Windows-x64-V8.3-VISUAL-FIDELITY
+7. Run the new OmegaHorizon.exe.
 
-A confirmation appears. Then press:
+The window title must contain:
+    V8.3-VISUAL-FIDELITY
 
-    F1
-
-The TEST MODE menu can:
-- select any Stage 01-10
-- jump directly to that stage
-- spawn that stage's boss immediately
-- unlock all weapons
-- refill health and raise lives to 9
-- toggle God Mode
-
-TEST MODE is deliberately excluded from normal campaign saving. If TEST MODE is
-active, Save Game refuses to overwrite the normal campaign checkpoint.
-
-BUILD
------
-Replace the files in the existing GitHub repository, commit, then run:
-
-    Build Omega Horizon V8.2 for Windows
-
-Wait for:
-
-    Smoke-test the PACKAGED V8.2 EXE
-
-to turn green.
-
-Download ONLY:
-
-    OmegaHorizon-Windows-x64-V8.2-BOSS-ART-SYSTEMS
-
-The window title contains V8.2-BOSS-ART-SYSTEMS.
+The finished EXE is standalone and does not require Python/Pygame/NumPy on
+machines that only run the game.
