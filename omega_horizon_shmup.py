@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-OMEGA HORIZON V9.3 - CINEMATIC ART ESCALATION
+OMEGA HORIZON V9.4 - BOSS INTIMIDATION RECOVERY
 =========================================================
 Pygame shooter designed around a 256x224 SNES-like canvas with software
 perspective rendering, shipped authored pixel-art assets, original procedural support art,
@@ -23,7 +23,7 @@ Controls:
 Developer code:
     Type TERMINUS on the title screen to enable TEST MODE.
 
-Build identity: V9.3-CINEMATIC-ART-ESCALATION
+Build identity: V9.4-BOSS-INTIMIDATION-RECOVERY
 """
 
 import json
@@ -51,9 +51,9 @@ FIXED_DT = 1.0 / FPS
 HUD_H = 21
 HORIZON_Y = 104
 AUDIO_RATE = 44100
-BUILD_ID = "V9.3-CINEMATIC-ART-ESCALATION"
-DISPLAY_VERSION = "V9.3"
-DISPLAY_SUBTITLE = "CINEMATIC ART ESCALATION"
+BUILD_ID = "V9.4-BOSS-INTIMIDATION-RECOVERY"
+DISPLAY_VERSION = "V9.4"
+DISPLAY_SUBTITLE = "BOSS INTIMIDATION RECOVERY"
 ENDING_SCROLL_SPEED = 15.0
 ENDING_STORY_TOP = 48
 ENDING_STORY_BOTTOM = 202
@@ -196,7 +196,7 @@ def resource_path(relative_path):
     return os.path.join(base,relative_path)
 
 
-def load_v93_art_assets():
+def load_v94_art_assets():
     if ART_ASSETS:
         return ART_ASSETS
     specs={
@@ -209,7 +209,6 @@ def load_v93_art_assets():
         "enemy_stage01_sheet":("assets/enemy_stage01_v93.png",True),
         "enemy_stage09_sheet":("assets/enemy_stage09_v93.png",True),
         "title_screen":("assets/title_screen_v93.png",False),
-        "bosses_v93_sheet":("assets/bosses_v93.png",True),
     }
     for key,(rel,alpha) in specs.items():
         surf=pygame.image.load(resource_path(rel))
@@ -223,11 +222,6 @@ def load_v93_art_assets():
         frames=[es.subsurface((i*32,0,32,24)).copy() for i in range(8)]
         ART_ASSETS[stage_key+"_frames"]=frames
         ART_ASSETS[stage_key+"_frames_flipped"]=[pygame.transform.flip(fr,True,False) for fr in frames]
-    bs=ART_ASSETS["bosses_v93_sheet"]
-    ART_ASSETS["boss_v93_frames"]=[
-        [bs.subsurface((anim*96,stage*72,96,72)).copy() for anim in range(2)]
-        for stage in range(10)
-    ]
     return ART_ASSETS
 
 
@@ -2234,6 +2228,8 @@ V92_SCENE_CHUNKS=V91_SCENE_CHUNKS
 V92_SHIELD_PIXELS=V91_SHIELD_PIXELS
 V93_SCENE_CHUNKS=V92_SCENE_CHUNKS
 V93_SHIELD_PIXELS=V92_SHIELD_PIXELS
+V94_SCENE_CHUNKS=V93_SCENE_CHUNKS
+V94_SHIELD_PIXELS=V93_SHIELD_PIXELS
 
 V87_PICKUP_SHIELD_PALETTES={
 'AEGIS':{'1':(4,24,55),'2':(15,80,132),'3':(53,151,203),'4':(105,224,255),'5':WHITE},
@@ -4795,45 +4791,147 @@ class Boss:
     # -------------------------- boss art ------------------------------
 
     def draw(self,surf):
-        frames=ART_ASSETS.get("boss_v93_frames")
-        if frames and 1<=self.stage<=10:
-            frame=frames[self.stage-1][int(self.age*5.0)%2]
-            x,y=int(self.x),int(self.y)
-            surf.blit(frame,(x-48,y-36))
-            self._v93_boss_finish(surf)
-            self._v87_boss_spectacle(surf)
-        else:
-            getattr(self,f"draw_{self.profile.boss_kind}")(surf)
-            self._artist_detail_overlay(surf)
-            self._v84_boss_finish(surf)
-            self._v86_boss_material_finish(surf)
-            self._v87_boss_spectacle(surf)
+        # V9.4 explicitly restores the boss-specific V9.2 rendering path.
+        # The standardized V9.3 96x72 sheet flattened silhouettes and detail.
+        getattr(self,f"draw_{self.profile.boss_kind}")(surf)
+        self._artist_detail_overlay(surf)
+        self._v84_boss_finish(surf)
+        self._v86_boss_material_finish(surf)
+        self._v87_boss_spectacle(surf)
+        self._v94_boss_intimidation(surf)
         if self.flash>0:
-            # sparse white hit highlights without blanking the art
             x,y=int(self.x),int(self.y)
             pygame.draw.circle(surf,WHITE,(x-5,y-3),3,1)
         if self.teleport_flash>0:
             pygame.draw.circle(surf,(165,255,239),(int(self.x),int(self.y)),self.radius+6,1)
 
+    def _v94_boss_intimidation(self,surf):
+        """Boss-specific menace/detail pass layered over the stronger pre-V9.3 art.
 
-
-    def _v93_boss_finish(self,surf):
-        """Damage-state and focal-light finish for shipped authored boss sprites."""
-        x,y=int(self.x),int(self.y); ratio=max(0.0,self.health/max(1.0,self.max_health))
-        theme=self.profile.theme
-        light=(225,249,251) if theme in ("water","ice") else (255,222,157) if theme in ("lava","omega") else self.profile.palette[2]
-        for ox,oy in ((-31,-18),(-23,-23),(18,-20),(31,-7)):
-            if (int(self.age*7)+ox+oy)%3==0:safe_set(surf,x+ox,y+oy,light)
-        if ratio<.75:
-            count=1 if ratio>.5 else 3 if ratio>.25 else 5
-            scars=[(-19,-8),(13,10),(-4,18),(22,-15),(-27,13)]
-            for i,(ox,oy) in enumerate(scars[:count]):
-                scar=(255,115,46) if theme not in ("water","ice","veil") else (132,235,243)
-                pygame.draw.line(surf,scar,(x+ox-2,y+oy-2),(x+ox+2,y+oy+2),1)
-                if i%2==0:safe_set(surf,x+ox+1,y+oy-3,WHITE)
-        if ratio<.25 and int(self.age*8)%2==0:
-            pygame.draw.circle(surf,(255,77,53),(x+8,y-5),3,1)
-            safe_set(surf,x+8,y-5,(255,224,125))
+        The treatment intentionally avoids a universal outline or standardized
+        silhouette. Each boss receives material-appropriate shadow carving,
+        focal features and small mechanical/anatomical detail clusters.
+        """
+        x,y=int(self.x),int(self.y); kind=self.profile.boss_kind
+        ratio=max(0.0,self.health/max(1.0,self.max_health)); pulse=(math.sin(self.age*4.3)+1)*.5
+        if kind=='carrier':
+            # Capital-ship armor seams, recessed bays and cold command lights.
+            for oy in (-11,-6,6,11):
+                pygame.draw.line(surf,(8,17,34),(x-34,y+oy),(x+24,y+oy),1)
+            for ox in (-25,-17,-9,8,16): safe_set(surf,x+ox,y-13,(152,217,229) if ox%2 else (52,116,151))
+            pygame.draw.line(surf,(31,69,104),(x-28,y+15),(x+18,y+18),2)
+            for ey in (-9,-3,4,10):
+                pygame.draw.line(surf,(96,231,255),(x+35,y+ey),(x+43,y+ey),1)
+        elif kind=='bastion':
+            # Dense fortress plating; retain the successful airborne-fortress silhouette.
+            for ox,oy in ((-21,-8),(-9,-8),(4,-7),(16,-6)):
+                pygame.draw.rect(surf,(31,49,62),(x+ox,y+oy,9,5),1)
+            pygame.draw.line(surf,(9,20,31),(x-42,y+2),(x+23,y+2),2)
+            pygame.draw.line(surf,(189,220,225),(x-40,y),(x-24,y),1)
+            for ox,oy in ((-8,-22),(14,-18),(-8,13),(14,9)):
+                pygame.draw.circle(surf,(20,53,67),(x+ox,y+oy),8,1)
+                safe_set(surf,x+ox-1,y+oy-1,(210,246,250))
+        elif kind=='pyroclast':
+            # Obsidian brow, jaw weight and concentrated molten cracks.
+            shadow=(9,5,7) if not self.shell else (8,14,18)
+            pygame.draw.line(surf,shadow,(x-37,y-19),(x-17,y-25),3)
+            pygame.draw.line(surf,shadow,(x-34,y+2),(x-16,y+7),3)
+            hot=(255,221,104) if not self.shell else (173,237,247)
+            for ax,ay,bx,by in ((-10,-6,-4,1),(0,-2,7,5),(8,4,14,10),(-3,10,5,15)):
+                pygame.draw.line(surf,hot,(x+ax,y+ay),(x+bx,y+by),1)
+            safe_set(surf,x-23,y-12,WHITE if not self.shell else (198,247,255))
+            safe_set(surf,x-22,y-12,(255,86,22) if not self.shell else (69,166,201))
+        elif kind=='leviathan':
+            # Serrated jaw, gill scars, dorsal hooks and bioluminescent organs.
+            for tx in range(-21,-5,4):
+                pygame.draw.line(surf,(222,250,240),(x+tx,y-1),(x+tx+2,y+2),1)
+            for i in range(5):
+                pygame.draw.line(surf,(2,38,49),(x+5+i*9,y-7+(i%2)*3),(x+10+i*9,y-12+(i%2)*3),2)
+                safe_set(surf,x+7+i*9,y-8+(i%2)*3,(113,248,225))
+            for gy in (-8,-3,3): pygame.draw.line(surf,(6,72,80),(x-3,y+gy),(x+5,y+gy+2),1)
+        elif kind=='sentinel':
+            # Military defense AI: recessed armor, hardpoint lenses and shield vanes.
+            pygame.draw.rect(surf,(5,14,21),(x-22,y-12,45,25),1)
+            for ox in (-17,-7,7,17):
+                pygame.draw.rect(surf,(92,121,127),(x+ox-3,y-13,6,3),1)
+                safe_set(surf,x+ox,y-12,(240,183,69))
+            pygame.draw.circle(surf,(5,19,26),(x,y),8)
+            pygame.draw.circle(surf,(70,219,234),(x,y),6,1)
+            safe_set(surf,x-1,y-1,WHITE)
+        elif kind=='mother':
+            # Chitin queen: clustered predatory eyes, mandibles and asymmetrical ribs.
+            for ox,oy in ((-18,-9),(-13,-13),(-8,-8),(-4,-12)):
+                pygame.draw.circle(surf,(22,5,20),(x+ox,y+oy),2)
+                safe_set(surf,x+ox,y+oy,(151,255,180))
+            pygame.draw.line(surf,(32,6,27),(x-22,y+3),(x-34,y+14),3)
+            pygame.draw.line(surf,(32,6,27),(x-17,y+7),(x-27,y+21),3)
+            pygame.draw.line(surf,(218,74,145),(x+4,y-15),(x+24,y-8),1)
+            pygame.draw.line(surf,(218,74,145),(x+6,y+13),(x+27,y+8),1)
+            safe_set(surf,x+22,y-7,(100,255,165)); safe_set(surf,x+25,y+7,(100,255,165))
+        elif kind=='ares':
+            # Siege-mech panel density, hostile visor and piston detail.
+            pygame.draw.line(surf,(13,18,23),(x-20,y-18),(x+14,y-18),3)
+            pygame.draw.rect(surf,(15,22,28),(x-14,y-15,20,8))
+            pygame.draw.line(surf,(255,73,45),(x-11,y-12),(x+1,y-12),2)
+            safe_set(surf,x-9,y-12,WHITE)
+            for ox in (-7,8):
+                pygame.draw.line(surf,(75,95,101),(x+ox,y+8),(x+ox-2,y+22),2)
+                pygame.draw.line(surf,(164,117,74),(x+ox+2,y+9),(x+ox+1,y+20),1)
+            pygame.draw.rect(surf,(38,45,49),(x+13,y-8,11,16),1)
+        elif kind=='wyrm':
+            # Cryogenic predator: facial darkness, tooth row and shard-like dorsal ridges.
+            pygame.draw.line(surf,(5,23,40),(x-25,y-3),(x-8,y+2),4)
+            for tx in (-21,-17,-13,-9): safe_set(surf,x+tx,y-4,(229,250,255))
+            for i in range(7):
+                sx=x+i*9; sy=y-8+int(math.sin(self.age*3.2-i*.62)*8)
+                pygame.draw.line(surf,(198,239,248),(sx,sy),(sx+3,sy-6-(i%2)*2),1)
+                safe_set(surf,sx+3,sy-6-(i%2)*2,WHITE)
+        elif kind=='sovereign':
+            # Keep the impossible geometry, but center it on a threatening dark mask.
+            pygame.draw.polygon(surf,(8,3,20),[(x-13,y-15),(x+10,y-18),(x+18,y),(x+8,y+18),(x-14,y+14),(x-20,y)])
+            pygame.draw.line(surf,(116,255,229),(x-10,y-4),(x+9,y-6),1)
+            pygame.draw.line(surf,(239,82,237),(x-8,y+5),(x+11,y+3),1)
+            pygame.draw.circle(surf,(4,2,13),(x,y),6)
+            pygame.draw.circle(surf,(226,246,255),(x+1,y),2)
+            safe_set(surf,x+1,y,(89,255,225))
+            for i in range(6):
+                a=self.age*.22+i*math.tau/6; rr=30+(i%2)*7
+                px=x+int(math.cos(a)*rr); py=y+int(math.sin(a)*rr*.68)
+                pygame.draw.line(surf,(49,17,89),(px-2,py-3),(px+2,py+3),1)
+        elif kind=='omega':
+            # Final-boss-only terror treatment: cathedral crown, secondary eyes,
+            # layered mandible and a much more hostile living iris.
+            horn=(126,17,65); edge=(232,48,112); bone=(255,218,183); void=(4,1,6)
+            for sign in (-1,1):
+                pygame.draw.line(surf,void,(x+sign*23,y-20),(x+sign*50,y-42),6)
+                pygame.draw.line(surf,horn,(x+sign*22,y-21),(x+sign*49,y-42),3)
+                pygame.draw.line(surf,edge,(x+sign*25,y-23),(x+sign*47,y-40),1)
+            pygame.draw.arc(surf,void,(x-35,y-29,70,58),3.35,6.05,5)
+            pygame.draw.arc(surf,bone,(x-34,y-28,68,56),3.42,5.98,1)
+            for ex in (-23,-14,14,23):
+                pygame.draw.circle(surf,(26,3,20),(x+ex,y-5),4)
+                safe_set(surf,x+ex,y-5,(255,91,126))
+            iris=8+self.phase*2+int(pulse*2)
+            pygame.draw.circle(surf,void,(x,y),iris+5)
+            pygame.draw.circle(surf,(195,32,91),(x,y),iris+2,2)
+            pygame.draw.circle(surf,(255,174,148),(x,y),iris,1)
+            pygame.draw.line(surf,bone,(x,y-iris+2),(x,y+iris-2),2)
+            pygame.draw.line(surf,void,(x-20,y+18),(x-7,y+31),4)
+            pygame.draw.line(surf,void,(x+20,y+18),(x+7,y+31),4)
+            pygame.draw.line(surf,edge,(x-19,y+18),(x-7,y+30),1)
+            pygame.draw.line(surf,edge,(x+19,y+18),(x+7,y+30),1)
+            if self.phase>=2:
+                for i in range(10+self.phase*2):
+                    a=-self.age*.19+i*math.tau/(10+self.phase*2); rr=49+self.phase*5
+                    px=x+int(math.cos(a)*rr); py=y+int(math.sin(a)*rr*.70)
+                    safe_set(surf,px,py,bone if i%3==0 else edge)
+        # Critical damage makes bosses look physically unstable rather than simply flashing.
+        if ratio<.30:
+            scar=(255,112,45) if self.profile.theme not in ('water','ice','veil') else (133,237,247)
+            for i,(ox,oy) in enumerate(((-18,-10),(11,7),(-5,17),(22,-14))):
+                if i<=int((.30-ratio)*15):
+                    pygame.draw.line(surf,scar,(x+ox-3,y+oy-2),(x+ox+3,y+oy+3),1)
+                    if (i+int(self.age*9))%2==0:safe_set(surf,x+ox+1,y+oy-3,WHITE)
 
     def _v87_boss_spectacle(self,surf):
         """Final craftsmanship layer: focal lighting, animated machinery/anatomy and stronger boss staging."""
@@ -5357,7 +5455,7 @@ class Game:
         self.canvas=pygame.Surface((NATIVE_W,NATIVE_H)).convert()
         self.clock=pygame.time.Clock(); self.running=True
         self.frame_hitch_count=0
-        load_v93_art_assets()
+        load_v94_art_assets()
 
         self.background=Background(); self.background.fx_level=int(self.settings["effects"])
         self.audio=AudioSynth(); self.audio.set_volumes(self.settings["music_volume"],self.settings["sfx_volume"])
@@ -6304,13 +6402,13 @@ class Game:
 # ---------------------------------------------------------------------------
 
 def packaged_smoke_test():
-    """Exercise V9.3 cinematic authored art, bosses, title/ending flow and systems."""
+    """Exercise V9.4 boss-recovery art, title/ending flow and systems."""
     g=Game()
     assert DIFFICULTY_ORDER==("EASY","HARDER","DIFFICULT","INSANE")
     assert g.difficulty=="INSANE"
     assert DIFFICULTY_PROFILES["INSANE"]["damage"]==1.0
     try:
-        assert BUILD_ID=="V9.3-CINEMATIC-ART-ESCALATION"
+        assert BUILD_ID=="V9.4-BOSS-INTIMIDATION-RECOVERY"
         assert WEAPON_NAMES[4]=="HOMING ROCKET"
         assert g.player.unlocked==[True]+[False]*9
         assert FIXED_DT==1.0/FPS
@@ -6321,10 +6419,11 @@ def packaged_smoke_test():
             assert len(art)>=7
         assert len(CARRIER_BODY)>=12 and len(LEVIATHAN_HEAD)>=16 and len(BASTION_HULL)>=12
         # V8.9 inherited convergence assets must survive PyInstaller collection.
-        assert set(V93_SCENE_CHUNKS)=={"space","atmosphere","lava","water","station","hive","city","ice","veil","omega"}
-        assert set(V93_SHIELD_PIXELS)==set(SHIELD_ORDER)
+        assert set(V94_SCENE_CHUNKS)=={"space","atmosphere","lava","water","station","hive","city","ice","veil","omega"}
+        assert set(V94_SHIELD_PIXELS)==set(SHIELD_ORDER)
         assert SHIELD_DATA["AEGIS"]["energy"]>=60 and SHIELD_DATA["REFLECTOR"]["charges"]>=6
         assert len(PLAYER_PIXELS)>=15 and max(map(len,PLAYER_PIXELS))>=35
+        assert "boss_v93_frames" not in ART_ASSETS and "bosses_v93_sheet" not in ART_ASSETS
         assert len(ART_ASSETS.get("player_ship_frames",[]))==5
         assert len(ART_ASSETS.get("pyroclast_frames",[]))==4
         assert ART_ASSETS.get("stage09_nebula") is not None
@@ -6335,8 +6434,6 @@ def packaged_smoke_test():
         assert len(ART_ASSETS.get("enemy_stage01_frames",[]))==8
         assert len(ART_ASSETS.get("enemy_stage09_frames",[]))==8
         assert ART_ASSETS["title_screen"].get_size()==(256,224)
-        assert ART_ASSETS["bosses_v93_sheet"].get_size()==(192,720)
-        assert len(ART_ASSETS.get("boss_v93_frames",[]))==10 and all(len(v)==2 for v in ART_ASSETS["boss_v93_frames"])
         assert max(text_width(line) for line in build_ending_lines())<=ENDING_TEXT_WIDTH
         assert ENDING_SCROLL_SPEED<19 and ENDING_STORY_TOP>=44 and ENDING_STORY_BOTTOM<=204
         if g.audio.enabled:
