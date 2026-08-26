@@ -1,4 +1,4 @@
-name: Build Omega Horizon V9.4 for Windows
+name: Build Omega Horizon V9.5 for Windows
 
 on:
   workflow_dispatch:
@@ -8,12 +8,12 @@ permissions:
 
 jobs:
   build-windows:
-    name: Build and test V9.4 boss intimidation recovery Windows EXE
+    name: Build and test V9.5 world beauty and presentation Windows EXE
     runs-on: windows-2022
     timeout-minutes: 45
 
     steps:
-      - name: Check out V9.4 source
+      - name: Check out V9.5 source
         uses: actions/checkout@v4
 
       - name: Set up 64-bit Python 3.13
@@ -30,12 +30,12 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install --only-binary=:all: -r requirements-build.txt
 
-      - name: Verify V9.4 identity and boss-recovery assets
+      - name: Verify V9.5 identity and world-beauty assets
         shell: pwsh
         run: |
-          python -c "import omega_horizon_shmup as g; assert g.BUILD_ID == 'V9.4-BOSS-INTIMIDATION-RECOVERY'; assert g.DISPLAY_VERSION == 'V9.4'; assert g.DISPLAY_SUBTITLE == 'BOSS INTIMIDATION RECOVERY'; assert g.WEAPON_NAMES[4] == 'HOMING ROCKET'; assert len(g.PLAYER_PIXELS) >= 15; assert max(map(len,g.PLAYER_PIXELS)) >= 35; assert len(g.ICE_CLIFF_V86) >= 10; assert len(g.OMEGA_RIB_V86) >= 10; assert set(g.V94_SCENE_CHUNKS) == {'space','atmosphere','lava','water','station','hive','city','ice','veil','omega'}; assert set(g.V94_SHIELD_PIXELS) == set(g.SHIELD_ORDER); assert len(g.build_ending_lines()) > 20; assert g.ENDING_SCROLL_SPEED < 19; assert g.ENDING_TEXT_WIDTH <= 202; assert __import__('os').path.exists('assets/stage01_space_v93.png'); assert __import__('os').path.exists('assets/enemy_stage09_v93.png'); assert __import__('os').path.exists('assets/title_screen_v93.png'); assert 'boss_v93_frames' not in g.ART_ASSETS; assert g.SHIELD_DATA['AEGIS']['energy'] >= 60; assert g.DIFFICULTY_ORDER == ('EASY','HARDER','DIFFICULT','INSANE'); assert g.DIFFICULTY_PROFILES['INSANE']['damage'] == 1.0; print(g.BUILD_ID)"
+          python -c "import omega_horizon_shmup as g; assert g.BUILD_ID == 'V9.5-WORLD-BEAUTY-PRESENTATION'; assert g.DISPLAY_VERSION == 'V9.5'; assert g.DISPLAY_SUBTITLE == 'WORLD BEAUTY & PRESENTATION'; assert g.WEAPON_NAMES[4] == 'HOMING ROCKET'; assert len(g.PLAYER_PIXELS) >= 15; assert max(map(len,g.PLAYER_PIXELS)) >= 35; assert len(g.ICE_CLIFF_V86) >= 10; assert len(g.OMEGA_RIB_V86) >= 10; assert set(g.V95_SCENE_CHUNKS) == {'space','atmosphere','lava','water','station','hive','city','ice','veil','omega'}; assert set(g.V95_SHIELD_PIXELS) == set(g.SHIELD_ORDER); assert len(g.build_ending_lines()) > 20; assert g.ENDING_SCROLL_SPEED < 19; assert g.ENDING_TEXT_WIDTH <= 202; assert __import__('os').path.exists('assets/stage01_space_v95.png'); assert __import__('os').path.exists('assets/stage10_omega_v95.png'); assert __import__('os').path.exists('assets/title_logo_v95.png'); assert 'boss_v93_frames' not in g.ART_ASSETS; assert g.SHIELD_DATA['AEGIS']['energy'] >= 60; assert g.DIFFICULTY_ORDER == ('EASY','HARDER','DIFFICULT','INSANE'); assert g.DIFFICULTY_PROFILES['INSANE']['damage'] == 1.0; print(g.BUILD_ID)"
 
-      - name: Source regression test - boss recovery, authored world and systems
+      - name: Source regression test - world beauty, title UI, death flow and systems
         shell: pwsh
         env:
           SDL_VIDEODRIVER: dummy
@@ -48,7 +48,7 @@ jobs:
         run: |
           python -m py_compile omega_horizon_shmup.py runtime_smoke_test.py
 
-      - name: Build V9.4 OmegaHorizon.exe
+      - name: Build V9.5 OmegaHorizon.exe
         shell: pwsh
         run: |
           python -m PyInstaller --noconfirm --clean OmegaHorizon.spec
@@ -56,12 +56,12 @@ jobs:
             throw "PyInstaller completed without creating dist\OmegaHorizon.exe"
           }
 
-      - name: Smoke-test the PACKAGED V9.4 EXE
+      - name: Smoke-test the PACKAGED V9.5 EXE
         shell: pwsh
         env:
           SDL_VIDEODRIVER: dummy
           SDL_AUDIODRIVER: dummy
-          LOCALAPPDATA: ${{ runner.temp }}\OmegaHorizonV94
+          LOCALAPPDATA: ${{ runner.temp }}\OmegaHorizonV95
         run: |
           New-Item -ItemType Directory -Force -Path $env:LOCALAPPDATA | Out-Null
           $p = Start-Process `
@@ -70,32 +70,32 @@ jobs:
             -Wait `
             -PassThru
           if ($p.ExitCode -ne 0) {
-            throw "Packaged OmegaHorizon.exe V9.4 smoke test failed with exit code $($p.ExitCode)"
+            throw "Packaged OmegaHorizon.exe V9.5 smoke test failed with exit code $($p.ExitCode)"
           }
-          Write-Host "PACKAGED_V94_EXE_SMOKE_TEST_OK"
+          Write-Host "PACKAGED_V95_EXE_SMOKE_TEST_OK"
 
       - name: Create SHA-256 checksum
         shell: pwsh
         run: |
           $hash = (Get-FileHash "dist\OmegaHorizon.exe" -Algorithm SHA256).Hash
-          Set-Content -Path "dist\OmegaHorizon_V94_SHA256.txt" -Value $hash -Encoding ASCII
-          Write-Host "OmegaHorizon V9.4 SHA-256: $hash"
+          Set-Content -Path "dist\OmegaHorizon_V95_SHA256.txt" -Value $hash -Encoding ASCII
+          Write-Host "OmegaHorizon V9.5 SHA-256: $hash"
 
-      - name: Create V9.4 release ZIP
+      - name: Create V9.5 release ZIP
         shell: pwsh
         run: |
           Compress-Archive `
-            -Path "dist\OmegaHorizon.exe","dist\OmegaHorizon_V94_SHA256.txt" `
-            -DestinationPath "dist\OmegaHorizon_V94_Windows_x64.zip" `
+            -Path "dist\OmegaHorizon.exe","dist\OmegaHorizon_V95_SHA256.txt" `
+            -DestinationPath "dist\OmegaHorizon_V95_Windows_x64.zip" `
             -Force
 
-      - name: Upload tested V9.4 Windows build
+      - name: Upload tested V9.5 Windows build
         uses: actions/upload-artifact@v4
         with:
-          name: OmegaHorizon-Windows-x64-V9.4-BOSS-INTIMIDATION-RECOVERY
+          name: OmegaHorizon-Windows-x64-V9.5-WORLD-BEAUTY-PRESENTATION
           path: |
             dist/OmegaHorizon.exe
-            dist/OmegaHorizon_V94_SHA256.txt
-            dist/OmegaHorizon_V94_Windows_x64.zip
+            dist/OmegaHorizon_V95_SHA256.txt
+            dist/OmegaHorizon_V95_Windows_x64.zip
           if-no-files-found: error
           retention-days: 30
