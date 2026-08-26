@@ -1,11 +1,16 @@
-OMEGA HORIZON V9.6 AUTHORED ASSETS
+OMEGA HORIZON V9.6.1 - VISUAL RECOVERY ASSETS
 
-V9.6 flagship/recovery assets:
-- title_screen_v96.png: flagship cinematic title illustration
-- title_logo_v96.png: custom rasterized OMEGA HORIZON logo treatment
-- stage06_hive_v96.png: recovered/escalated biomechanical hive plate
-- stage07_city_v96.png: recovered/escalated ruined megacity plate
-- stage08_ice_v96.png: recovered/escalated frozen-world plate
-- enemy_stage01_v96.png through enemy_stage10_v96.png: all non-boss enemy families, 4 archetypes x 2 frames
+Only assets that passed the recovery gate ship in this folder.
 
-Boss art remains on the V9.4/V9.5 individualized rendering path and is intentionally not replaced in V9.6.
+player_ship_v91.png       Proven authored player ship sheet.
+pyroclast_v91.png         Proven authored Pyroclast sheet used by the recovered boss path.
+title_screen_v96.png      Flagship title illustration retained from V9.6.
+title_logo_v96.png        Custom title logo retained from V9.6.
+stage01_space_v961.png    Restored stronger pre-regression Stage 1 plate.
+stage05_station_v961.png  Restored stronger pre-regression Stage 5 plate.
+stage08_ice_v961.png      Restored stronger pre-regression Stage 8 plate.
+stage09_nebula_v961.png   Proven Stage 9 giant-nebula benchmark plate.
+
+Stages 2/3/4/6/7/10 deliberately use the richer layered V9.4 background renderer.
+All V9.6 authored enemy sheets are deliberately excluded; the detailed V9.1
+procedural/metasprite enemy renderer is authoritative again.
