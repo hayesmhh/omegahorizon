@@ -12,3 +12,5 @@ V9.3 additions:
 - bosses_v93.png: two-frame authored sheet for all ten bosses
 
 Prior V9.1/V9.2 assets remain as fallbacks/history.
+
+V9.4 NOTE: bosses_v93.png was intentionally removed. Bosses use their individual detailed rendering paths plus V9.4 boss-specific intimidation finishing.
