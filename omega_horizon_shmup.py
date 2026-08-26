@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-OMEGA HORIZON V9.5 - WORLD BEAUTY & PRESENTATION PASS
+OMEGA HORIZON V9.6 - FLAGSHIP ART & RECOVERY
 =========================================================
 Pygame shooter designed around a 256x224 SNES-like canvas with software
 perspective rendering, shipped authored pixel-art assets, original procedural support art,
@@ -23,7 +23,7 @@ Controls:
 Developer code:
     Type TERMINUS on the title screen to enable TEST MODE.
 
-Build identity: V9.5-WORLD-BEAUTY-PRESENTATION
+Build identity: V9.6-FLAGSHIP-ART-RECOVERY
 """
 
 import json
@@ -51,15 +51,15 @@ FIXED_DT = 1.0 / FPS
 HUD_H = 21
 HORIZON_Y = 104
 AUDIO_RATE = 44100
-BUILD_ID = "V9.5-WORLD-BEAUTY-PRESENTATION"
-DISPLAY_VERSION = "V9.5"
-DISPLAY_SUBTITLE = "WORLD BEAUTY & PRESENTATION"
+BUILD_ID = "V9.6-FLAGSHIP-ART-RECOVERY"
+DISPLAY_VERSION = "V9.6"
+DISPLAY_SUBTITLE = "FLAGSHIP ART & RECOVERY"
 ENDING_SCROLL_SPEED = 15.0
 ENDING_STORY_TOP = 48
 ENDING_STORY_BOTTOM = 202
 ENDING_TEXT_WIDTH = 202
-TITLE_MENU_ROWS=(178,193,208)
-TITLE_LOGO_RECT=(8,7,240,31)
+TITLE_MENU_ROWS=(179,194,209)
+TITLE_LOGO_RECT=(4,5,248,38)
 
 DIFFICULTY_ORDER=("EASY","HARDER","DIFFICULT","INSANE")
 SHIELD_ORDER=("AEGIS","REFLECTOR","PHASE","INTERCEPTOR")
@@ -198,27 +198,27 @@ def resource_path(relative_path):
     return os.path.join(base,relative_path)
 
 
-def load_v95_art_assets():
+def load_v96_art_assets():
     if ART_ASSETS:
         return ART_ASSETS
     specs={
         "player_ship_sheet":("assets/player_ship_v91.png",True),
         "pyroclast_sheet":("assets/pyroclast_v91.png",True),
-        "enemy_stage01_sheet":("assets/enemy_stage01_v93.png",True),
-        "enemy_stage09_sheet":("assets/enemy_stage09_v93.png",True),
-        "title_screen":("assets/title_screen_v95.png",False),
-        "title_logo":("assets/title_logo_v95.png",True),
+        "title_screen":("assets/title_screen_v96.png",False),
+        "title_logo":("assets/title_logo_v96.png",True),
         "stage01_space":("assets/stage01_space_v95.png",False),
         "stage02_atmosphere":("assets/stage02_atmosphere_v95.png",False),
         "stage03_lava":("assets/stage03_lava_v95.png",False),
         "stage04_water":("assets/stage04_water_v95.png",False),
         "stage05_station":("assets/stage05_station_v95.png",False),
-        "stage06_hive":("assets/stage06_hive_v95.png",False),
-        "stage07_city":("assets/stage07_city_v95.png",False),
-        "stage08_ice":("assets/stage08_ice_v95.png",False),
+        "stage06_hive":("assets/stage06_hive_v96.png",False),
+        "stage07_city":("assets/stage07_city_v96.png",False),
+        "stage08_ice":("assets/stage08_ice_v96.png",False),
         "stage09_nebula":("assets/stage09_nebula_v95.png",False),
         "stage10_omega":("assets/stage10_omega_v95.png",False),
     }
+    for stage in range(1,11):
+        specs[f"enemy_stage{stage:02d}_sheet"]=(f"assets/enemy_stage{stage:02d}_v96.png",True)
     for key,(rel,alpha) in specs.items():
         surf=pygame.image.load(resource_path(rel))
         ART_ASSETS[key]=surf.convert_alpha() if alpha else surf.convert()
@@ -226,9 +226,10 @@ def load_v95_art_assets():
     ART_ASSETS["player_ship_frames"]=[ps.subsurface((i*56,0,56,24)).copy() for i in range(5)]
     py=ART_ASSETS["pyroclast_sheet"]
     ART_ASSETS["pyroclast_frames"]=[py.subsurface((i*96,0,96,64)).copy() for i in range(4)]
-    for stage_key in ("enemy_stage01","enemy_stage09"):
+    for stage in range(1,11):
+        stage_key=f"enemy_stage{stage:02d}"
         es=ART_ASSETS[stage_key+"_sheet"]
-        frames=[es.subsurface((i*32,0,32,24)).copy() for i in range(8)]
+        frames=[es.subsurface((i*40,0,40,28)).copy() for i in range(8)]
         ART_ASSETS[stage_key+"_frames"]=frames
         ART_ASSETS[stage_key+"_frames_flipped"]=[pygame.transform.flip(fr,True,False) for fr in frames]
     return ART_ASSETS
@@ -2241,6 +2242,8 @@ V94_SCENE_CHUNKS=V93_SCENE_CHUNKS
 V94_SHIELD_PIXELS=V93_SHIELD_PIXELS
 V95_SCENE_CHUNKS=V94_SCENE_CHUNKS
 V95_SHIELD_PIXELS=V94_SHIELD_PIXELS
+V96_SCENE_CHUNKS=V95_SCENE_CHUNKS
+V96_SHIELD_PIXELS=V95_SHIELD_PIXELS
 
 V87_PICKUP_SHIELD_PALETTES={
 'AEGIS':{'1':(4,24,55),'2':(15,80,132),'3':(53,151,203),'4':(105,224,255),'5':WHITE},
@@ -4353,28 +4356,46 @@ class Enemy:
 
     def draw(self,surf):
         x,y=int(self.x),int(self.y); theme=STAGES[self.stage-1].theme
-        # V9.2 replaces the complete Stage 1 and Stage 9 enemy families with shipped authored sprites.
-        stage_key="enemy_stage01" if self.stage==1 else "enemy_stage09" if self.stage==9 else None
-        frames=ART_ASSETS.get(stage_key+"_frames") if stage_key else None
+        # V9.6 authored enemy recovery: every stage has a larger 40x28 sheet,
+        # while dynamic hardpoints/material glints remain layered on top so the
+        # authored conversion never reduces tactical or surface detail.
+        stage_key=f"enemy_stage{self.stage:02d}"
+        frames=ART_ASSETS.get(stage_key+"_frames")
         if frames:
             ai=ARCHETYPES.index(self.archetype); anim=int(self.age*8)%2
-            # Authored sheets face right; normal enemies arrive from the right and face left.
             use_frames=frames if self.from_rear else ART_ASSETS.get(stage_key+"_frames_flipped",frames)
             sprite=use_frames[ai*2+anim]
-            surf.blit(sprite,(x-16,y-12))
+            surf.blit(sprite,(x-20,y-14))
             direction=1 if self.from_rear else -1
-            glint=(210,246,250) if self.stage==1 else (126,255,232)
-            engine=(255,128,43) if self.stage==1 else (230,61,224)
-            if self.archetype=="heavy":
-                safe_set(surf,x+direction*8,y-5,glint); safe_set(surf,x+direction*8,y+5,glint)
+            stage_glints={
+                1:((205,246,250),(255,145,48)),2:((238,247,244),(236,174,64)),3:((255,222,112),(255,74,16)),
+                4:((183,255,239),(76,224,242)),5:((170,233,236),(242,179,63)),6:((151,255,190),(83,236,142)),
+                7:((225,178,125),(245,103,60)),8:((231,251,255),(95,194,238)),9:((113,255,232),(231,72,231)),
+                10:((255,225,176),(247,61,116))}
+            glint,engine=stage_glints[self.stage]
+            # Extra silhouette/hardpoint definition is archetype-specific.
+            if self.archetype=="interceptor":
+                safe_set(surf,x+direction*10,y-5,glint); safe_set(surf,x+direction*10,y+5,glint)
+                safe_set(surf,x-direction*15,y,engine)
+            elif self.archetype=="heavy":
+                pygame.draw.line(surf,glint,(x+direction*9,y-6),(x+direction*15,y-6),1)
+                pygame.draw.line(surf,glint,(x+direction*9,y+6),(x+direction*15,y+6),1)
+                safe_set(surf,x-direction*16,y-2,engine); safe_set(surf,x-direction*16,y+2,engine)
             elif self.archetype=="artillery":
-                pygame.draw.line(surf,glint,(x+direction*5,y),(x+direction*11,y),1)
+                pygame.draw.line(surf,glint,(x+direction*8,y),(x+direction*18,y),1)
+                safe_set(surf,x+direction*18,y,WHITE); safe_set(surf,x-direction*15,y,engine)
             else:
-                safe_set(surf,x+direction*7,y-3,glint); safe_set(surf,x+direction*7,y+3,glint)
-            safe_set(surf,x-direction*11,y,engine)
-            if anim:safe_set(surf,x-direction*13,y,WHITE if self.stage==9 else (255,206,91))
-            if self.health<self.max_health*.45 and int(self.age*10)%3==0:
-                safe_set(surf,x-2,y-4,(255,209,92)); safe_set(surf,x+2,y+3,(255,89,58))
+                safe_set(surf,x+direction*11,y-6,glint); safe_set(surf,x+direction*11,y+6,glint)
+                safe_set(surf,x-direction*15,y,engine)
+            if anim:
+                safe_set(surf,x-direction*18,y,WHITE if self.stage in (1,4,8,9) else engine)
+            # Persistent damage detail rather than a single generic flash.
+            if self.health<self.max_health*.62:
+                safe_set(surf,x-3,y-4,(255,211,95))
+                if int(self.age*10)%3==0:safe_set(surf,x+3,y+4,(255,83,53))
+            if self.health<self.max_health*.30:
+                pygame.draw.line(surf,(72,60,65),(x-5,y+2),(x+1,y-1),1)
+                safe_set(surf,x+1,y-1,(255,142,58))
             return
         p=STAGES[self.stage-1].palette
         if theme=='lava':
@@ -5364,7 +5385,7 @@ class Game:
         self.canvas=pygame.Surface((NATIVE_W,NATIVE_H)).convert()
         self.clock=pygame.time.Clock(); self.running=True
         self.frame_hitch_count=0
-        load_v95_art_assets()
+        load_v96_art_assets()
 
         self.background=Background(); self.background.fx_level=int(self.settings["effects"])
         self.audio=AudioSynth(); self.audio.set_volumes(self.settings["music_volume"],self.settings["sfx_volume"])
@@ -6349,13 +6370,13 @@ class Game:
 # ---------------------------------------------------------------------------
 
 def packaged_smoke_test():
-    """Exercise V9.5 world-beauty art, title UI, death flow and boss continuity."""
+    """Exercise V9.6 flagship art, recovered worlds, enemy art, death flow and boss continuity."""
     g=Game()
     assert DIFFICULTY_ORDER==("EASY","HARDER","DIFFICULT","INSANE")
     assert g.difficulty=="INSANE"
     assert DIFFICULTY_PROFILES["INSANE"]["damage"]==1.0
     try:
-        assert BUILD_ID=="V9.5-WORLD-BEAUTY-PRESENTATION"
+        assert BUILD_ID=="V9.6-FLAGSHIP-ART-RECOVERY"
         assert WEAPON_NAMES[4]=="HOMING ROCKET"
         assert g.player.unlocked==[True]+[False]*9
         assert FIXED_DT==1.0/FPS
@@ -6366,20 +6387,25 @@ def packaged_smoke_test():
             assert len(art)>=7
         assert len(CARRIER_BODY)>=12 and len(LEVIATHAN_HEAD)>=16 and len(BASTION_HULL)>=12
         # V8.9 inherited convergence assets must survive PyInstaller collection.
-        assert set(V95_SCENE_CHUNKS)=={"space","atmosphere","lava","water","station","hive","city","ice","veil","omega"}
-        assert set(V95_SHIELD_PIXELS)==set(SHIELD_ORDER)
+        assert set(V96_SCENE_CHUNKS)=={"space","atmosphere","lava","water","station","hive","city","ice","veil","omega"}
+        assert set(V96_SHIELD_PIXELS)==set(SHIELD_ORDER)
         assert SHIELD_DATA["AEGIS"]["energy"]>=60 and SHIELD_DATA["REFLECTOR"]["charges"]>=6
         assert len(PLAYER_PIXELS)>=15 and max(map(len,PLAYER_PIXELS))>=35
         assert "boss_v93_frames" not in ART_ASSETS and "bosses_v93_sheet" not in ART_ASSETS
         assert len(ART_ASSETS.get("player_ship_frames",[]))==5
         assert len(ART_ASSETS.get("pyroclast_frames",[]))==4
         assert ART_ASSETS.get("stage09_nebula") is not None
+        for key in ("stage06_hive","stage07_city","stage08_ice"):
+            assert ART_ASSETS[key].get_size()==(256,91)
+        assert ART_ASSETS["title_screen"].get_size()==(256,224)
+        assert ART_ASSETS["title_logo"].get_size()==(248,38)
         assert ART_ASSETS["stage01_space"].get_size()==(256,203)
         for key in ("stage02_atmosphere","stage03_lava","stage04_water","stage05_station","stage06_hive","stage07_city","stage08_ice","stage09_nebula","stage10_omega"):
             assert ART_ASSETS[key].get_size()==(256,91), key
         assert ART_ASSETS["title_logo"].get_size()==(240,31)
-        assert len(ART_ASSETS.get("enemy_stage01_frames",[]))==8
-        assert len(ART_ASSETS.get("enemy_stage09_frames",[]))==8
+        for stage in range(1,11):
+            assert len(ART_ASSETS.get(f"enemy_stage{stage:02d}_frames",[]))==8
+            assert ART_ASSETS[f"enemy_stage{stage:02d}_frames"][0].get_size()==(40,28)
         assert ART_ASSETS["title_screen"].get_size()==(256,224)
         assert max(text_width(line) for line in build_ending_lines())<=ENDING_TEXT_WIDTH
         assert ENDING_SCROLL_SPEED<19 and ENDING_STORY_TOP>=44 and ENDING_STORY_BOTTOM<=204

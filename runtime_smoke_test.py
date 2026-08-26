@@ -1,8 +1,8 @@
-"""Omega Horizon V9.5 world-beauty and presentation source regression smoke test."""
+"""Omega Horizon V9.6 flagship-art and recovery source regression smoke test."""
 import os
 import tempfile
 
-_tmp = tempfile.mkdtemp(prefix="omega_horizon_v95_")
+_tmp = tempfile.mkdtemp(prefix="omega_horizon_v96_")
 os.environ["LOCALAPPDATA"] = _tmp
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
@@ -11,17 +11,17 @@ import pygame
 import numpy as np
 import omega_horizon_shmup as game
 
-assert game.BUILD_ID == "V9.5-WORLD-BEAUTY-PRESENTATION"
-assert game.DISPLAY_VERSION == "V9.5"
-assert game.DISPLAY_SUBTITLE == "WORLD BEAUTY & PRESENTATION"
+assert game.BUILD_ID == "V9.6-FLAGSHIP-ART-RECOVERY"
+assert game.DISPLAY_VERSION == "V9.6"
+assert game.DISPLAY_SUBTITLE == "FLAGSHIP ART & RECOVERY"
 assert len(game.STAGES) == 10
 assert len(game.WEAPON_NAMES) == 10
 assert game.WEAPON_NAMES[4] == "HOMING ROCKET"
 assert game.FIXED_DT == 1.0/game.FPS
 assert game.DIFFICULTY_ORDER == ("EASY","HARDER","DIFFICULT","INSANE")
 assert game.DIFFICULTY_PROFILES["INSANE"]["damage"] == 1.0
-assert set(game.V95_SCENE_CHUNKS) == set(game.V91_SCENE_CHUNKS)
-assert set(game.V95_SHIELD_PIXELS) == set(game.SHIELD_ORDER)
+assert set(game.V96_SCENE_CHUNKS) == set(game.V95_SCENE_CHUNKS)
+assert set(game.V96_SHIELD_PIXELS) == set(game.SHIELD_ORDER)
 assert len({(s.theme, s.music_style, s.bpm, s.key) for s in game.STAGES}) == 10
 
 # V9.4 preserves the authored world while removing the regressed unified boss sheet.
@@ -46,11 +46,11 @@ for asset in (game.PYRO_PROFILE_HEAD, game.SENTINEL_CHASSIS, game.MOTHER_ABDOMEN
 
 for rel in (
     "assets/player_ship_v91.png","assets/pyroclast_v91.png",
-    "assets/enemy_stage01_v93.png","assets/enemy_stage09_v93.png",
-    "assets/title_screen_v95.png","assets/title_logo_v95.png",
+    "assets/title_screen_v96.png","assets/title_logo_v96.png",
     "assets/stage01_space_v95.png","assets/stage02_atmosphere_v95.png","assets/stage03_lava_v95.png",
-    "assets/stage04_water_v95.png","assets/stage05_station_v95.png","assets/stage06_hive_v95.png",
-    "assets/stage07_city_v95.png","assets/stage08_ice_v95.png","assets/stage09_nebula_v95.png","assets/stage10_omega_v95.png"):
+    "assets/stage04_water_v95.png","assets/stage05_station_v95.png","assets/stage06_hive_v96.png",
+    "assets/stage07_city_v96.png","assets/stage08_ice_v96.png","assets/stage09_nebula_v95.png","assets/stage10_omega_v95.png",
+    *tuple(f"assets/enemy_stage{stage:02d}_v96.png" for stage in range(1,11))):
     assert os.path.exists(game.resource_path(rel)), rel
 wrapped=game.build_ending_lines()
 assert wrapped and max((game.text_width(line) for line in wrapped if line), default=0) <= game.ENDING_TEXT_WIDTH
@@ -90,9 +90,11 @@ assert len(game.ART_ASSETS.get("pyroclast_frames",[])) == 4
 assert game.ART_ASSETS["stage01_space"].get_size() == (256,203)
 for key in ("stage02_atmosphere","stage03_lava","stage04_water","stage05_station","stage06_hive","stage07_city","stage08_ice","stage09_nebula","stage10_omega"):
     assert game.ART_ASSETS[key].get_size() == (256,91), key
-assert game.ART_ASSETS["title_logo"].get_size() == (240,31)
-assert len(game.ART_ASSETS.get("enemy_stage01_frames",[])) == 8
-assert len(game.ART_ASSETS.get("enemy_stage09_frames",[])) == 8
+assert game.ART_ASSETS["title_logo"].get_size() == (248,38)
+for stage in range(1,11):
+    frames=game.ART_ASSETS.get(f"enemy_stage{stage:02d}_frames",[])
+    assert len(frames)==8
+    assert frames[0].get_size()==(40,28)
 assert game.ART_ASSETS["title_screen"].get_size() == (256,224)
 assert "bosses_v93_sheet" not in game.ART_ASSETS
 assert "boss_v93_frames" not in game.ART_ASSETS
@@ -185,4 +187,4 @@ for _ in range(8): g.update(game.FIXED_DT)
 g.draw()
 
 g.audio.stop_music(); pygame.quit()
-print("OMEGA_V950_SOURCE_SMOKE_TEST_OK")
+print("OMEGA_V960_SOURCE_SMOKE_TEST_OK")
