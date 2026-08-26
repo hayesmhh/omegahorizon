@@ -1,30 +1,24 @@
-OMEGA HORIZON V9.6.2 - STAGE 1 FLAGSHIP SPACE
-================================================
+OMEGA HORIZON V9.6.3 - STAGE 2 ATMOSPHERIC DESCENT
+=====================================================
 
-V9.6.2 is deliberately a ONE-STAGE visual candidate built from the known-good
-V9.6.1 Visual Regression Recovery baseline. Only Stage 1's background art is
-changed. This lets the new reference-driven art process be judged side-by-side
-without risking the other nine stages.
+V9.6.3 builds directly on the recovered V9.6.1 baseline plus the successful Stage 1 flagship/ring polish.
 
-STAGE 1 FLAGSHIP CANDIDATE
---------------------------
-- New reference-driven Stage 1 authored plate: stage01_space_v962.png.
-- No visible ground plane.
-- Grand cosmic scale with nebula structure, multiple planets/moons, dense stars,
-  and a close planetary horizon slice used only as foreground celestial scenery.
-- V9.6.1 detailed enemies remain authoritative.
-- Stages 2-10 remain on the recovered baseline.
-- Player ship, shields, death sequence, bosses, title system, ending and music
-  remain unchanged from the recovered baseline.
+STAGE 2 FULL BUILD
+------------------
+- Five authored background phases tell one continuous descent story:
+  1. orbital edge / near-space entry
+  2. high atmosphere and cloud ocean
+  3. violent storm belt
+  4. lower-atmosphere world reveal
+  5. hostile approach zone that visually sets up Stage 3
+- Stage progress drives phase changes. Short crossfades connect the phases.
+- Restrained live haze and storm illumination keep the plates alive without reintroducing line-heavy procedural clutter.
+- Stage 2 bypasses the old atmosphere overlay stack while the V9.4/V9.1 recovery baseline remains authoritative elsewhere.
+- Stage 1 keeps the new ringed upper-right planet.
 
-BUILD / GITHUB UPLOAD
----------------------
-1. Extract this ZIP.
-2. GitHub -> Code -> Add file -> Upload files.
-3. Upload the contents of this package at repository root and commit.
-4. Actions -> Build Omega Horizon V9.6.2 for Windows -> Run workflow.
-5. Download artifact: OmegaHorizon-Windows-x64-V9.6.2-STAGE1-FLAGSHIP-SPACE
+BUILD
+-----
+Upload the package contents to the repository root, commit, then run:
+Build Omega Horizon V9.6.3 for Windows
 
-You do NOT need to manually remove harmless old PNGs from the repository.
-Verification checks what V9.6.2 actually loads instead of requiring a perfectly
-clean Git history/assets folder.
+Artifact: OmegaHorizon-Windows-x64-V9.6.3-STAGE2-ATMOSPHERIC-DESCENT

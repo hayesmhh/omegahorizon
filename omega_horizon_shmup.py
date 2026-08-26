@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-OMEGA HORIZON V9.6.2 - STAGE 1 FLAGSHIP SPACE
+OMEGA HORIZON V9.6.3 - STAGE 2 ATMOSPHERIC DESCENT
 =========================================================
 Pygame shooter designed around a 256x224 SNES-like canvas with software
 perspective rendering, shipped authored pixel-art assets, original procedural support art,
@@ -23,7 +23,7 @@ Controls:
 Developer code:
     Type TERMINUS on the title screen to enable TEST MODE.
 
-Build identity: V9.6.2-STAGE1-FLAGSHIP-SPACE
+Build identity: V9.6.3-STAGE2-ATMOSPHERIC-DESCENT
 """
 
 import json
@@ -51,9 +51,9 @@ FIXED_DT = 1.0 / FPS
 HUD_H = 21
 HORIZON_Y = 104
 AUDIO_RATE = 44100
-BUILD_ID = "V9.6.2-STAGE1-FLAGSHIP-SPACE"
-DISPLAY_VERSION = "V9.6.2"
-DISPLAY_SUBTITLE = "STAGE 1 FLAGSHIP SPACE"
+BUILD_ID = "V9.6.3-STAGE2-ATMOSPHERIC-DESCENT"
+DISPLAY_VERSION = "V9.6.3"
+DISPLAY_SUBTITLE = "STAGE 2 ATMOSPHERIC DESCENT"
 ENDING_SCROLL_SPEED = 15.0
 ENDING_STORY_TOP = 48
 ENDING_STORY_BOTTOM = 202
@@ -64,7 +64,10 @@ VISUAL_RECOVERY_BASELINE="V9.4-BACKGROUNDS/V9.1-ENEMIES"
 AUTHORED_ENEMY_OVERRIDE=False
 BACKGROUND_RECOVERY_MODE=True
 STAGE1_FLAGSHIP_MODE=True
-STAGE1_FLAGSHIP_ASSET="assets/stage01_space_v962.png"
+STAGE1_FLAGSHIP_ASSET="assets/stage01_space_v9621.png"
+STAGE2_DESCENT_MODE=True
+STAGE2_DESCENT_ASSETS=tuple(f"assets/stage02_descent_{i}_v963.png" for i in range(5))
+STAGE2_DESCENT_THRESHOLDS=(0.0,0.18,0.38,0.60,0.80)
 
 DIFFICULTY_ORDER=("EASY","HARDER","DIFFICULT","INSANE")
 SHIELD_ORDER=("AEGIS","REFLECTOR","PHASE","INTERCEPTOR")
@@ -219,6 +222,11 @@ def load_v962_art_assets():
         "title_screen":("assets/title_screen_v96.png",False),
         "title_logo":("assets/title_logo_v96.png",True),
         "stage01_space":(STAGE1_FLAGSHIP_ASSET,False),
+        "stage02_descent_0":(STAGE2_DESCENT_ASSETS[0],False),
+        "stage02_descent_1":(STAGE2_DESCENT_ASSETS[1],False),
+        "stage02_descent_2":(STAGE2_DESCENT_ASSETS[2],False),
+        "stage02_descent_3":(STAGE2_DESCENT_ASSETS[3],False),
+        "stage02_descent_4":(STAGE2_DESCENT_ASSETS[4],False),
         "stage05_station":("assets/stage05_station_v961.png",False),
         "stage08_ice":("assets/stage08_ice_v961.png",False),
         "stage09_nebula":("assets/stage09_nebula_v961.png",False),
@@ -2952,6 +2960,7 @@ class Background:
         self.time=0.0
         self.rng=random.Random(1337)
         self.fx_level=2
+        self.stage_progress=0.0
         self.readability_surface=pygame.Surface((NATIVE_W,NATIVE_H),pygame.SRCALPHA)
         self.stars=[]
         for count,speed,bright in [(46,.16,90),(34,.40,150),(24,.82,230)]:
@@ -3335,7 +3344,7 @@ class Background:
         fn(surf,stage)
         # V9.2 authored-world stages bypass older line-heavy procedural overlay stacks.
         # Their background plate + restrained foreground pass is the authoritative composition.
-        if theme in ('space','station','ice','veil'):
+        if theme in ('space','atmosphere','station','ice','veil'):
             self.draw_combat_color_math(surf,stage)
             return
         self.draw_artist_layer(surf,stage)
@@ -3611,29 +3620,44 @@ class Background:
         self._stars(surf,HUD_H,NATIVE_H,1.0,(.7,.9,1.0))
 
     def draw_atmosphere(self,surf,stage):
+        """V9.6.3 cinematic descent: five authored plates keyed to stage progress."""
+        if STAGE2_DESCENT_MODE:
+            plates=[ART_ASSETS.get(f"stage02_descent_{i}") for i in range(5)]
+            if all(p is not None for p in plates):
+                p=clamp(self.stage_progress,0.0,1.0)
+                thresholds=STAGE2_DESCENT_THRESHOLDS
+                idx=0
+                for i,th in enumerate(thresholds):
+                    if p>=th: idx=i
+                surf.fill((5,8,17))
+                surf.blit(plates[idx],(0,HUD_H))
+                # Short crossfade after each threshold keeps the descent continuous without ghosting for long stretches.
+                if idx>0:
+                    th=thresholds[idx]
+                    fade=min(1.0,max(0.0,(p-th)/0.055))
+                    if fade<1.0:
+                        prev=plates[idx-1]
+                        prev.set_alpha(int((1.0-fade)*255)); surf.blit(prev,(0,HUD_H)); prev.set_alpha(None)
+                # Restrained live atmosphere: occasional storm illumination and drifting haze.
+                if idx>=2 and self.fx_level:
+                    flash=max(0.0,math.sin(self.time*5.7+idx*1.3))**18
+                    if flash>.03:
+                        veil=pygame.Surface((NATIVE_W,NATIVE_H-HUD_H),pygame.SRCALPHA)
+                        veil.fill((155,185,255,int(34*flash))); surf.blit(veil,(0,HUD_H))
+                if idx in (1,2,3):
+                    for j in range(3 if self.fx_level==2 else 1):
+                        yy=HUD_H+43+j*29+int(math.sin(self.time*.35+j)*4)
+                        xx=int((j*97-self.time*(5+j))%(NATIVE_W+90))-45
+                        haze=pygame.Surface((86,9),pygame.SRCALPHA)
+                        pygame.draw.ellipse(haze,(225,225,238,22),(0,0,86,9))
+                        surf.blit(haze,(xx,yy))
+                return
+        # Recovery fallback if authored plates are unavailable.
         self._gradient(surf,(8,16,40),(94,129,148),HUD_H,105)
         self._stars(surf,HUD_H,68,.55,(.6,.75,1.0))
-        # Planet curvature / atmosphere glow.
         pygame.draw.ellipse(surf,(36,86,112),(-72,67,400,155))
         pygame.draw.arc(surf,(128,211,229),(-72,60,400,160),3.2,6.1,2)
-        # Painterly pixel-cloud parallax. Three-value clusters give the clouds
-        # actual volume instead of reading as flat geometric ellipses.
-        cloud_sets=[
-            (7,73,1,(203,219,224),(149,176,187),(92,124,140)),
-            (14,91,1,(173,196,205),(118,151,165),(69,105,122)),
-            (25,108,1,(139,171,183),(89,129,145),(48,85,104)),
-        ]
-        for layer,(spd,ybase,sc,light,mid,shadow) in enumerate(cloud_sets):
-            for i in range(6):
-                x=int((i*58-self.time*spd)%(NATIVE_W+90))-45
-                y=ybase+int(math.sin(i*1.9+self.time*.3)*5)
-                draw_pixel_cloud(surf,x,y,sc,light,mid,shadow)
         self._floor_cast(surf,"atmosphere",112,0,(47,75,84))
-        # Lightning.
-        if int(self.time*2.1)%11==0:
-            x=170+int(math.sin(self.time*9)*26)
-            pts=[(x,48),(x-5,62),(x+3,70),(x-4,83),(x+2,94)]
-            pygame.draw.lines(surf,(225,245,255),False,pts,1)
 
     def draw_lava(self,surf,stage):
         self._gradient(surf,(16,4,5),(50,9,7),HUD_H,99)
@@ -6262,6 +6286,7 @@ class Game:
         draw_text(self.canvas,prompt,(NATIVE_W-text_width(prompt))//2,213,YELLOW)
 
     def draw_gameplay(self):
+        self.background.stage_progress=clamp(self.stage_distance/max(1.0,self.stage_goal),0.0,1.0)
         self.background.draw(self.canvas,self.stage)
         if self.stage==10 and self.boss and not self.boss.dead:
             phase=self.boss.phase; pulse=int((math.sin(self.boss.age*3)+1)*2)
@@ -6454,13 +6479,13 @@ class Game:
 # ---------------------------------------------------------------------------
 
 def packaged_smoke_test():
-    """Exercise V9.6.2 Stage 1 flagship candidate and recovered baseline."""
+    """Exercise V9.6.3 Stage 2 atmospheric descent and recovered baseline."""
     g=Game()
     assert DIFFICULTY_ORDER==("EASY","HARDER","DIFFICULT","INSANE")
     assert g.difficulty=="INSANE"
     assert DIFFICULTY_PROFILES["INSANE"]["damage"]==1.0
     try:
-        assert BUILD_ID=="V9.6.2-STAGE1-FLAGSHIP-SPACE"
+        assert BUILD_ID=="V9.6.3-STAGE2-ATMOSPHERIC-DESCENT"
         assert WEAPON_NAMES[4]=="HOMING ROCKET"
         assert g.player.unlocked==[True]+[False]*9
         assert FIXED_DT==1.0/FPS
@@ -6478,13 +6503,13 @@ def packaged_smoke_test():
         assert "boss_v93_frames" not in ART_ASSETS and "bosses_v93_sheet" not in ART_ASSETS
         assert VISUAL_RECOVERY_BASELINE=="V9.4-BACKGROUNDS/V9.1-ENEMIES"
         assert BACKGROUND_RECOVERY_MODE and not AUTHORED_ENEMY_OVERRIDE
-        assert STAGE1_FLAGSHIP_MODE and STAGE1_FLAGSHIP_ASSET.endswith("stage01_space_v962.png")
+        assert STAGE1_FLAGSHIP_MODE and STAGE1_FLAGSHIP_ASSET.endswith("stage01_space_v9621.png")
         assert len(ART_ASSETS.get("player_ship_frames",[]))==5
         assert len(ART_ASSETS.get("pyroclast_frames",[]))==4
         assert ART_ASSETS["title_screen"].get_size()==(256,224)
         assert ART_ASSETS["title_logo"].get_size()==(248,38)
         assert ART_ASSETS["stage01_space"].get_size()==(256,203)
-        assert STAGE1_FLAGSHIP_ASSET=="assets/stage01_space_v962.png"
+        assert STAGE1_FLAGSHIP_ASSET=="assets/stage01_space_v9621.png"
         for key in ("stage05_station","stage08_ice","stage09_nebula"):
             assert ART_ASSETS[key].get_size()==(256,91), key
         # Failed V9.5/V9.6 full-stage plates and enemy overrides must not be loaded.
