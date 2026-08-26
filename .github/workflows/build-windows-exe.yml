@@ -1,4 +1,4 @@
-name: Build Omega Horizon V9.6.2 for Windows
+name: Build Omega Horizon V9.6.3 for Windows
 
 on:
   workflow_dispatch:
@@ -8,14 +8,12 @@ permissions:
 
 jobs:
   build-windows:
-    name: Build and test V9.6.2 Stage 1 flagship space Windows EXE
+    name: Build and test V9.6.3 Stage 2 atmospheric descent Windows EXE
     runs-on: windows-2022
     timeout-minutes: 45
-
     steps:
-      - name: Check out V9.6.2 source
+      - name: Check out V9.6.3 source
         uses: actions/checkout@v4
-
       - name: Set up 64-bit Python 3.13
         uses: actions/setup-python@v5
         with:
@@ -23,79 +21,54 @@ jobs:
           architecture: 'x64'
           cache: 'pip'
           cache-dependency-path: requirements-build.txt
-
       - name: Install pinned build dependencies
         shell: pwsh
         run: |
           python -m pip install --upgrade pip
           python -m pip install --only-binary=:all: -r requirements-build.txt
-
-      - name: Verify V9.6.2 release identity
+      - name: Verify V9.6.3 release identity
         shell: pwsh
-        run: |
-          python verify_release.py
-
-      - name: Source regression test - Stage 1 flagship candidate and recovered baseline
+        run: python verify_release.py
+      - name: Source regression test - Stage 2 descent and recovered baseline
         shell: pwsh
         env:
           SDL_VIDEODRIVER: dummy
           SDL_AUDIODRIVER: dummy
-        run: |
-          python runtime_smoke_test.py
-
-      - name: Syntax-check the game and release verifier
+        run: python runtime_smoke_test.py
+      - name: Syntax-check source
         shell: pwsh
-        run: |
-          python -m py_compile omega_horizon_shmup.py runtime_smoke_test.py verify_release.py
-
-      - name: Build V9.6.2 OmegaHorizon.exe
+        run: python -m py_compile omega_horizon_shmup.py runtime_smoke_test.py verify_release.py
+      - name: Build V9.6.3 OmegaHorizon.exe
         shell: pwsh
         run: |
           python -m PyInstaller --noconfirm --clean OmegaHorizon.spec
-          if (-not (Test-Path "dist\OmegaHorizon.exe")) {
-            throw "PyInstaller completed without creating dist\OmegaHorizon.exe"
-          }
-
-      - name: Smoke-test the PACKAGED V9.6.2 EXE
+          if (-not (Test-Path "dist\OmegaHorizon.exe")) { throw "PyInstaller did not create dist\OmegaHorizon.exe" }
+      - name: Smoke-test the PACKAGED V9.6.3 EXE
         shell: pwsh
         env:
           SDL_VIDEODRIVER: dummy
           SDL_AUDIODRIVER: dummy
-          LOCALAPPDATA: ${{ runner.temp }}\OmegaHorizonV962
+          LOCALAPPDATA: ${{ runner.temp }}\OmegaHorizonV963
         run: |
           New-Item -ItemType Directory -Force -Path $env:LOCALAPPDATA | Out-Null
-          $p = Start-Process `
-            -FilePath "$PWD\dist\OmegaHorizon.exe" `
-            -ArgumentList "--smoke-test" `
-            -Wait `
-            -PassThru
-          if ($p.ExitCode -ne 0) {
-            throw "Packaged OmegaHorizon.exe V9.6.2 smoke test failed with exit code $($p.ExitCode)"
-          }
-          Write-Host "PACKAGED_V962_EXE_SMOKE_TEST_OK"
-
+          $p=Start-Process -FilePath "$PWD\dist\OmegaHorizon.exe" -ArgumentList "--smoke-test" -Wait -PassThru
+          if ($p.ExitCode -ne 0) { throw "Packaged V9.6.3 smoke test failed: $($p.ExitCode)" }
+          Write-Host "PACKAGED_V963_EXE_SMOKE_TEST_OK"
       - name: Create SHA-256 checksum
         shell: pwsh
         run: |
-          $hash = (Get-FileHash "dist\OmegaHorizon.exe" -Algorithm SHA256).Hash
-          Set-Content -Path "dist\OmegaHorizon_V962_SHA256.txt" -Value $hash -Encoding ASCII
-          Write-Host "OmegaHorizon V9.6.2 SHA-256: $hash"
-
-      - name: Create V9.6.2 release ZIP
+          $hash=(Get-FileHash "dist\OmegaHorizon.exe" -Algorithm SHA256).Hash
+          Set-Content -Path "dist\OmegaHorizon_V963_SHA256.txt" -Value $hash -Encoding ASCII
+      - name: Create V9.6.3 release ZIP
         shell: pwsh
-        run: |
-          Compress-Archive `
-            -Path "dist\OmegaHorizon.exe","dist\OmegaHorizon_V962_SHA256.txt" `
-            -DestinationPath "dist\OmegaHorizon_V962_Windows_x64.zip" `
-            -Force
-
-      - name: Upload tested V9.6.2 Windows build
+        run: Compress-Archive -Path "dist\OmegaHorizon.exe","dist\OmegaHorizon_V963_SHA256.txt" -DestinationPath "dist\OmegaHorizon_V963_Windows_x64.zip" -Force
+      - name: Upload tested V9.6.3 Windows build
         uses: actions/upload-artifact@v4
         with:
-          name: OmegaHorizon-Windows-x64-V9.6.2-STAGE1-FLAGSHIP-SPACE
+          name: OmegaHorizon-Windows-x64-V9.6.3-STAGE2-ATMOSPHERIC-DESCENT
           path: |
             dist/OmegaHorizon.exe
-            dist/OmegaHorizon_V962_SHA256.txt
-            dist/OmegaHorizon_V962_Windows_x64.zip
+            dist/OmegaHorizon_V963_SHA256.txt
+            dist/OmegaHorizon_V963_Windows_x64.zip
           if-no-files-found: error
           retention-days: 30
