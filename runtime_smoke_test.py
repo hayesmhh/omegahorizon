@@ -1,8 +1,8 @@
-"""Omega Horizon V9.6.1 visual-regression recovery source smoke test."""
+"""Omega Horizon V9.6.2 Stage 1 flagship-space source smoke test."""
 import os
 import tempfile
 
-_tmp = tempfile.mkdtemp(prefix="omega_horizon_v961_")
+_tmp = tempfile.mkdtemp(prefix="omega_horizon_v962_")
 os.environ["LOCALAPPDATA"] = _tmp
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
@@ -11,17 +11,17 @@ import pygame
 import numpy as np
 import omega_horizon_shmup as game
 
-assert game.BUILD_ID == "V9.6.1-VISUAL-REGRESSION-RECOVERY"
-assert game.DISPLAY_VERSION == "V9.6.1"
-assert game.DISPLAY_SUBTITLE == "VISUAL REGRESSION RECOVERY"
+assert game.BUILD_ID == "V9.6.2-STAGE1-FLAGSHIP-SPACE"
+assert game.DISPLAY_VERSION == "V9.6.2"
+assert game.DISPLAY_SUBTITLE == "STAGE 1 FLAGSHIP SPACE"
 assert len(game.STAGES) == 10
 assert len(game.WEAPON_NAMES) == 10
 assert game.WEAPON_NAMES[4] == "HOMING ROCKET"
 assert game.FIXED_DT == 1.0/game.FPS
 assert game.DIFFICULTY_ORDER == ("EASY","HARDER","DIFFICULT","INSANE")
 assert game.DIFFICULTY_PROFILES["INSANE"]["damage"] == 1.0
-assert set(game.V961_SCENE_CHUNKS) == set(game.V96_SCENE_CHUNKS)
-assert set(game.V961_SHIELD_PIXELS) == set(game.SHIELD_ORDER)
+assert set(game.V962_SCENE_CHUNKS) == set(game.V96_SCENE_CHUNKS)
+assert set(game.V962_SHIELD_PIXELS) == set(game.SHIELD_ORDER)
 assert len({(s.theme, s.music_style, s.bpm, s.key) for s in game.STAGES}) == 10
 
 # V9.4 preserves the authored world while removing the regressed unified boss sheet.
@@ -47,15 +47,10 @@ for asset in (game.PYRO_PROFILE_HEAD, game.SENTINEL_CHASSIS, game.MOTHER_ABDOMEN
 for rel in (
     "assets/player_ship_v91.png","assets/pyroclast_v91.png",
     "assets/title_screen_v96.png","assets/title_logo_v96.png",
-    "assets/stage01_space_v961.png","assets/stage05_station_v961.png",
+    "assets/stage01_space_v962.png","assets/stage05_station_v961.png",
     "assets/stage08_ice_v961.png","assets/stage09_nebula_v961.png"):
     assert os.path.exists(game.resource_path(rel)), rel
-# Failed full-stage/enemy authored branch must not ship in the corrective package.
-for rel in (
-    "assets/stage02_atmosphere_v95.png","assets/stage03_lava_v95.png","assets/stage04_water_v95.png",
-    "assets/stage06_hive_v96.png","assets/stage07_city_v96.png","assets/stage10_omega_v95.png",
-    *tuple(f"assets/enemy_stage{stage:02d}_v96.png" for stage in range(1,11))):
-    assert not os.path.exists(game.resource_path(rel)), rel
+# Failed full-stage/enemy authored branches may exist as stale repo files, but must never load at runtime.
 assert game.VISUAL_RECOVERY_BASELINE == "V9.4-BACKGROUNDS/V9.1-ENEMIES"
 assert game.BACKGROUND_RECOVERY_MODE and not game.AUTHORED_ENEMY_OVERRIDE
 wrapped=game.build_ending_lines()

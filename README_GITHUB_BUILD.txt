@@ -1,28 +1,26 @@
-OMEGA HORIZON V9.6.1 - VISUAL REGRESSION RECOVERY
-===================================================
+OMEGA HORIZON V9.6.2 - STAGE 1 FLAGSHIP SPACE OPENER
+======================================================
 
-V9.6.1 is a corrective release whose first rule is that newer art must not replace stronger art merely because it is authored. The recent V9.5/V9.6 full-stage plates and enemy-sheet branch is rolled back because playtest screenshots showed a clear loss of depth, texture, atmosphere and enemy detail.
+V9.6.2 is an intentionally isolated visual-candidate build. It starts from the stable V9.6.1 Visual Regression Recovery baseline and changes only Stage 1's authored background plate.
 
-VISUAL RECOVERY
----------------
-- Restores the complete V9.4 layered background renderer as the authoritative visual baseline.
-- Restores the stronger pre-regression authored plates for Stage 1, Stage 5, Stage 8 and the Stage 9 nebula.
-- Stages 2, 3, 4, 6, 7 and 10 again use the richer layered procedural/metasprite scene composition instead of the simplified full-screen replacement plates.
-- Restores the V9.1 detailed procedural/metasprite enemy renderer across all ten stages.
-- Disables and removes every V9.6 authored enemy-family override from the release package.
-- Preserves Stage 9's successful giant-nebula treatment.
-- Preserves the V9.6 flagship title artwork/logo, V9.4 boss recovery, player ship, spherical shields, death sequence, ending sequence/music, menu-layer fixes and gameplay systems.
+STAGE 1 FLAGSHIP SPACE
+----------------------
+- Replaces the recovered Stage 1 plate with a substantially richer 256x203 authored cosmic panorama.
+- Reference-guided composition: enormous blue/violet nebula, dense multi-depth starfield, textured planets and moons, a ringed distant planet, and a close foreground planetary arc.
+- No ground plane is present; the lower-right planetary slice is a celestial foreground object rather than terrain.
+- No player ship, enemies, HUD, projectiles or gameplay objects are baked into the background asset.
+- Stage 1 keeps only the existing sparse animated star-glint finish over the authored plate.
 
-NON-NEGOTIABLE ART RULE
------------------------
-Future authored backgrounds, enemies, bosses and title assets must be dramatically richer than the recent simplified PNGs: illustrated late-SNES pixel art with dense hand-authored detail, material-specific shading, irregular silhouettes, lighting, texture, atmospheric depth and strong composition. The existing stronger asset remains authoritative until a replacement clearly wins a side-by-side quality review.
+CONTROLLED CANDIDATE RULE
+-------------------------
+Everything else remains on the V9.6.1 recovered baseline: Stages 2-10, all non-boss enemies, bosses, player ship, shields, death flow, title presentation, ending and gameplay systems. This makes Stage 1 easy to compare and reject without contaminating the stable baseline.
 
 BUILD
 -----
-1. Replace the files in the existing GitHub repository with this package.
-2. Keep the complete assets/ folder at repository root.
+1. Replace the repository files with this package.
+2. Replace the repository assets folder with the included assets folder to avoid stale-file checks.
 3. Commit to the default branch.
-4. Actions -> Build Omega Horizon V9.6.1 for Windows -> Run workflow.
-5. Download artifact: OmegaHorizon-Windows-x64-V9.6.1-VISUAL-REGRESSION-RECOVERY
+4. Actions -> Build Omega Horizon V9.6.2 for Windows -> Run workflow.
+5. Download artifact: OmegaHorizon-Windows-x64-V9.6.2-STAGE1-FLAGSHIP-SPACE
 
-The Windows title bar contains V9.6.1-VISUAL-REGRESSION-RECOVERY for build verification; the in-game public title screen continues to omit internal release text.
+The Windows title bar contains V9.6.2-STAGE1-FLAGSHIP-SPACE for build verification; the public in-game title screen continues to omit internal release text.
