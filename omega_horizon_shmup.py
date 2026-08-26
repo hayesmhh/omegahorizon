@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-OMEGA HORIZON V9.4 - BOSS INTIMIDATION RECOVERY
+OMEGA HORIZON V9.5 - WORLD BEAUTY & PRESENTATION PASS
 =========================================================
 Pygame shooter designed around a 256x224 SNES-like canvas with software
 perspective rendering, shipped authored pixel-art assets, original procedural support art,
@@ -23,7 +23,7 @@ Controls:
 Developer code:
     Type TERMINUS on the title screen to enable TEST MODE.
 
-Build identity: V9.4-BOSS-INTIMIDATION-RECOVERY
+Build identity: V9.5-WORLD-BEAUTY-PRESENTATION
 """
 
 import json
@@ -51,13 +51,15 @@ FIXED_DT = 1.0 / FPS
 HUD_H = 21
 HORIZON_Y = 104
 AUDIO_RATE = 44100
-BUILD_ID = "V9.4-BOSS-INTIMIDATION-RECOVERY"
-DISPLAY_VERSION = "V9.4"
-DISPLAY_SUBTITLE = "BOSS INTIMIDATION RECOVERY"
+BUILD_ID = "V9.5-WORLD-BEAUTY-PRESENTATION"
+DISPLAY_VERSION = "V9.5"
+DISPLAY_SUBTITLE = "WORLD BEAUTY & PRESENTATION"
 ENDING_SCROLL_SPEED = 15.0
 ENDING_STORY_TOP = 48
 ENDING_STORY_BOTTOM = 202
 ENDING_TEXT_WIDTH = 202
+TITLE_MENU_ROWS=(178,193,208)
+TITLE_LOGO_RECT=(8,7,240,31)
 
 DIFFICULTY_ORDER=("EASY","HARDER","DIFFICULT","INSANE")
 SHIELD_ORDER=("AEGIS","REFLECTOR","PHASE","INTERCEPTOR")
@@ -196,19 +198,26 @@ def resource_path(relative_path):
     return os.path.join(base,relative_path)
 
 
-def load_v94_art_assets():
+def load_v95_art_assets():
     if ART_ASSETS:
         return ART_ASSETS
     specs={
         "player_ship_sheet":("assets/player_ship_v91.png",True),
         "pyroclast_sheet":("assets/pyroclast_v91.png",True),
-        "stage09_nebula":("assets/stage09_nebula_v91.png",False),
-        "stage01_space":("assets/stage01_space_v93.png",False),
-        "stage05_station":("assets/stage05_station_v93.png",False),
-        "stage08_ice":("assets/stage08_ice_v93.png",False),
         "enemy_stage01_sheet":("assets/enemy_stage01_v93.png",True),
         "enemy_stage09_sheet":("assets/enemy_stage09_v93.png",True),
-        "title_screen":("assets/title_screen_v93.png",False),
+        "title_screen":("assets/title_screen_v95.png",False),
+        "title_logo":("assets/title_logo_v95.png",True),
+        "stage01_space":("assets/stage01_space_v95.png",False),
+        "stage02_atmosphere":("assets/stage02_atmosphere_v95.png",False),
+        "stage03_lava":("assets/stage03_lava_v95.png",False),
+        "stage04_water":("assets/stage04_water_v95.png",False),
+        "stage05_station":("assets/stage05_station_v95.png",False),
+        "stage06_hive":("assets/stage06_hive_v95.png",False),
+        "stage07_city":("assets/stage07_city_v95.png",False),
+        "stage08_ice":("assets/stage08_ice_v95.png",False),
+        "stage09_nebula":("assets/stage09_nebula_v95.png",False),
+        "stage10_omega":("assets/stage10_omega_v95.png",False),
     }
     for key,(rel,alpha) in specs.items():
         surf=pygame.image.load(resource_path(rel))
@@ -2230,6 +2239,8 @@ V93_SCENE_CHUNKS=V92_SCENE_CHUNKS
 V93_SHIELD_PIXELS=V92_SHIELD_PIXELS
 V94_SCENE_CHUNKS=V93_SCENE_CHUNKS
 V94_SHIELD_PIXELS=V93_SHIELD_PIXELS
+V95_SCENE_CHUNKS=V94_SCENE_CHUNKS
+V95_SHIELD_PIXELS=V94_SHIELD_PIXELS
 
 V87_PICKUP_SHIELD_PALETTES={
 'AEGIS':{'1':(4,24,55),'2':(15,80,132),'3':(53,151,203),'4':(105,224,255),'5':WHITE},
@@ -3315,18 +3326,9 @@ class Background:
 
     def draw(self,surf,stage):
         theme=STAGES[stage-1].theme
-        fn=getattr(self,f"draw_{theme}")
-        fn(surf,stage)
-        # V9.2 authored-world stages bypass older line-heavy procedural overlay stacks.
-        # Their background plate + restrained foreground pass is the authoritative composition.
-        if theme in ('space','station','ice','veil'):
-            self.draw_combat_color_math(surf,stage)
-            return
-        self.draw_artist_layer(surf,stage)
-        self.draw_v84_scene_finish(surf,stage)
-        self.draw_v86_scene_depth(surf,stage)
-        self.draw_v89_convergence_layer(surf,stage)
-        self.draw_v90_beauty_layer(surf,stage)
+        getattr(self,f"draw_{theme}")(surf,stage)
+        # V9.5 makes the shipped authored plate the authoritative scene on every stage.
+        # Procedural rendering is now restricted to restrained motion/atmosphere/floor effects.
         self.draw_combat_color_math(surf,stage)
 
 
@@ -3582,224 +3584,111 @@ class Background:
                 pygame.draw.circle(surf,(192,34,91),(x+10,76),4,1)
                 safe_set(surf,x+9,75,(255,206,148))
 
+    def _plate(self,surf,key,fill=(3,4,14)):
+        plate=ART_ASSETS.get(key)
+        if plate is None:return False
+        surf.fill(fill); surf.blit(plate,(0,HUD_H)); return True
+
     def draw_space(self,surf,stage):
         plate=ART_ASSETS.get("stage01_space")
         if plate is not None:
-            surf.fill((3,4,15)); surf.blit(plate,(0,HUD_H))
-            # Sparse moving star glints keep the authored plate alive without drawing lines across it.
-            for i in range(9 if self.fx_level==2 else 5):
-                sx=(31+i*47+int(self.time*(2+i%3)))%NATIVE_W; sy=HUD_H+9+(i*23)%174
-                if int(self.time*5+i)%4==0:safe_set(surf,sx,sy,(205,239,250))
+            surf.fill((2,3,13)); surf.blit(plate,(0,HUD_H))
+            for i in range(12 if self.fx_level==2 else 6):
+                sx=(19+i*43+int(self.time*(2+i%3)))%NATIVE_W; sy=HUD_H+7+(i*29)%187
+                if int(self.time*6+i)%5==0:safe_set(surf,sx,sy,(214,242,252))
             return
-        self._gradient(surf,(3,4,18),(11,5,32))
-        self._stars(surf,HUD_H,NATIVE_H,1.0,(.7,.9,1.0))
+        self._gradient(surf,(3,4,18),(11,5,32)); self._stars(surf,HUD_H,NATIVE_H,1.0,(.7,.9,1.0))
 
     def draw_atmosphere(self,surf,stage):
-        self._gradient(surf,(8,16,40),(94,129,148),HUD_H,105)
-        self._stars(surf,HUD_H,68,.55,(.6,.75,1.0))
-        # Planet curvature / atmosphere glow.
-        pygame.draw.ellipse(surf,(36,86,112),(-72,67,400,155))
-        pygame.draw.arc(surf,(128,211,229),(-72,60,400,160),3.2,6.1,2)
-        # Painterly pixel-cloud parallax. Three-value clusters give the clouds
-        # actual volume instead of reading as flat geometric ellipses.
-        cloud_sets=[
-            (7,73,1,(203,219,224),(149,176,187),(92,124,140)),
-            (14,91,1,(173,196,205),(118,151,165),(69,105,122)),
-            (25,108,1,(139,171,183),(89,129,145),(48,85,104)),
-        ]
-        for layer,(spd,ybase,sc,light,mid,shadow) in enumerate(cloud_sets):
-            for i in range(6):
-                x=int((i*58-self.time*spd)%(NATIVE_W+90))-45
-                y=ybase+int(math.sin(i*1.9+self.time*.3)*5)
-                draw_pixel_cloud(surf,x,y,sc,light,mid,shadow)
+        if not self._plate(surf,"stage02_atmosphere",(8,16,39)):
+            self._gradient(surf,(8,16,40),(94,129,148),HUD_H,112)
         self._floor_cast(surf,"atmosphere",112,0,(47,75,84))
-        # Lightning.
-        if int(self.time*2.1)%11==0:
-            x=170+int(math.sin(self.time*9)*26)
-            pts=[(x,48),(x-5,62),(x+3,70),(x-4,83),(x+2,94)]
-            pygame.draw.lines(surf,(225,245,255),False,pts,1)
+        if self.fx_level and int(self.time*2.1)%17==0:
+            x=218+int(math.sin(self.time*7)*12)
+            pygame.draw.lines(surf,(221,244,255),False,[(x,37),(x-4,49),(x+2,57),(x-3,68)],1)
 
     def draw_lava(self,surf,stage):
-        self._gradient(surf,(16,4,5),(50,9,7),HUD_H,99)
-        # Layered cavern walls and stalactites.
-        for i in range(18):
-            x=int((i*23-self.scroll*.28)%300)-22
-            h=18+(i*17)%38
-            col=(37+(i%3)*8,10,9)
-            pygame.draw.polygon(surf,col,[(x,HUD_H),(x+18,HUD_H),(x+12,HUD_H+h),(x+8,HUD_H+h+10)])
-        # molten waterfall in distance
-        wx=int((194-self.scroll*.12)%330)-20
-        pygame.draw.rect(surf,(115,25,8),(wx,47,12,64))
-        pygame.draw.rect(surf,(245,69,13),(wx+3,48,6,65))
-        pygame.draw.line(surf,(255,211,71),(wx+5,48),(wx+5,110),1)
-        # A darker midground shelf separates combat sprites from the hottest
-        # floor texture while retaining the oppressive cavern atmosphere.
-        pygame.draw.polygon(surf,(20,7,10),[(0,91),(42,86),(81,92),(126,84),(171,91),(215,85),(256,91),(256,105),(0,105)])
-        pygame.draw.line(surf,(91,31,24),(0,103),(256,103),1)
-        self._floor_cast(surf,"lava",105,1.0,(48,6,5))
-        # Foreground basalt silhouettes.
-        for i in range(7):
-            x=int((i*47-self.scroll*.62)%330)-30
-            base=213; top=170-(i%3)*13
-            pygame.draw.polygon(surf,(27,8,7),[(x-10,base),(x,top),(x+8,top-10),(x+18,base)])
-        # Embers.
-        for i in range(22 if self.fx_level==2 else 12 if self.fx_level==1 else 6):
-            x=int((i*37+self.time*(7+i%4))%NATIVE_W)
-            y=198-int((self.time*(18+i%5)+i*19)%105)
-            safe_set(surf,x,y,YELLOW if i%4==0 else ORANGE)
+        if not self._plate(surf,"stage03_lava",(17,3,5)):
+            self._gradient(surf,(16,4,5),(50,9,7),HUD_H,105)
+        self._floor_cast(surf,"lava",105,.72,(48,6,5))
+        for i in range(18 if self.fx_level==2 else 9):
+            x=int((i*37+self.time*(6+i%4))%NATIVE_W); y=198-int((self.time*(15+i%5)+i*19)%92)
+            safe_set(surf,x,y,YELLOW if i%5==0 else ORANGE)
 
     def draw_water(self,surf,stage):
-        self._gradient(surf,(2,34,68),(3,78,92))
-        # Surface shimmer at top.
-        for i in range(12):
-            x=int((i*31-self.time*8)%300)-20
-            pygame.draw.line(surf,(62,147,177),(x,29+i%3*5),(x+22,29+i%3*5),1)
-        # Distant ruins.
-        for i in range(7):
-            x=int((i*53-self.scroll*.14)%340)-45
-            h=25+(i*9)%45
-            pygame.draw.rect(surf,(8,55,69),(x,92-h,13,h))
-            pygame.draw.rect(surf,(10,82,88),(x+4,92-h+6,3,max(3,h-10)))
-        self._floor_cast(surf,"water",101,2.6,(1,31,47))
-        # Caustic lines.
-        for y in range(112,NATIVE_H,16):
-            off=int(math.sin(self.time*2+y*.11)*7)
-            for x in range(-20,NATIVE_W+20,33):
-                pygame.draw.line(surf,(39,135,145),(x+off,y),(x+off+15,y+2),1)
-        # Bubbles.
-        for i in range(20 if self.fx_level==2 else 11 if self.fx_level==1 else 5):
-            x=(i*43+17)%NATIVE_W
-            y=NATIVE_H-int((self.time*(9+i%5)+i*31)%(NATIVE_H-HUD_H))
-            pygame.draw.circle(surf,(99,190,198),(x,y),1,1)
+        if not self._plate(surf,"stage04_water",(2,29,55)):
+            self._gradient(surf,(2,34,68),(3,78,92),HUD_H,101)
+        self._floor_cast(surf,"water",101,1.7,(1,31,47))
+        # Broken caustic glints rather than long ruler-like lines.
+        for i in range(15 if self.fx_level==2 else 7):
+            x=(i*39+int(math.sin(self.time*1.8+i)*8))%NATIVE_W; y=116+(i*17)%91
+            pygame.draw.line(surf,(55,154,159),(x,y),(x+5,y+1),1)
+        for i in range(13 if self.fx_level else 6):
+            x=(i*43+17)%NATIVE_W; y=NATIVE_H-int((self.time*(8+i%4)+i*31)%(NATIVE_H-HUD_H))
+            pygame.draw.circle(surf,(104,200,205),(x,y),1,1)
 
     def draw_station(self,surf,stage):
-        plate=ART_ASSETS.get("stage05_station")
-        if plate is not None:
-            surf.fill((5,9,14)); surf.blit(plate,(0,HUD_H))
-        else:
-            self._gradient(surf,(5,9,15),(29,42,50),HUD_H,103)
-        self._floor_cast(surf,"station",101,.10,(11,18,23))
-        # Restrained foreground service lamps anchor the floor without ruler-like overlay rails.
+        if not self._plate(surf,"stage05_station",(4,8,13)):
+            self._gradient(surf,(5,9,15),(29,42,50),HUD_H,101)
+        self._floor_cast(surf,"station",101,.08,(11,18,23))
         for i in range(7 if self.fx_level else 4):
             x=int((i*43-self.scroll*.48)%320)-20; y=178+(i%3)*14
-            pygame.draw.rect(surf,(15,24,29),(x-3,y-2,7,4))
-            safe_set(surf,x,y,(78,219,231) if i%2 else (238,169,58))
+            pygame.draw.rect(surf,(15,24,29),(x-3,y-2,7,4)); safe_set(surf,x,y,(78,219,231) if i%2 else (238,169,58))
 
     def draw_hive(self,surf,stage):
-        self._gradient(surf,(13,4,17),(47,11,40),HUD_H,103)
-        # Layered chitin ribs with highlight/shadow faces.
-        for i in range(12):
-            x=int((i*31-self.scroll*.25)%315)-30
-            length=20+(i*11)%43
-            bend=int(math.sin(self.time*.6+i)*5)
-            pygame.draw.line(surf,(41,10,38),(x,HUD_H),(x+bend,HUD_H+length),6)
-            pygame.draw.line(surf,(105,28,81),(x+1,HUD_H),(x+bend+1,HUD_H+length),2)
-            if i%3==0:safe_set(surf,x+2,HUD_H+length-2,(164,55,112))
-        # Translucent egg/pod field behind the combat plane.
-        for i in range(7):
-            x=int((i*51-self.scroll*.17)%330)-35; y=61+(i*23)%38
-            draw_hive_pod(surf,x,y,self.time+i)
-        self._floor_cast(surf,"hive",103,1.55,(38,8,30))
-        for i in range(12):
-            x=int((i*53-self.scroll*.45)%330)-30; y=127+(i*17)%79
-            pulse=2+(int(self.time*5+i)%2)
-            pygame.draw.circle(surf,(52,194,120),(x,y),pulse)
-            safe_set(surf,x-1,y-1,(169,255,194))
+        if not self._plate(surf,"stage06_hive",(13,3,16)):
+            self._gradient(surf,(13,4,17),(47,11,40),HUD_H,103)
+        self._floor_cast(surf,"hive",103,1.15,(38,8,30))
+        for i in range(14 if self.fx_level==2 else 7):
+            x=int((i*53-self.scroll*.35)%330)-30; y=123+(i*17)%86
+            pulse=1+(int(self.time*5+i)%2); pygame.draw.circle(surf,(65,205,132),(x,y),pulse)
+            if i%3==0:safe_set(surf,x-1,y-1,(181,255,201))
 
     def draw_city(self,surf,stage):
-        self._gradient(surf,(9,9,22),(63,34,36),HUD_H,107)
-        # Three hand-detailed skyline layers rather than anonymous rectangles.
-        layers=[(5,0,110,True),(12,100,112,True),(23,200,118,False)]
-        for layer,(spd,seedbase,base,far) in enumerate(layers):
-            for i in range(8):
-                x=int((i*47-self.time*spd)%(NATIVE_W+100))-50
-                h=24+((i*19+layer*13)%55); w=22+((i*7+layer*3)%12)
-                draw_city_building(surf,x,base,w,h,seedbase+i,far)
-        # Distant fires/smoke animate independently from the skyline.
-        for i in range(5):
-            x=int((38+i*61-self.scroll*.20)%320)-25; y=91-(i%2)*14
-            pygame.draw.circle(surf,(73,52,54),(x,y),5)
-            pygame.draw.circle(surf,(43,41,49),(x+3,y-6),7)
-            if i%2==0:
-                pygame.draw.line(surf,ORANGE,(x,y+8),(x+2,y+13),2)
-                safe_set(surf,x+1,y+8,YELLOW)
+        if not self._plate(surf,"stage07_city",(7,8,19)):
+            self._gradient(surf,(9,9,22),(63,34,36),HUD_H,109)
         self._floor_cast(surf,"city",109,0,(23,22,27))
+        if self.fx_level:
+            for i in range(5):
+                x=int((37+i*61-self.scroll*.17)%320)-25; y=123+(i%2)*18
+                if int(self.time*5+i)%4==0:safe_set(surf,x,y,(243,107,54))
 
     def draw_ice(self,surf,stage):
-        plate=ART_ASSETS.get("stage08_ice")
-        if plate is not None:
-            surf.fill((3,9,27)); surf.blit(plate,(0,HUD_H))
-        else:
+        if not self._plate(surf,"stage08_ice",(3,9,27)):
             self._gradient(surf,(3,10,31),(33,71,108),HUD_H,104)
-        self._floor_cast(surf,'ice',104,.28,(23,57,86))
-        # Branching cracks read as actual ice fractures, not horizon-spanning guide lines.
-        cracks=[[(27,177),(38,161),(33,149),(44,139)],[(91,216),(96,190),(108,176),(103,160)],
-                [(154,210),(148,188),(160,171),(157,151)],[(218,198),(211,177),(224,161),(221,145)]]
+        self._floor_cast(surf,'ice',104,.22,(23,57,86))
+        cracks=[[(27,177),(38,161),(33,149),(44,139)],[(91,216),(96,190),(108,176),(103,160)],[(154,210),(148,188),(160,171),(157,151)],[(218,198),(211,177),(224,161),(221,145)]]
         for ci,pts in enumerate(cracks):
-            pygame.draw.lines(surf,(117,193,218),False,pts,1)
-            bx,by=pts[1]; pygame.draw.line(surf,(187,230,241),(bx,by),(bx+7,by-4 if ci%2 else by+5),1)
-        count=36 if self.fx_level==2 else 18 if self.fx_level==1 else 7
+            pygame.draw.lines(surf,(117,193,218),False,pts,1); bx,by=pts[1]; pygame.draw.line(surf,(187,230,241),(bx,by),(bx+7,by-4 if ci%2 else by+5),1)
+        count=34 if self.fx_level==2 else 16 if self.fx_level==1 else 6
         for i in range(count):
             x=int((i*29-self.time*(13+(i%5)*3))%NATIVE_W); y=HUD_H+(i*41)%200
-            col=(226,248,255) if i%7==0 else (158,214,236); safe_set(surf,x,y,col)
+            safe_set(surf,x,y,(226,248,255) if i%7==0 else (158,214,236))
 
     def draw_veil(self,surf,stage):
-        # V9.1 authored far-background plate: the nebula is enormous, distant,
-        # and horizon-spanning instead of a collection of midground blobs.
-        plate=ART_ASSETS.get("stage09_nebula")
-        if plate is not None:
-            surf.fill((3,2,12))
-            surf.blit(plate,(0,HUD_H))
-        else:
+        if not self._plate(surf,"stage09_nebula",(3,2,12)):
             self._gradient(surf,(4,2,16),(34,7,51),HUD_H,112)
-            self._stars(surf,HUD_H,112,-.25,(1.0,.65,1.0))
-        # Dark ringworld horizon architecture stays subordinate to the sky.
+        # Keep the benchmark nebula pristine; only a subordinate ringworld silhouette moves in front.
         for i in range(6):
-            x=int((i*51-self.scroll*.08)%330)-30
-            h=9+(i%3)*6
+            x=int((i*51-self.scroll*.08)%330)-30; h=9+(i%3)*6
             pygame.draw.polygon(surf,(18,9,31),[(x,103),(x+8,103-h),(x+16,104),(x+19,112),(x-2,112)])
             pygame.draw.rect(surf,(72,28,91),(x+7,104-h,2,max(2,h-1)))
-        self._floor_cast(surf,"veil",112,2.2,(25,3,38))
-        # Sparse crystalline motes read as particles, not unexplained lines.
-        for i in range(16 if self.fx_level==2 else 8):
+        self._floor_cast(surf,"veil",112,2.0,(25,3,38))
+        for i in range(14 if self.fx_level==2 else 7):
             x=(i*47+int(self.time*5))%NATIVE_W; y=121+(i*29)%92
             safe_set(surf,x,y,(83,224,212) if i%3==0 else (178,72,192))
 
     def draw_omega(self,surf,stage):
-        self._gradient(surf,(2,2,7),(29,4,20))
-        # Distant corrupted moons/planetoids establish scale before the final core fills the frame.
-        pygame.draw.circle(surf,(24,9,24),(57,40),16)
-        pygame.draw.circle(surf,(97,30,71),(54,37),11)
-        pygame.draw.line(surf,(164,57,112),(47,31),(63,43),1)
-        pygame.draw.circle(surf,(15,5,18),(86,24),7)
-        pygame.draw.circle(surf,(80,21,57),(83,22),5)
-        # Enormous living-machine iris in depth, now layered with armor plates.
-        pulse=3+int((math.sin(self.time*3)+1)*2)
-        cx,cy=199,67
-        pygame.draw.circle(surf,(28,6,23),(cx,cy),42+pulse)
-        for i in range(8):
-            a=i*math.tau/8+self.time*.06
-            px=cx+int(math.cos(a)*31); py=cy+int(math.sin(a)*22)
-            pygame.draw.rect(surf,(70,13,49),(px-5,py-3,10,6))
-            pygame.draw.line(surf,(145,27,75),(px-3,py-2),(px+3,py-2),1)
-        pygame.draw.circle(surf,(92,15,55),(cx,cy),27+pulse,3)
-        pygame.draw.circle(surf,(221,43,103),(cx,cy),12+pulse)
-        pygame.draw.circle(surf,(255,222,166),(cx-3,cy-3),3)
-        # Multiple depth ribs with internal light strips.
-        for i in range(11):
-            x=int((i*31-self.scroll*.35)%300)-20
-            pygame.draw.line(surf,(51,15,43),(x,HUD_H),(x+18,105),5)
-            pygame.draw.line(surf,(142,29,77),(x+2,HUD_H),(x+20,105),1)
-            if i%2==0:safe_set(surf,x+10,66+(i*7)%26,(239,70,119))
-        self._floor_cast(surf,"omega",101,3.5,(25,3,12))
-        for i in range(8 if self.fx_level==2 else 5 if self.fx_level==1 else 3):
-            x=int((i*49+self.time*11)%300)-20
-            bend=int(math.sin(self.time*4+i)*16)
-            pygame.draw.line(surf,(226,47,104),(x,128),(x+bend,216),1)
-            pygame.draw.line(surf,(88,18,65),(x+2,128),(x+bend+3,216),1)
-            if i%3==0:safe_set(surf,x,145+(i*9)%60,(255,230,173))
+        if not self._plate(surf,"stage10_omega",(2,1,7)):
+            self._gradient(surf,(2,2,7),(29,4,20),HUD_H,101)
+        self._floor_cast(surf,"omega",101,2.4,(25,3,12))
+        for i in range(10 if self.fx_level==2 else 5):
+            x=int((i*49+self.time*8)%300)-20; y=119+(i*23)%94
+            safe_set(surf,x,y,(225,55,109) if i%3 else (255,222,166))
+
 # ---------------------------------------------------------------------------
 # Bullets, explosions, pickups, hazards
+
 # ---------------------------------------------------------------------------
 
 @dataclass
@@ -3982,6 +3871,29 @@ class Explosion:
             safe_set(surf,px,py,cols[1] if i%3==0 else cols[2])
             if i%2==0 and t>.35:safe_set(surf,px+1,py,cols[3])
 
+
+@dataclass
+class ShipDebris:
+    x: float
+    y: float
+    vx: float
+    vy: float
+    life: float=1.25
+    spin: float=0.0
+    kind: int=0
+
+    def update(self,dt):
+        self.x+=self.vx*dt; self.y+=self.vy*dt
+        self.vy+=22*dt; self.spin+=dt*(4.5+self.kind*.35); self.life-=dt
+
+    def draw(self,surf):
+        if self.life<=0:return
+        x,y=int(self.x),int(self.y)
+        c=(73,163,193) if self.kind%3==0 else (32,83,118) if self.kind%3==1 else (211,224,226)
+        dx=int(math.cos(self.spin)*3); dy=int(math.sin(self.spin)*2)
+        pygame.draw.line(surf,(5,14,26),(x-dx,y-dy),(x+dx,y+dy),3)
+        pygame.draw.line(surf,c,(x-dx,y-dy),(x+dx,y+dy),1)
+        if self.kind%4==0:safe_set(surf,x,y,(255,139,51))
 
 @dataclass
 class Pickup:
@@ -4306,13 +4218,8 @@ class Player:
         game.audio.play_sfx("hit",self.x,.8)
         game.explosions.append(Explosion(self.x,self.y,.25,.25,10))
         if self.health<=0:
-            self.lives-=1
-            game.stage_deaths += 1
-            if game.boss is not None:
-                game.boss.no_death_bonus = False
-            if self.lives<=0: game.game_over()
-            else:
-                self.health=self.max_health; self.reset_position(); game.enemy_bullets.clear()
+            self.health=0
+            game.begin_player_death()
 
     def draw(self,surf):
         x,y=int(self.x),int(self.y)
@@ -4798,7 +4705,9 @@ class Boss:
         self._v84_boss_finish(surf)
         self._v86_boss_material_finish(surf)
         self._v87_boss_spectacle(surf)
-        self._v94_boss_intimidation(surf)
+        # Stage 9 Sovereign and OMEGA preserve the stronger pre-V9.4 presentation exactly.
+        if self.profile.boss_kind not in ("sovereign","omega"):
+            self._v94_boss_intimidation(surf)
         if self.flash>0:
             x,y=int(self.x),int(self.y)
             pygame.draw.circle(surf,WHITE,(x-5,y-3),3,1)
@@ -5455,7 +5364,7 @@ class Game:
         self.canvas=pygame.Surface((NATIVE_W,NATIVE_H)).convert()
         self.clock=pygame.time.Clock(); self.running=True
         self.frame_hitch_count=0
-        load_v94_art_assets()
+        load_v95_art_assets()
 
         self.background=Background(); self.background.fx_level=int(self.settings["effects"])
         self.audio=AudioSynth(); self.audio.set_volumes(self.settings["music_volume"],self.settings["sfx_volume"])
@@ -5466,6 +5375,7 @@ class Game:
         self.ending_scroll=0.0; self.ending_duration=0.0; self.ending_lines=build_ending_lines(); self.ending_complete=False
         self.score=0; self.stage_distance=0.0; self.stage_goal=self.stage_distance_goal()
         self.enemies=[]; self.player_bullets=[]; self.enemy_bullets=[]; self.pickups=[]; self.explosions=[]; self.hazards=[]
+        self.player_dead=False; self.death_timer=0.0; self.death_burst_timer=0.0; self.death_bursts=0; self.death_origin=(0.0,0.0); self.player_debris=[]
         self.boss=None; self.wave_serial=0; self.waves={}; self.spawn_timer=1.0; self.hazard_timer=3.0; self.boss_warning=0.0
         self.reward_pending=False; self.reward_timer=0.0; self.weapon_notice=""; self.notice_timer=0.0
         self.clean_waves=0; self.stage_deaths=0; self.last_enemy_label=""; self.health_drop_timer=10.0; self.health_pity=0
@@ -5730,6 +5640,7 @@ class Game:
     def start_stage(self,stage):
         self.stage=stage; self.stage_distance=0; self.stage_goal=self.stage_distance_goal()
         self.enemies.clear(); self.player_bullets.clear(); self.enemy_bullets.clear(); self.pickups.clear(); self.explosions.clear(); self.hazards.clear()
+        self.player_dead=False; self.death_timer=0.0; self.player_debris.clear()
         self.boss=None; self.waves.clear(); self.spawn_timer=.9; self.hazard_timer=2.5; self.boss_warning=0
         self.reward_pending=False; self.reward_timer=0; self.weapon_notice=""; self.notice_timer=0; self.stage_deaths=0; self.health_drop_timer=9.0*self.diff("pickup_interval"); self.health_pity=0
         self.shield_drop_timer=random.uniform(15.0,21.0)*SHIELD_DROP_MULT[self.difficulty]
@@ -5743,6 +5654,42 @@ class Game:
         self.ending_scroll=ENDING_STORY_BOTTOM+8; self.ending_duration=0.0; self.ending_complete=False
         self.enemies.clear(); self.enemy_bullets.clear(); self.player_bullets.clear(); self.pickups.clear(); self.hazards.clear()
         self.audio.play_ending()
+
+    def begin_player_death(self):
+        if self.player_dead:return
+        self.player_dead=True; self.death_timer=1.55; self.death_burst_timer=.16; self.death_bursts=0
+        self.death_origin=(float(self.player.x),float(self.player.y))
+        self.player.lives=max(0,self.player.lives-1); self.stage_deaths+=1
+        if self.boss is not None:self.boss.no_death_bonus=False
+        self.player.clear_shield(); self.player.invuln=99.0
+        self.audio.play_sfx("boom",self.player.x,1.0)
+        self.explosions.append(Explosion(self.player.x,self.player.y,.62,.62,26,"void" if self.stage in (6,9,10) else "fire"))
+        rng=random.Random(9500+self.stage+self.score)
+        self.player_debris=[]
+        for i in range(13):
+            a=rng.uniform(0,math.tau); sp=rng.uniform(35,95)
+            self.player_debris.append(ShipDebris(self.player.x,self.player.y,math.cos(a)*sp,math.sin(a)*sp,rng.uniform(.85,1.45),rng.random()*math.tau,i))
+
+    def update_player_death(self,dt):
+        self.background.update(dt*.38,self.stage)
+        self.death_timer-=dt; self.death_burst_timer-=dt
+        for ex in self.explosions:ex.update(dt)
+        self.explosions=[e for e in self.explosions if e.life>0]
+        for piece in self.player_debris:piece.update(dt)
+        self.player_debris=[p for p in self.player_debris if p.life>0]
+        if self.death_burst_timer<=0 and self.death_timer>.38 and self.death_bursts<5:
+            rng=random.Random(9600+self.death_bursts+self.stage*11)
+            ox=rng.randint(-12,12); oy=rng.randint(-8,8); x=self.death_origin[0]+ox; y=self.death_origin[1]+oy
+            self.explosions.append(Explosion(x,y,.32,.32,12+(self.death_bursts%2)*4,"fire"))
+            self.audio.play_sfx("boom",x,.42)
+            self.death_bursts+=1; self.death_burst_timer=.18
+        if self.death_timer<=0:
+            self.player_dead=False; self.player_debris.clear()
+            if self.player.lives<=0:
+                self.game_over(); return
+            self.player.health=self.player.max_health; self.player.reset_position(); self.player.invuln=2.2
+            self.enemy_bullets.clear(); self.hazards.clear()
+            self.weapon_notice="SHIP RESTORED"; self.notice_timer=1.4
 
     def nearest_enemy(self,x,y):
         candidates=[e for e in self.enemies if not e.dead]
@@ -5903,6 +5850,8 @@ class Game:
     # ------------------------ gameplay update -------------------------
 
     def update_play(self,dt):
+        if self.player_dead:
+            self.update_player_death(dt); return
         keys=pygame.key.get_pressed(); self.player.update(dt,keys,self); self.background.update(dt,self.stage)
         self.notice_timer=max(0,self.notice_timer-dt)
         self.menu_message_timer=max(0,self.menu_message_timer-dt)
@@ -6226,7 +6175,11 @@ class Game:
             fx=int(self.settings.get("effects",2))
             if fx==2 or (fx==1 and i%2==0) or (fx==0 and i%3==0):
                 ex.draw(self.canvas)
-        self.player.draw(self.canvas)
+        for piece in self.player_debris:piece.draw(self.canvas)
+        if not self.player_dead:self.player.draw(self.canvas)
+        elif self.death_timer>1.18:
+            x,y=map(int,self.death_origin); r=max(2,int((self.death_timer-1.18)*36))
+            pygame.draw.circle(self.canvas,WHITE,(x,y),r,1)
 
         if self.boss is None and self.stage_distance>=self.stage_goal and int(self.boss_warning*8)%2==0:
             pygame.draw.rect(self.canvas,(35,0,20),(58,96,140,18)); pygame.draw.rect(self.canvas,RED,(58,96,140,18),1)
@@ -6309,43 +6262,37 @@ class Game:
         if subtitle:draw_text(self.canvas,subtitle,(NATIVE_W-text_width(subtitle))//2,y+27,(175,210,235))
         if subtitle2:draw_text(self.canvas,subtitle2,(NATIVE_W-text_width(subtitle2))//2,y+41,(120,170,195))
 
-    def draw_title(self):
+    def draw_title(self,show_menu=True,show_logo=True):
         plate=ART_ASSETS.get("title_screen")
-        if plate is not None:
-            self.canvas.blit(plate,(0,0))
-            t=self.background.time
-            for i,(sx,sy) in enumerate(((31,21),(86,48),(151,73),(225,111),(197,31))):
-                if int(t*5+i)%5==0:
-                    safe_set(self.canvas,sx,sy,WHITE); safe_set(self.canvas,sx+1,sy,(129,211,235))
-            flame=2+int((math.sin(t*16)+1)*1.5)
-            for i in range(flame):safe_set(self.canvas,14-i,137,(255,213,84) if i<2 else ORANGE)
-        else:
-            self.background.draw_space(self.canvas,1)
-        pygame.draw.rect(self.canvas,(1,4,12),(23,15,210,39))
-        pygame.draw.rect(self.canvas,(55,137,166),(23,15,210,39),1)
-        draw_text(self.canvas,"OMEGA HORIZON",38,22,CYAN,2,True)
-        sub=f"{DISPLAY_VERSION}  {DISPLAY_SUBTITLE}"
-        draw_text(self.canvas,sub,(NATIVE_W-text_width(sub))//2,47,(211,231,237))
-        pygame.draw.rect(self.canvas,(1,4,12),(0,172,NATIVE_W,52))
-        pygame.draw.line(self.canvas,(37,101,128),(0,172),(NATIVE_W,172),1)
-        draw_text(self.canvas,"ENTER  NEW GAME",(NATIVE_W-text_width("ENTER  NEW GAME"))//2,179,WHITE,shadow=True)
-        draw_text(self.canvas,"L  LOAD     F2  SETTINGS",(NATIVE_W-text_width("L  LOAD     F2  SETTINGS"))//2,193,(163,208,225))
-        if self.test_mode:
-            draw_text(self.canvas,"TEST MODE ENABLED  F1",(NATIVE_W-text_width("TEST MODE ENABLED  F1"))//2,207,MAGENTA)
-        else:
-            tagline="A 16-BIT JOURNEY BEYOND OMEGA"
-            draw_text(self.canvas,tagline,(NATIVE_W-text_width(tagline))//2,207,(75,128,160))
-        self.draw_menu_message()
+        if plate is not None:self.canvas.blit(plate,(0,0))
+        else:self.background.draw_space(self.canvas,1)
+        t=self.background.time
+        for i,(sx,sy) in enumerate(((31,21),(86,48),(151,73),(225,111),(197,31))):
+            if int(t*5+i)%5==0:safe_set(self.canvas,sx,sy,WHITE)
+        if show_logo:
+            logo=ART_ASSETS.get("title_logo")
+            if logo is not None:self.canvas.blit(logo,(TITLE_LOGO_RECT[0],TITLE_LOGO_RECT[1]))
+            else:draw_text(self.canvas,"OMEGA HORIZON",38,14,CYAN,2,True)
+        if show_menu:
+            # Reserved footer region: each line has its own vertical lane.
+            draw_text(self.canvas,"ENTER  NEW GAME",(NATIVE_W-text_width("ENTER  NEW GAME"))//2,TITLE_MENU_ROWS[0],WHITE,shadow=True)
+            draw_text(self.canvas,"L  LOAD     F2  SETTINGS",(NATIVE_W-text_width("L  LOAD     F2  SETTINGS"))//2,TITLE_MENU_ROWS[1],(163,208,225))
+            if self.menu_message_timer>0 and self.menu_message:
+                msg=self.menu_message
+                draw_text(self.canvas,msg,(NATIVE_W-text_width(msg))//2,TITLE_MENU_ROWS[2],YELLOW)
+            else:
+                footer="F1  TEST MODE" if self.test_mode else "A 16-BIT JOURNEY BEYOND OMEGA"
+                draw_text(self.canvas,footer,(NATIVE_W-text_width(footer))//2,TITLE_MENU_ROWS[2],MAGENTA if self.test_mode else (75,128,160))
 
     def draw(self):
         if self.state=="title":
-            self.draw_title()
+            self.draw_title(True,True)
         elif self.state=="difficulty_select":
-            self.draw_title(); self.draw_difficulty_menu(); self.draw_menu_message()
+            self.draw_title(False,False); self.draw_difficulty_menu()
         elif self.state=="settings" and self.settings_return_state=="title":
-            self.draw_title(); self.draw_settings_menu(); self.draw_menu_message()
+            self.draw_title(False,False); self.draw_settings_menu()
         elif self.state=="test_menu" and self.test_return_state=="title":
-            self.draw_title(); self.draw_test_menu(); self.draw_menu_message()
+            self.draw_title(False,False); self.draw_test_menu()
         elif self.state=="ending":
             self.draw_ending_sequence()
         else:
@@ -6402,13 +6349,13 @@ class Game:
 # ---------------------------------------------------------------------------
 
 def packaged_smoke_test():
-    """Exercise V9.4 boss-recovery art, title/ending flow and systems."""
+    """Exercise V9.5 world-beauty art, title UI, death flow and boss continuity."""
     g=Game()
     assert DIFFICULTY_ORDER==("EASY","HARDER","DIFFICULT","INSANE")
     assert g.difficulty=="INSANE"
     assert DIFFICULTY_PROFILES["INSANE"]["damage"]==1.0
     try:
-        assert BUILD_ID=="V9.4-BOSS-INTIMIDATION-RECOVERY"
+        assert BUILD_ID=="V9.5-WORLD-BEAUTY-PRESENTATION"
         assert WEAPON_NAMES[4]=="HOMING ROCKET"
         assert g.player.unlocked==[True]+[False]*9
         assert FIXED_DT==1.0/FPS
@@ -6419,23 +6366,25 @@ def packaged_smoke_test():
             assert len(art)>=7
         assert len(CARRIER_BODY)>=12 and len(LEVIATHAN_HEAD)>=16 and len(BASTION_HULL)>=12
         # V8.9 inherited convergence assets must survive PyInstaller collection.
-        assert set(V94_SCENE_CHUNKS)=={"space","atmosphere","lava","water","station","hive","city","ice","veil","omega"}
-        assert set(V94_SHIELD_PIXELS)==set(SHIELD_ORDER)
+        assert set(V95_SCENE_CHUNKS)=={"space","atmosphere","lava","water","station","hive","city","ice","veil","omega"}
+        assert set(V95_SHIELD_PIXELS)==set(SHIELD_ORDER)
         assert SHIELD_DATA["AEGIS"]["energy"]>=60 and SHIELD_DATA["REFLECTOR"]["charges"]>=6
         assert len(PLAYER_PIXELS)>=15 and max(map(len,PLAYER_PIXELS))>=35
         assert "boss_v93_frames" not in ART_ASSETS and "bosses_v93_sheet" not in ART_ASSETS
         assert len(ART_ASSETS.get("player_ship_frames",[]))==5
         assert len(ART_ASSETS.get("pyroclast_frames",[]))==4
         assert ART_ASSETS.get("stage09_nebula") is not None
-        assert ART_ASSETS["stage09_nebula"].get_size()==(256,91)
         assert ART_ASSETS["stage01_space"].get_size()==(256,203)
-        assert ART_ASSETS["stage05_station"].get_size()==(256,91)
-        assert ART_ASSETS["stage08_ice"].get_size()==(256,91)
+        for key in ("stage02_atmosphere","stage03_lava","stage04_water","stage05_station","stage06_hive","stage07_city","stage08_ice","stage09_nebula","stage10_omega"):
+            assert ART_ASSETS[key].get_size()==(256,91), key
+        assert ART_ASSETS["title_logo"].get_size()==(240,31)
         assert len(ART_ASSETS.get("enemy_stage01_frames",[]))==8
         assert len(ART_ASSETS.get("enemy_stage09_frames",[]))==8
         assert ART_ASSETS["title_screen"].get_size()==(256,224)
         assert max(text_width(line) for line in build_ending_lines())<=ENDING_TEXT_WIDTH
         assert ENDING_SCROLL_SPEED<19 and ENDING_STORY_TOP>=44 and ENDING_STORY_BOTTOM<=204
+        assert min(b-a for a,b in zip(TITLE_MENU_ROWS,TITLE_MENU_ROWS[1:]))>=14
+        assert TITLE_LOGO_RECT[1]+TITLE_LOGO_RECT[3] < TITLE_MENU_ROWS[0]
         if g.audio.enabled:
             assert g.audio.intro_sound is not None
         assert all(len(ENEMY_PIXEL_BANK[a])>=11 for a in ARCHETYPES)
@@ -6469,6 +6418,23 @@ def packaged_smoke_test():
                 e=Enemy(145+i*20,58+i*31,stage,999+i,i,arch); e.draw(g.canvas)
             boss=Boss(stage); boss.intro=0; boss.draw(g.canvas)
             assert boss.rect().width>=50
+
+        # Title UI uses separate layers: modal screens suppress base title/menu text.
+        g.state="title"; g.draw_title(True,True); g.draw()
+        g.state="difficulty_select"; g.draw(); g.state="settings"; g.settings_return_state="title"; g.draw()
+        g.activate_test_mode(); g.test_return_state="title"; g.state="test_menu"; g.draw()
+
+        # Player lethal damage enters a cinematic death state instead of teleporting instantly.
+        g.state="play"; g.god_mode=False; g.player.lives=2; g.player.health=1; g.player.invuln=0
+        g.player.hit(999,g); assert g.player_dead and g.player.lives==1 and g.player.health==0
+        assert len(g.player_debris)>=10 and len(g.explosions)>=1
+        for _ in range(int(1.7/FIXED_DT)): g.update(FIXED_DT)
+        assert not g.player_dead and g.state=="play" and g.player.health==g.player.max_health and g.player.lives==1
+        g.player.health=1; g.player.lives=1; g.player.invuln=0; g.player.hit(999,g)
+        assert g.player_dead and g.player.lives==0 and g.state=="play"
+        for _ in range(int(1.7/FIXED_DT)): g.update(FIXED_DT)
+        assert g.state=="game_over" and not g.player_dead
+        g.test_mode=False
 
         # Save/load checkpoint and developer tools remain intact.
         g.reset_new_game(); g.begin_play()

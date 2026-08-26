@@ -1,8 +1,8 @@
-"""Omega Horizon V9.4 boss-intimidation recovery source regression smoke test."""
+"""Omega Horizon V9.5 world-beauty and presentation source regression smoke test."""
 import os
 import tempfile
 
-_tmp = tempfile.mkdtemp(prefix="omega_horizon_v94_")
+_tmp = tempfile.mkdtemp(prefix="omega_horizon_v95_")
 os.environ["LOCALAPPDATA"] = _tmp
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
@@ -11,17 +11,17 @@ import pygame
 import numpy as np
 import omega_horizon_shmup as game
 
-assert game.BUILD_ID == "V9.4-BOSS-INTIMIDATION-RECOVERY"
-assert game.DISPLAY_VERSION == "V9.4"
-assert game.DISPLAY_SUBTITLE == "BOSS INTIMIDATION RECOVERY"
+assert game.BUILD_ID == "V9.5-WORLD-BEAUTY-PRESENTATION"
+assert game.DISPLAY_VERSION == "V9.5"
+assert game.DISPLAY_SUBTITLE == "WORLD BEAUTY & PRESENTATION"
 assert len(game.STAGES) == 10
 assert len(game.WEAPON_NAMES) == 10
 assert game.WEAPON_NAMES[4] == "HOMING ROCKET"
 assert game.FIXED_DT == 1.0/game.FPS
 assert game.DIFFICULTY_ORDER == ("EASY","HARDER","DIFFICULT","INSANE")
 assert game.DIFFICULTY_PROFILES["INSANE"]["damage"] == 1.0
-assert set(game.V94_SCENE_CHUNKS) == set(game.V91_SCENE_CHUNKS)
-assert set(game.V94_SHIELD_PIXELS) == set(game.SHIELD_ORDER)
+assert set(game.V95_SCENE_CHUNKS) == set(game.V91_SCENE_CHUNKS)
+assert set(game.V95_SHIELD_PIXELS) == set(game.SHIELD_ORDER)
 assert len({(s.theme, s.music_style, s.bpm, s.key) for s in game.STAGES}) == 10
 
 # V9.4 preserves the authored world while removing the regressed unified boss sheet.
@@ -45,15 +45,19 @@ for asset in (game.PYRO_PROFILE_HEAD, game.SENTINEL_CHASSIS, game.MOTHER_ABDOMEN
     assert len(asset) >= 7
 
 for rel in (
-    "assets/player_ship_v91.png","assets/pyroclast_v91.png","assets/stage09_nebula_v91.png",
-    "assets/stage01_space_v93.png","assets/stage05_station_v93.png","assets/stage08_ice_v93.png",
+    "assets/player_ship_v91.png","assets/pyroclast_v91.png",
     "assets/enemy_stage01_v93.png","assets/enemy_stage09_v93.png",
-    "assets/title_screen_v93.png"):
+    "assets/title_screen_v95.png","assets/title_logo_v95.png",
+    "assets/stage01_space_v95.png","assets/stage02_atmosphere_v95.png","assets/stage03_lava_v95.png",
+    "assets/stage04_water_v95.png","assets/stage05_station_v95.png","assets/stage06_hive_v95.png",
+    "assets/stage07_city_v95.png","assets/stage08_ice_v95.png","assets/stage09_nebula_v95.png","assets/stage10_omega_v95.png"):
     assert os.path.exists(game.resource_path(rel)), rel
 wrapped=game.build_ending_lines()
 assert wrapped and max((game.text_width(line) for line in wrapped if line), default=0) <= game.ENDING_TEXT_WIDTH
 assert game.ENDING_SCROLL_SPEED < 19
 assert game.ENDING_STORY_TOP >= 44 and game.ENDING_STORY_BOTTOM <= 204
+assert min(b-a for a,b in zip(game.TITLE_MENU_ROWS,game.TITLE_MENU_ROWS[1:])) >= 14
+assert game.TITLE_LOGO_RECT[1]+game.TITLE_LOGO_RECT[3] < game.TITLE_MENU_ROWS[0]
 
 pygame.mixer.quit()
 pygame.mixer.init(frequency=game.AUDIO_RATE, size=-16, channels=2, buffer=512)
@@ -83,10 +87,10 @@ g = game.Game()
 assert g.difficulty == "INSANE"
 assert len(game.ART_ASSETS.get("player_ship_frames",[])) == 5
 assert len(game.ART_ASSETS.get("pyroclast_frames",[])) == 4
-assert game.ART_ASSETS["stage09_nebula"].get_size() == (256,91)
 assert game.ART_ASSETS["stage01_space"].get_size() == (256,203)
-assert game.ART_ASSETS["stage05_station"].get_size() == (256,91)
-assert game.ART_ASSETS["stage08_ice"].get_size() == (256,91)
+for key in ("stage02_atmosphere","stage03_lava","stage04_water","stage05_station","stage06_hive","stage07_city","stage08_ice","stage09_nebula","stage10_omega"):
+    assert game.ART_ASSETS[key].get_size() == (256,91), key
+assert game.ART_ASSETS["title_logo"].get_size() == (240,31)
 assert len(game.ART_ASSETS.get("enemy_stage01_frames",[])) == 8
 assert len(game.ART_ASSETS.get("enemy_stage09_frames",[])) == 8
 assert game.ART_ASSETS["title_screen"].get_size() == (256,224)
@@ -120,6 +124,24 @@ for stage in range(1, 11):
     boss.draw(g.canvas)
     assert boss.damage_multiplier(0) > 0
     assert boss.rect().width >= 50
+
+# Title-screen modal architecture suppresses the normal title/menu layer.
+g.state="title"; g.draw_title(True,True); g.draw()
+g.state="difficulty_select"; g.draw()
+g.settings_return_state="title"; g.state="settings"; g.draw()
+g.test_mode=True; g.test_return_state="title"; g.state="test_menu"; g.draw(); g.test_mode=False
+
+# Lethal damage must play the death sequence and then respawn if a life remains.
+g.state="play"; g.player.lives=2; g.player.health=1; g.player.invuln=0; g.god_mode=False
+g.player.hit(999,g)
+assert g.player_dead and g.player.health==0 and g.player.lives==1
+assert len(g.player_debris)>=10 and len(g.explosions)>=1
+for _ in range(int(1.7/game.FIXED_DT)): g.update(game.FIXED_DT)
+assert not g.player_dead and g.state=="play" and g.player.lives==1 and g.player.health==g.player.max_health
+g.player.health=1; g.player.lives=1; g.player.invuln=0; g.player.hit(999,g)
+assert g.player_dead and g.player.lives==0 and g.state=="play"
+for _ in range(int(1.7/game.FIXED_DT)): g.update(game.FIXED_DT)
+assert g.state=="game_over" and not g.player_dead
 
 # Recovery cadence and authored pickup drawing.
 g.reset_new_game(); g.begin_play(); g.player.health=30; g.health_drop_timer=0
@@ -163,4 +185,4 @@ for _ in range(8): g.update(game.FIXED_DT)
 g.draw()
 
 g.audio.stop_music(); pygame.quit()
-print("OMEGA_V940_SOURCE_SMOKE_TEST_OK")
+print("OMEGA_V950_SOURCE_SMOKE_TEST_OK")

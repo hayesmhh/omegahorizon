@@ -1,47 +1,56 @@
-OMEGA HORIZON V9.4 - BOSS INTIMIDATION RECOVERY
-================================================
+OMEGA HORIZON V9.5 - WORLD BEAUTY & PRESENTATION PASS
+=====================================================
 
-V9.4 is a corrective boss-art release built from the V9.3 authored-world baseline.
-The V9.3 standardized boss sprite sheet has been removed from the runtime because it
-flattened detail, menace and material identity across the ten bosses.
+V9.5 is a focused visual/presentation release built from V9.4. Its primary goal is to
+bring every stage environment closer to the authored beauty and atmosphere of Stage 9,
+while fixing the title-screen UI architecture and adding a proper player death sequence.
 
-BOSS INTIMIDATION RECOVERY
---------------------------
-- Restores the stronger individual boss-specific rendering path used before V9.3.
-- Completely disables/removes the V9.3 unified 96x72 boss-sheet runtime path.
-- Adds a dedicated V9.4 intimidation/detail finish for every boss rather than applying
-  one shared cartoon-like visual language.
-- Mechanical bosses regain recessed armor, hardpoints, panel density, weapon detail,
-  turbines, lenses, pistons and deeper shadow carving.
-- Organic bosses gain darker facial structure, serrated jaws/teeth, chitin, gills,
-  eye clusters, mandibles, bioluminescent organs and asymmetric anatomy.
-- Parallax Sovereign regains a darker impossible-geometry focal mask instead of a
-  simple symbolic face.
-- OMEGA receives a final-boss-only terror layer: cathedral crown/horns, secondary
-  eyes, layered mandible architecture, hostile living iris and expanded phase detail.
-- Critical-health bosses now accumulate physical instability/scarring rather than
-  merely flashing.
+WORLD BEAUTY PASS
+-----------------
+- All ten stages now use shipped authored background plates as their primary scenic art.
+- Stage 9's well-received nebula plate is deliberately preserved as the benchmark.
+- New/rebuilt authored plates cover atmospheric descent, magma caverns, underwater ruins,
+  Ion Citadel, biomechanical hive, ruined megacity, frozen moon and OMEGA's final core.
+- Older line-heavy procedural background stacks are bypassed on all stages. Runtime drawing
+  is now restricted mainly to perspective floor motion, particles, weather and restrained FX.
+- Ion Citadel receives denser reactor architecture, machinery banks, warning lights and depth.
+- Underwater, hive, city and OMEGA plates receive extra texture/detail passes.
 
-PRESERVED FROM V9.3
--------------------
-- flagship authored title-screen illustration and cleaned title theme
-- V9.2/V9.3 authored world backgrounds and higher-detail enemy families
-- improved spherical rotating shields
-- continuous post-OMEGA ending until player input
-- slower, clipped and readable ending story scroll
+TITLE PRESENTATION
+------------------
+- Removes the boxed OMEGA HORIZON title treatment.
+- Removes visible build/version text from the public title screen.
+- Adds a custom authored transparent OMEGA HORIZON pixel-logo asset.
+- Separates title artwork, logo, normal menu and modal-menu layers.
+- Opening Difficulty, Settings or Test Mode suppresses the normal title/menu text underneath,
+  preventing the text-on-text collisions seen in earlier builds.
+- The normal title footer uses fixed vertical lanes and status messages replace the footer
+  instead of drawing over it.
 
-REGRESSION GUARD
-----------------
-The source and GitHub smoke tests explicitly assert that boss_v93_frames and the
-bosses_v93_sheet runtime asset are absent. This prevents the regressed standardized
-boss path from silently returning in a future build.
+PLAYER DEATH SEQUENCE
+---------------------
+- Lethal damage no longer instantly teleports/resets the player.
+- The player enters a 1.55-second destruction state with a core blast, secondary detonations,
+  sparks and multiple spinning ship-debris fragments.
+- Normal player control/collision is suspended during the death sequence.
+- If a life remains, the ship respawns at full HP with a longer invulnerability window and
+  cleared nearby enemy fire/hazards.
+- If no lives remain, GAME OVER appears only after the destruction sequence completes.
+
+BOSS CONTINUITY
+---------------
+- V9.4's recovery of individualized boss renderers remains intact.
+- Stage 9 Parallax Sovereign and Stage 10 OMEGA specifically bypass the V9.4 intimidation
+  overlay so they preserve the stronger pre-V9.4 presentation the user identified.
+- The regressed V9.3 standardized boss-sheet path remains absent and guarded by smoke tests.
 
 BUILD
 -----
 1. Replace the repository contents with this package.
 2. Commit to the default branch.
-3. Actions -> Build Omega Horizon V9.4 for Windows -> Run workflow.
+3. Actions -> Build Omega Horizon V9.5 for Windows -> Run workflow.
 4. Wait for source regression and packaged-EXE smoke tests to pass.
-5. Download: OmegaHorizon-Windows-x64-V9.4-BOSS-INTIMIDATION-RECOVERY
+5. Download: OmegaHorizon-Windows-x64-V9.5-WORLD-BEAUTY-PRESENTATION
 
-The running window title contains V9.4-BOSS-INTIMIDATION-RECOVERY.
+The Windows title bar contains V9.5-WORLD-BEAUTY-PRESENTATION for build verification;
+the in-game title screen intentionally does not display internal version/build text.
