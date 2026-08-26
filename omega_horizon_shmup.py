@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-OMEGA HORIZON V9.6.1 - VISUAL REGRESSION RECOVERY
+OMEGA HORIZON V9.6.2 - STAGE 1 FLAGSHIP SPACE
 =========================================================
 Pygame shooter designed around a 256x224 SNES-like canvas with software
 perspective rendering, shipped authored pixel-art assets, original procedural support art,
@@ -23,7 +23,7 @@ Controls:
 Developer code:
     Type TERMINUS on the title screen to enable TEST MODE.
 
-Build identity: V9.6.1-VISUAL-REGRESSION-RECOVERY
+Build identity: V9.6.2-STAGE1-FLAGSHIP-SPACE
 """
 
 import json
@@ -51,9 +51,9 @@ FIXED_DT = 1.0 / FPS
 HUD_H = 21
 HORIZON_Y = 104
 AUDIO_RATE = 44100
-BUILD_ID = "V9.6.1-VISUAL-REGRESSION-RECOVERY"
-DISPLAY_VERSION = "V9.6.1"
-DISPLAY_SUBTITLE = "VISUAL REGRESSION RECOVERY"
+BUILD_ID = "V9.6.2-STAGE1-FLAGSHIP-SPACE"
+DISPLAY_VERSION = "V9.6.2"
+DISPLAY_SUBTITLE = "STAGE 1 FLAGSHIP SPACE"
 ENDING_SCROLL_SPEED = 15.0
 ENDING_STORY_TOP = 48
 ENDING_STORY_BOTTOM = 202
@@ -63,6 +63,8 @@ TITLE_LOGO_RECT=(4,5,248,38)
 VISUAL_RECOVERY_BASELINE="V9.4-BACKGROUNDS/V9.1-ENEMIES"
 AUTHORED_ENEMY_OVERRIDE=False
 BACKGROUND_RECOVERY_MODE=True
+STAGE1_FLAGSHIP_MODE=True
+STAGE1_FLAGSHIP_ASSET="assets/stage01_space_v962.png"
 
 DIFFICULTY_ORDER=("EASY","HARDER","DIFFICULT","INSANE")
 SHIELD_ORDER=("AEGIS","REFLECTOR","PHASE","INTERCEPTOR")
@@ -201,7 +203,7 @@ def resource_path(relative_path):
     return os.path.join(base,relative_path)
 
 
-def load_v961_art_assets():
+def load_v962_art_assets():
     """Load only authored assets that passed the visual recovery gate.
 
     Recent full-stage and enemy-sheet replacements are deliberately excluded.
@@ -216,7 +218,7 @@ def load_v961_art_assets():
         "pyroclast_sheet":("assets/pyroclast_v91.png",True),
         "title_screen":("assets/title_screen_v96.png",False),
         "title_logo":("assets/title_logo_v96.png",True),
-        "stage01_space":("assets/stage01_space_v961.png",False),
+        "stage01_space":(STAGE1_FLAGSHIP_ASSET,False),
         "stage05_station":("assets/stage05_station_v961.png",False),
         "stage08_ice":("assets/stage08_ice_v961.png",False),
         "stage09_nebula":("assets/stage09_nebula_v961.png",False),
@@ -2242,6 +2244,8 @@ V96_SCENE_CHUNKS=V95_SCENE_CHUNKS
 V96_SHIELD_PIXELS=V95_SHIELD_PIXELS
 V961_SCENE_CHUNKS=V96_SCENE_CHUNKS
 V961_SHIELD_PIXELS=V96_SHIELD_PIXELS
+V962_SCENE_CHUNKS=V961_SCENE_CHUNKS
+V962_SHIELD_PIXELS=V961_SHIELD_PIXELS
 
 V87_PICKUP_SHIELD_PALETTES={
 'AEGIS':{'1':(4,24,55),'2':(15,80,132),'3':(53,151,203),'4':(105,224,255),'5':WHITE},
@@ -5465,7 +5469,7 @@ class Game:
         self.canvas=pygame.Surface((NATIVE_W,NATIVE_H)).convert()
         self.clock=pygame.time.Clock(); self.running=True
         self.frame_hitch_count=0
-        load_v961_art_assets()
+        load_v962_art_assets()
 
         self.background=Background(); self.background.fx_level=int(self.settings["effects"])
         self.audio=AudioSynth(); self.audio.set_volumes(self.settings["music_volume"],self.settings["sfx_volume"])
@@ -6450,13 +6454,13 @@ class Game:
 # ---------------------------------------------------------------------------
 
 def packaged_smoke_test():
-    """Exercise V9.6.1 visual recovery, death flow, title UI and boss continuity."""
+    """Exercise V9.6.2 Stage 1 flagship candidate and recovered baseline."""
     g=Game()
     assert DIFFICULTY_ORDER==("EASY","HARDER","DIFFICULT","INSANE")
     assert g.difficulty=="INSANE"
     assert DIFFICULTY_PROFILES["INSANE"]["damage"]==1.0
     try:
-        assert BUILD_ID=="V9.6.1-VISUAL-REGRESSION-RECOVERY"
+        assert BUILD_ID=="V9.6.2-STAGE1-FLAGSHIP-SPACE"
         assert WEAPON_NAMES[4]=="HOMING ROCKET"
         assert g.player.unlocked==[True]+[False]*9
         assert FIXED_DT==1.0/FPS
@@ -6467,18 +6471,20 @@ def packaged_smoke_test():
             assert len(art)>=7
         assert len(CARRIER_BODY)>=12 and len(LEVIATHAN_HEAD)>=16 and len(BASTION_HULL)>=12
         # V8.9 inherited convergence assets must survive PyInstaller collection.
-        assert set(V961_SCENE_CHUNKS)=={"space","atmosphere","lava","water","station","hive","city","ice","veil","omega"}
-        assert set(V961_SHIELD_PIXELS)==set(SHIELD_ORDER)
+        assert set(V962_SCENE_CHUNKS)=={"space","atmosphere","lava","water","station","hive","city","ice","veil","omega"}
+        assert set(V962_SHIELD_PIXELS)==set(SHIELD_ORDER)
         assert SHIELD_DATA["AEGIS"]["energy"]>=60 and SHIELD_DATA["REFLECTOR"]["charges"]>=6
         assert len(PLAYER_PIXELS)>=15 and max(map(len,PLAYER_PIXELS))>=35
         assert "boss_v93_frames" not in ART_ASSETS and "bosses_v93_sheet" not in ART_ASSETS
         assert VISUAL_RECOVERY_BASELINE=="V9.4-BACKGROUNDS/V9.1-ENEMIES"
         assert BACKGROUND_RECOVERY_MODE and not AUTHORED_ENEMY_OVERRIDE
+        assert STAGE1_FLAGSHIP_MODE and STAGE1_FLAGSHIP_ASSET.endswith("stage01_space_v962.png")
         assert len(ART_ASSETS.get("player_ship_frames",[]))==5
         assert len(ART_ASSETS.get("pyroclast_frames",[]))==4
         assert ART_ASSETS["title_screen"].get_size()==(256,224)
         assert ART_ASSETS["title_logo"].get_size()==(248,38)
         assert ART_ASSETS["stage01_space"].get_size()==(256,203)
+        assert STAGE1_FLAGSHIP_ASSET=="assets/stage01_space_v962.png"
         for key in ("stage05_station","stage08_ice","stage09_nebula"):
             assert ART_ASSETS[key].get_size()==(256,91), key
         # Failed V9.5/V9.6 full-stage plates and enemy overrides must not be loaded.
