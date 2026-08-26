@@ -1,24 +1,28 @@
-OMEGA HORIZON V9.6 - FLAGSHIP ART & RECOVERY
-================================================
+OMEGA HORIZON V9.6.1 - VISUAL REGRESSION RECOVERY
+===================================================
 
-V9.6 is a focused visual recovery and flagship-art release. It preserves the V9.4/V9.5 individualized boss renderers while correcting the background and enemy-ship regressions identified during V9.5 testing.
+V9.6.1 is a corrective release whose first rule is that newer art must not replace stronger art merely because it is authored. The recent V9.5/V9.6 full-stage plates and enemy-sheet branch is rolled back because playtest screenshots showed a clear loss of depth, texture, atmosphere and enemy detail.
 
-V9.6 PRIORITIES
-----------------
-- Rebuilds the title screen as the highest-detail showcase image in the game: richer hero-ship rendering, textured celestial bodies, horizon-spanning nebula, hostile craft and deeper lighting/atmosphere.
-- Adds a new custom raster OMEGA HORIZON logo; the public title screen still omits internal version/build labels.
-- Recovers and escalates Stage 6 (biomechanical hive), Stage 7 (ruined megacity), and Stage 8 (frozen moon) from the stronger pre-V9.5 visual language.
-- Replaces every non-boss enemy family with a V9.6 authored sheet: 10 stages x 4 tactical archetypes x 2 animation frames.
-- V9.6 enemy frames are larger (40x28) and retain dynamic hardpoint, engine, damage and material-detail overlays.
-- Boss art is intentionally preserved; V9.6 does not reintroduce the V9.3 unified boss-sheet regression.
-- Preserves the V9.5 player death/explosion/respawn sequence, spherical shields, ending behavior, title-modal layout protections, and gameplay balance.
+VISUAL RECOVERY
+---------------
+- Restores the complete V9.4 layered background renderer as the authoritative visual baseline.
+- Restores the stronger pre-regression authored plates for Stage 1, Stage 5, Stage 8 and the Stage 9 nebula.
+- Stages 2, 3, 4, 6, 7 and 10 again use the richer layered procedural/metasprite scene composition instead of the simplified full-screen replacement plates.
+- Restores the V9.1 detailed procedural/metasprite enemy renderer across all ten stages.
+- Disables and removes every V9.6 authored enemy-family override from the release package.
+- Preserves Stage 9's successful giant-nebula treatment.
+- Preserves the V9.6 flagship title artwork/logo, V9.4 boss recovery, player ship, spherical shields, death sequence, ending sequence/music, menu-layer fixes and gameplay systems.
+
+NON-NEGOTIABLE ART RULE
+-----------------------
+Future authored backgrounds, enemies, bosses and title assets must be dramatically richer than the recent simplified PNGs: illustrated late-SNES pixel art with dense hand-authored detail, material-specific shading, irregular silhouettes, lighting, texture, atmospheric depth and strong composition. The existing stronger asset remains authoritative until a replacement clearly wins a side-by-side quality review.
 
 BUILD
 -----
 1. Replace the files in the existing GitHub repository with this package.
 2. Keep the complete assets/ folder at repository root.
 3. Commit to the default branch.
-4. Actions -> Build Omega Horizon V9.6 for Windows -> Run workflow.
-5. Download artifact: OmegaHorizon-Windows-x64-V9.6-FLAGSHIP-ART-RECOVERY
+4. Actions -> Build Omega Horizon V9.6.1 for Windows -> Run workflow.
+5. Download artifact: OmegaHorizon-Windows-x64-V9.6.1-VISUAL-REGRESSION-RECOVERY
 
-The Windows title bar contains V9.6-FLAGSHIP-ART-RECOVERY for build verification; the in-game public title art does not show the internal release label.
+The Windows title bar contains V9.6.1-VISUAL-REGRESSION-RECOVERY for build verification; the in-game public title screen continues to omit internal release text.
