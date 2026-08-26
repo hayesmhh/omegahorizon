@@ -1,8 +1,8 @@
-"""Omega Horizon V9.6.3 Stage 2 atmospheric descent source smoke test."""
+"""Omega Horizon V9.6.4 Stage 2 continuous descent source smoke test."""
 import os
 import tempfile
 
-_tmp = tempfile.mkdtemp(prefix="omega_horizon_v963_")
+_tmp = tempfile.mkdtemp(prefix="omega_horizon_v964_")
 os.environ["LOCALAPPDATA"] = _tmp
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
@@ -11,9 +11,9 @@ import pygame
 import numpy as np
 import omega_horizon_shmup as game
 
-assert game.BUILD_ID == "V9.6.3-STAGE2-ATMOSPHERIC-DESCENT"
-assert game.DISPLAY_VERSION == "V9.6.3"
-assert game.DISPLAY_SUBTITLE == "STAGE 2 ATMOSPHERIC DESCENT"
+assert game.BUILD_ID == "V9.6.4-STAGE2-CONTINUOUS-DESCENT"
+assert game.DISPLAY_VERSION == "V9.6.4"
+assert game.DISPLAY_SUBTITLE == "STAGE 2 CONTINUOUS DESCENT"
 assert len(game.STAGES) == 10
 assert len(game.WEAPON_NAMES) == 10
 assert game.WEAPON_NAMES[4] == "HOMING ROCKET"
@@ -47,14 +47,14 @@ for asset in (game.PYRO_PROFILE_HEAD, game.SENTINEL_CHASSIS, game.MOTHER_ABDOMEN
 for rel in (
     "assets/player_ship_v91.png","assets/pyroclast_v91.png",
     "assets/title_screen_v96.png","assets/title_logo_v96.png",
-    "assets/stage01_space_v9621.png","assets/stage05_station_v961.png",
-    "assets/stage02_descent_0_v963.png","assets/stage02_descent_1_v963.png","assets/stage02_descent_2_v963.png","assets/stage02_descent_3_v963.png","assets/stage02_descent_4_v963.png",
+    "assets/stage01_space_v964.png","assets/stage05_station_v961.png",
+    "assets/stage02_descent_0_v964.png","assets/stage02_descent_1_v964.png","assets/stage02_descent_2_v964.png","assets/stage02_descent_3_v964.png","assets/stage02_descent_4_v964.png",
     "assets/stage08_ice_v961.png","assets/stage09_nebula_v961.png"):
     assert os.path.exists(game.resource_path(rel)), rel
-# Stale files may remain in a user repository; V9.6.3 must simply never load them.
+# Stale files may remain in a user repository; V9.6.4 must simply never load them.
 assert game.STAGE1_FLAGSHIP_MODE
-assert game.STAGE1_FLAGSHIP_ASSET == "assets/stage01_space_v9621.png"
-assert game.STAGE2_DESCENT_MODE and len(game.STAGE2_DESCENT_ASSETS)==5
+assert game.STAGE1_FLAGSHIP_ASSET == "assets/stage01_space_v964.png"
+assert game.STAGE2_DESCENT_MODE and game.STAGE2_CONTINUOUS_DESCENT and len(game.STAGE2_DESCENT_ASSETS)==5
 assert game.STAGE2_DESCENT_THRESHOLDS==(0.0,0.18,0.38,0.60,0.80)
 assert game.VISUAL_RECOVERY_BASELINE == "V9.4-BACKGROUNDS/V9.1-ENEMIES"
 assert game.BACKGROUND_RECOVERY_MODE and not game.AUTHORED_ENEMY_OVERRIDE
