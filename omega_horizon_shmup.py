@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-OMEGA HORIZON V9.6.2 - STAGE 1 FLAGSHIP SPACE OPENER
+OMEGA HORIZON V9.6.1 - VISUAL REGRESSION RECOVERY
 =========================================================
 Pygame shooter designed around a 256x224 SNES-like canvas with software
 perspective rendering, shipped authored pixel-art assets, original procedural support art,
@@ -23,7 +23,7 @@ Controls:
 Developer code:
     Type TERMINUS on the title screen to enable TEST MODE.
 
-Build identity: V9.6.2-STAGE1-FLAGSHIP-SPACE
+Build identity: V9.6.1-VISUAL-REGRESSION-RECOVERY
 """
 
 import json
@@ -51,9 +51,9 @@ FIXED_DT = 1.0 / FPS
 HUD_H = 21
 HORIZON_Y = 104
 AUDIO_RATE = 44100
-BUILD_ID = "V9.6.2-STAGE1-FLAGSHIP-SPACE"
-DISPLAY_VERSION = "V9.6.2"
-DISPLAY_SUBTITLE = "STAGE 1 FLAGSHIP SPACE"
+BUILD_ID = "V9.6.1-VISUAL-REGRESSION-RECOVERY"
+DISPLAY_VERSION = "V9.6.1"
+DISPLAY_SUBTITLE = "VISUAL REGRESSION RECOVERY"
 ENDING_SCROLL_SPEED = 15.0
 ENDING_STORY_TOP = 48
 ENDING_STORY_BOTTOM = 202
@@ -216,7 +216,7 @@ def load_v961_art_assets():
         "pyroclast_sheet":("assets/pyroclast_v91.png",True),
         "title_screen":("assets/title_screen_v96.png",False),
         "title_logo":("assets/title_logo_v96.png",True),
-        "stage01_space":("assets/stage01_space_v962.png",False),
+        "stage01_space":("assets/stage01_space_v961.png",False),
         "stage05_station":("assets/stage05_station_v961.png",False),
         "stage08_ice":("assets/stage08_ice_v961.png",False),
         "stage09_nebula":("assets/stage09_nebula_v961.png",False),
@@ -2242,8 +2242,6 @@ V96_SCENE_CHUNKS=V95_SCENE_CHUNKS
 V96_SHIELD_PIXELS=V95_SHIELD_PIXELS
 V961_SCENE_CHUNKS=V96_SCENE_CHUNKS
 V961_SHIELD_PIXELS=V96_SHIELD_PIXELS
-V962_SCENE_CHUNKS=V961_SCENE_CHUNKS
-V962_SHIELD_PIXELS=V961_SHIELD_PIXELS
 
 V87_PICKUP_SHIELD_PALETTES={
 'AEGIS':{'1':(4,24,55),'2':(15,80,132),'3':(53,151,203),'4':(105,224,255),'5':WHITE},
@@ -6452,13 +6450,13 @@ class Game:
 # ---------------------------------------------------------------------------
 
 def packaged_smoke_test():
-    """Exercise V9.6.2 Stage 1 flagship candidate and recovered visual baseline."""
+    """Exercise V9.6.1 visual recovery, death flow, title UI and boss continuity."""
     g=Game()
     assert DIFFICULTY_ORDER==("EASY","HARDER","DIFFICULT","INSANE")
     assert g.difficulty=="INSANE"
     assert DIFFICULTY_PROFILES["INSANE"]["damage"]==1.0
     try:
-        assert BUILD_ID=="V9.6.2-STAGE1-FLAGSHIP-SPACE"
+        assert BUILD_ID=="V9.6.1-VISUAL-REGRESSION-RECOVERY"
         assert WEAPON_NAMES[4]=="HOMING ROCKET"
         assert g.player.unlocked==[True]+[False]*9
         assert FIXED_DT==1.0/FPS
@@ -6469,8 +6467,8 @@ def packaged_smoke_test():
             assert len(art)>=7
         assert len(CARRIER_BODY)>=12 and len(LEVIATHAN_HEAD)>=16 and len(BASTION_HULL)>=12
         # V8.9 inherited convergence assets must survive PyInstaller collection.
-        assert set(V962_SCENE_CHUNKS)=={"space","atmosphere","lava","water","station","hive","city","ice","veil","omega"}
-        assert set(V962_SHIELD_PIXELS)==set(SHIELD_ORDER)
+        assert set(V961_SCENE_CHUNKS)=={"space","atmosphere","lava","water","station","hive","city","ice","veil","omega"}
+        assert set(V961_SHIELD_PIXELS)==set(SHIELD_ORDER)
         assert SHIELD_DATA["AEGIS"]["energy"]>=60 and SHIELD_DATA["REFLECTOR"]["charges"]>=6
         assert len(PLAYER_PIXELS)>=15 and max(map(len,PLAYER_PIXELS))>=35
         assert "boss_v93_frames" not in ART_ASSETS and "bosses_v93_sheet" not in ART_ASSETS
