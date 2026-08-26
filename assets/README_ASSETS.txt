@@ -1,21 +1,11 @@
-OMEGA HORIZON V9.6.2 - STAGE 1 FLAGSHIP SPACE ASSETS
-========================================================
+Omega Horizon V9.6.3 authored assets
 
-This package preserves the V9.6.1 visual-recovery baseline and changes only
-Stage 1's authored space plate. The new Stage 1 background is reference-driven,
-far-background cosmic artwork with no ground plane: large planetary bodies,
-nebula structure, star depth, and a close foreground planetary horizon slice.
+Stage 1:
+- stage01_space_v9621.png (flagship space opener + ringed distant planet)
 
-Authoritative loaded assets:
-- player_ship_v91.png
-- pyroclast_v91.png
-- title_screen_v96.png
-- title_logo_v96.png
-- stage01_space_v962.png   NEW V9.6.2 flagship candidate
-- stage05_station_v961.png
-- stage08_ice_v961.png
-- stage09_nebula_v961.png
+Stage 2:
+- stage02_descent_0_v963.png through stage02_descent_4_v963.png
+  Five cinematic descent phases driven by level progress.
 
-Older PNG files may remain in an existing GitHub repository. V9.6.2 does not
-fail merely because they exist; the regression tests verify that obsolete
-background/enemy assets are not loaded into the game at runtime.
+Recovered assets for player ship, Pyroclast, title, Stage 5, Stage 8 and Stage 9 are retained.
+Recent simplified authored enemy overrides remain disabled.
