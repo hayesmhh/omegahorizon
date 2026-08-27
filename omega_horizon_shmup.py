@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-OMEGA HORIZON V9.6.4 - STAGE 2 CONTINUOUS DESCENT
+OMEGA HORIZON V9.6.5 - STAGE 2 FLUID DESCENT
 =========================================================
 Pygame shooter designed around a 256x224 SNES-like canvas with software
 perspective rendering, shipped authored pixel-art assets, original procedural support art,
@@ -23,7 +23,7 @@ Controls:
 Developer code:
     Type TERMINUS on the title screen to enable TEST MODE.
 
-Build identity: V9.6.4-STAGE2-CONTINUOUS-DESCENT
+Build identity: V9.6.5-STAGE2-FLUID-DESCENT
 """
 
 import json
@@ -51,9 +51,9 @@ FIXED_DT = 1.0 / FPS
 HUD_H = 21
 HORIZON_Y = 104
 AUDIO_RATE = 44100
-BUILD_ID = "V9.6.4-STAGE2-CONTINUOUS-DESCENT"
-DISPLAY_VERSION = "V9.6.4"
-DISPLAY_SUBTITLE = "STAGE 2 CONTINUOUS DESCENT"
+BUILD_ID = "V9.6.5-STAGE2-FLUID-DESCENT"
+DISPLAY_VERSION = "V9.6.5"
+DISPLAY_SUBTITLE = "STAGE 2 FLUID DESCENT"
 ENDING_SCROLL_SPEED = 15.0
 ENDING_STORY_TOP = 48
 ENDING_STORY_BOTTOM = 202
@@ -64,10 +64,10 @@ VISUAL_RECOVERY_BASELINE="V9.4-BACKGROUNDS/V9.1-ENEMIES"
 AUTHORED_ENEMY_OVERRIDE=False
 BACKGROUND_RECOVERY_MODE=True
 STAGE1_FLAGSHIP_MODE=True
-STAGE1_FLAGSHIP_ASSET="assets/stage01_space_v964.png"
+STAGE1_FLAGSHIP_ASSET="assets/stage01_space_v965.png"
 STAGE2_DESCENT_MODE=True
 STAGE2_CONTINUOUS_DESCENT=True
-STAGE2_DESCENT_ASSETS=tuple(f"assets/stage02_descent_{i}_v964.png" for i in range(5))
+STAGE2_DESCENT_ASSETS=tuple(f"assets/stage02_descent_{i}_v965.png" for i in range(5))
 STAGE2_DESCENT_THRESHOLDS=(0.0,0.18,0.38,0.60,0.80)
 
 DIFFICULTY_ORDER=("EASY","HARDER","DIFFICULT","INSANE")
@@ -3621,69 +3621,68 @@ class Background:
         self._stars(surf,HUD_H,NATIVE_H,1.0,(.7,.9,1.0))
 
     def draw_atmosphere(self,surf,stage):
-        """V9.6.4 continuous atmospheric descent with moving-camera scene morphs."""
+        """V9.6.5 fluid atmospheric descent with continuous camera transforms."""
         if STAGE2_DESCENT_MODE:
             plates=[ART_ASSETS.get(f"stage02_descent_{i}") for i in range(5)]
             if all(p is not None for p in plates):
                 progress=clamp(self.stage_progress,0.0,1.0)
-                # Map the whole stage continuously across four transitions. There is no
-                # fade-to-black: the current plate remains fully visible while the next
-                # world layer rises/zooms into it.
                 travel=progress*4.0
                 idx=min(4,int(travel))
                 frac=0.0 if idx>=4 else travel-idx
-                ease=frac*frac*(3.0-2.0*frac)
+                # Quintic smoothstep keeps both velocity and acceleration gentle at
+                # phase boundaries, avoiding the old slideshow-like handoff.
+                ease=frac*frac*frac*(frac*(frac*6.0-15.0)+10.0)
                 surf.fill((4,7,15))
 
-                def moving_plate(plate,phase,local,alpha=255,incoming=False):
-                    # The world grows and rises as altitude falls. Nearest-neighbor
-                    # scaling preserves the crisp pixel-art character of the plates.
-                    zoom=1.018 + local*.075
-                    w=max(NATIVE_W,int(NATIVE_W*zoom)); h=max(NATIVE_H-HUD_H,int((NATIVE_H-HUD_H)*zoom))
+                def moving_plate(plate,phase,age,alpha=255):
+                    # `age` is continuous for a plate as it changes from incoming to
+                    # current: -1..0 while arriving, then 0..1 while departing.
+                    # This is the key V9.6.5 fix: no transform resets at boundaries.
+                    zoom=1.055 + age*.042 + progress*.020
+                    w=max(NATIVE_W,int(NATIVE_W*zoom))
+                    h=max(NATIVE_H-HUD_H,int((NATIVE_H-HUD_H)*zoom))
                     scaled=pygame.transform.scale(plate,(w,h))
                     if alpha<255: scaled.set_alpha(alpha)
-                    lateral=int(math.sin(self.time*.24+phase*.9)*2.0)
-                    rise=int(local*(9+phase*1.5))
-                    if incoming:
-                        rise-=int((1.0-local)*12)
-                    x=(NATIVE_W-w)//2+lateral
-                    y=HUD_H-rise
+                    global_drift=math.sin(self.time*.17)*1.4
+                    x=(NATIVE_W-w)//2 + int(global_drift + progress*1.5)
+                    rise=7.0 + age*10.0 + progress*7.0
+                    y=HUD_H-int(rise)
                     surf.blit(scaled,(x,y))
 
-                moving_plate(plates[idx],idx,frac,255,False)
+                # The current plate advances from age 0 -> 1. The incoming plate
+                # advances from age -1 -> 0, so at the boundary it has exactly the
+                # same transform it will have on the next frame as the current plate.
+                moving_plate(plates[idx],idx,frac,255)
                 if idx<4:
-                    # A broad dissolve combined with independent camera movement reads
-                    # as one continuous descent rather than discrete scene swaps.
-                    moving_plate(plates[idx+1],idx+1,ease,int(255*ease),True)
+                    moving_plate(plates[idx+1],idx+1,frac-1.0,int(255*ease))
 
-                # Fast atmospheric layers sweep upward and left as the player descends.
                 if self.fx_level:
-                    density=(3 if self.fx_level==2 else 2)+(1 if progress>.42 else 0)
-                    speed=18.0+progress*28.0
-                    for j in range(density):
-                        yy=HUD_H+18+int((j*61-self.time*speed)%(NATIVE_H-HUD_H+42))-21
-                        xx=int((j*103-self.time*(18+j*4))%(NATIVE_W+120))-60
-                        ww=72+18*(j%2)
-                        haze=pygame.Surface((ww,8),pygame.SRCALPHA)
-                        pygame.draw.ellipse(haze,(226,232,244,20+8*j),(0,0,ww,8))
-                        surf.blit(haze,(xx,yy))
-
-                    # Sparse diagonal motion streaks sell velocity without obscuring combat.
-                    streaks=4+(3 if progress>.32 else 0)+(2 if progress>.68 else 0)
+                    # Speed cues are deliberately thin pixel streaks rather than
+                    # translucent geometric cloud blobs. The authored plates carry
+                    # all actual cloud structure and shading.
+                    streaks=3+(3 if progress>.24 else 0)+(3 if progress>.62 else 0)
+                    speed=38.0+progress*42.0
                     for j in range(streaks):
-                        sx=int((j*73-self.time*(42+progress*36))%(NATIVE_W+48))-24
-                        sy=HUD_H+12+(j*31+int(self.time*(17+progress*12)))%(NATIVE_H-HUD_H-16)
-                        ln=3+int(progress*5)+(j%3)
-                        col=(146,190,216) if progress<.55 else (204,168,188)
+                        sx=int((j*67-self.time*(speed+j*3.0))%(NATIVE_W+54))-27
+                        sy=HUD_H+10+(j*29+int(self.time*(14+progress*13)))%(NATIVE_H-HUD_H-14)
+                        ln=2+int(progress*5)+(j%2)
+                        if progress<.38:
+                            col=(126,167,206)
+                        elif progress<.72:
+                            col=(178,147,199)
+                        else:
+                            col=(226,151,146)
                         pygame.draw.line(surf,col,(sx,sy),(sx-ln,sy+max(1,ln//3)),1)
 
-                # Storm phases pulse the whole atmosphere rather than flashing a static bolt.
-                if progress>.36 and self.fx_level:
-                    pulse=max(0.0,math.sin(self.time*7.1+progress*9.0))**24
-                    if pulse>.018:
-                        veil=pygame.Surface((NATIVE_W,NATIVE_H-HUD_H),pygame.SRCALPHA)
-                        strength=int((28+24*progress)*pulse)
-                        veil.fill((170,193,255,strength)); surf.blit(veil,(0,HUD_H))
+                    # Lightning is an atmospheric illumination event, not a static
+                    # white overlay. It becomes more frequent deeper in the descent.
+                    if progress>.34:
+                        pulse=max(0.0,math.sin(self.time*(6.4+progress*2.0)+progress*10.0))**28
+                        if pulse>.015:
+                            veil=pygame.Surface((NATIVE_W,NATIVE_H-HUD_H),pygame.SRCALPHA)
+                            strength=int((22+34*progress)*pulse)
+                            veil.fill((176,189,255,strength))
+                            surf.blit(veil,(0,HUD_H))
                 return
         # Recovery fallback if authored plates are unavailable.
         self._gradient(surf,(8,16,40),(94,129,148),HUD_H,105)
@@ -6512,13 +6511,13 @@ class Game:
 # ---------------------------------------------------------------------------
 
 def packaged_smoke_test():
-    """Exercise V9.6.4 continuous Stage 2 descent and recovered baseline."""
+    """Exercise V9.6.5 fluid Stage 2 descent and recovered baseline."""
     g=Game()
     assert DIFFICULTY_ORDER==("EASY","HARDER","DIFFICULT","INSANE")
     assert g.difficulty=="INSANE"
     assert DIFFICULTY_PROFILES["INSANE"]["damage"]==1.0
     try:
-        assert BUILD_ID=="V9.6.4-STAGE2-CONTINUOUS-DESCENT"
+        assert BUILD_ID=="V9.6.5-STAGE2-FLUID-DESCENT"
         assert WEAPON_NAMES[4]=="HOMING ROCKET"
         assert g.player.unlocked==[True]+[False]*9
         assert FIXED_DT==1.0/FPS
@@ -6536,13 +6535,13 @@ def packaged_smoke_test():
         assert "boss_v93_frames" not in ART_ASSETS and "bosses_v93_sheet" not in ART_ASSETS
         assert VISUAL_RECOVERY_BASELINE=="V9.4-BACKGROUNDS/V9.1-ENEMIES"
         assert BACKGROUND_RECOVERY_MODE and not AUTHORED_ENEMY_OVERRIDE
-        assert STAGE1_FLAGSHIP_MODE and STAGE1_FLAGSHIP_ASSET.endswith("stage01_space_v964.png")
+        assert STAGE1_FLAGSHIP_MODE and STAGE1_FLAGSHIP_ASSET.endswith("stage01_space_v965.png")
         assert len(ART_ASSETS.get("player_ship_frames",[]))==5
         assert len(ART_ASSETS.get("pyroclast_frames",[]))==4
         assert ART_ASSETS["title_screen"].get_size()==(256,224)
         assert ART_ASSETS["title_logo"].get_size()==(248,38)
         assert ART_ASSETS["stage01_space"].get_size()==(256,203)
-        assert STAGE1_FLAGSHIP_ASSET=="assets/stage01_space_v964.png"
+        assert STAGE1_FLAGSHIP_ASSET=="assets/stage01_space_v965.png"
         for key in ("stage05_station","stage08_ice","stage09_nebula"):
             assert ART_ASSETS[key].get_size()==(256,91), key
         # Failed V9.5/V9.6 full-stage plates and enemy overrides must not be loaded.

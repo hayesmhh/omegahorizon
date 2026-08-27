@@ -1,26 +1,26 @@
-OMEGA HORIZON V9.6.4 - STAGE 2 CONTINUOUS DESCENT
-==================================================
+OMEGA HORIZON V9.6.5 - STAGE 2 FLUID DESCENT
+================================================
 
-V9.6.4 builds on the recovered visual baseline and corrects the two issues identified in V9.6.3: the Stage 1 ring treatment and the slideshow-like Stage 2 transitions.
+V9.6.5 keeps the recovered visual/gameplay baseline and focuses only on the two approved polish targets: Stage 1's distant ringed planet and Stage 2's atmospheric descent continuity.
 
-STAGE 1 POLISH
---------------
-- Rebuilds the distant upper-right planet ring from the ringless flagship plate.
-- Uses a thinner multi-band elliptical ring with front/back occlusion around the planet.
-- Preserves the rest of the successful Stage 1 composition.
+STAGE 1 RING POLISH
+-------------------
+- Rebuilds the upper-right planet ring on top of the successful ringless flagship plate.
+- Centers the ring on the planet and uses a finer multi-band ellipse with front/back occlusion.
+- Preserves the rest of Stage 1 unchanged.
 
-STAGE 2 CONTINUOUS DESCENT
---------------------------
-- Keeps five authored atmospheric phases but removes static generated background ships from the plates.
-- Applies a restrained sharpening pass so the scenery reads more crisply at the 256x224 native resolution.
-- Replaces threshold-style scene changes with continuous moving-camera blends: each scene rises and subtly zooms while the next atmospheric layer moves into view.
-- No fade-to-black transition is used.
-- Adds fast parallax haze, sparse diagonal velocity streaks, and storm illumination that intensify as altitude falls.
-- The final descent still transitions visually toward Stage 3's hostile volcanic world.
+STAGE 2 FLUID DESCENT
+---------------------
+- Uses five high-detail authored atmospheric plates with fully illustrated cloud structure.
+- Removes the old translucent ellipse haze / white-blob cloud overlay entirely.
+- Keeps plate camera transforms continuous when an incoming phase becomes the current phase, eliminating the V9.6.4 transform reset that caused visible jumpiness.
+- Uses quintic easing for gentler phase handoffs.
+- Retains restrained pixel velocity streaks and storm illumination as motion cues without covering the artwork.
+- Progresses from orbital cloud tops through sunset storm layers to alien spires/civilization, setting up Stage 3.
 
 BUILD
 -----
 Upload the package contents to the repository root, commit, then run:
-Build Omega Horizon V9.6.4 for Windows
+Build Omega Horizon V9.6.5 for Windows
 
-Artifact: OmegaHorizon-Windows-x64-V9.6.4-STAGE2-CONTINUOUS-DESCENT
+Artifact: OmegaHorizon-Windows-x64-V9.6.5-STAGE2-FLUID-DESCENT
