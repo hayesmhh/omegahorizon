@@ -1,4 +1,4 @@
-name: Build Omega Horizon V9.6.6.1 for Windows
+name: Build Omega Horizon V9.6.7 for Windows
 
 on:
   workflow_dispatch:
@@ -8,11 +8,11 @@ permissions:
 
 jobs:
   build-windows:
-    name: Build and test V9.6.6.1 Stage 1 ring centerfix Windows EXE
+    name: Build and test V9.6.7 Stage 2 skyline de-repetition Windows EXE
     runs-on: windows-2022
     timeout-minutes: 45
     steps:
-      - name: Check out V9.6.6.1 source
+      - name: Check out V9.6.7 source
         uses: actions/checkout@v4
       - name: Set up 64-bit Python 3.13
         uses: actions/setup-python@v5
@@ -26,10 +26,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install --only-binary=:all: -r requirements-build.txt
-      - name: Verify V9.6.6.1 release identity
+      - name: Verify V9.6.7 release identity
         shell: pwsh
         run: python verify_release.py
-      - name: Source regression test - Stage 1 ring centerfix and stabilized Stage 2
+      - name: Source regression test - Stage 2 skyline de-repetition and stabilized Stage 2
         shell: pwsh
         env:
           SDL_VIDEODRIVER: dummy
@@ -38,37 +38,37 @@ jobs:
       - name: Syntax-check source
         shell: pwsh
         run: python -m py_compile omega_horizon_shmup.py runtime_smoke_test.py verify_release.py
-      - name: Build V9.6.6.1 OmegaHorizon.exe
+      - name: Build V9.6.7 OmegaHorizon.exe
         shell: pwsh
         run: |
           python -m PyInstaller --noconfirm --clean OmegaHorizon.spec
           if (-not (Test-Path "dist\OmegaHorizon.exe")) { throw "PyInstaller did not create dist\OmegaHorizon.exe" }
-      - name: Smoke-test the PACKAGED V9.6.6.1 EXE
+      - name: Smoke-test the PACKAGED V9.6.7 EXE
         shell: pwsh
         env:
           SDL_VIDEODRIVER: dummy
           SDL_AUDIODRIVER: dummy
-          LOCALAPPDATA: ${{ runner.temp }}\OmegaHorizonV9661
+          LOCALAPPDATA: ${{ runner.temp }}\OmegaHorizonV967
         run: |
           New-Item -ItemType Directory -Force -Path $env:LOCALAPPDATA | Out-Null
           $p=Start-Process -FilePath "$PWD\dist\OmegaHorizon.exe" -ArgumentList "--smoke-test" -Wait -PassThru
-          if ($p.ExitCode -ne 0) { throw "Packaged V9.6.6.1 smoke test failed: $($p.ExitCode)" }
-          Write-Host "PACKAGED_V9661_EXE_SMOKE_TEST_OK"
+          if ($p.ExitCode -ne 0) { throw "Packaged V9.6.7 smoke test failed: $($p.ExitCode)" }
+          Write-Host "PACKAGED_V967_EXE_SMOKE_TEST_OK"
       - name: Create SHA-256 checksum
         shell: pwsh
         run: |
           $hash=(Get-FileHash "dist\OmegaHorizon.exe" -Algorithm SHA256).Hash
-          Set-Content -Path "dist\OmegaHorizon_V9661_SHA256.txt" -Value $hash -Encoding ASCII
-      - name: Create V9.6.6.1 release ZIP
+          Set-Content -Path "dist\OmegaHorizon_V967_SHA256.txt" -Value $hash -Encoding ASCII
+      - name: Create V9.6.7 release ZIP
         shell: pwsh
-        run: Compress-Archive -Path "dist\OmegaHorizon.exe","dist\OmegaHorizon_V9661_SHA256.txt" -DestinationPath "dist\OmegaHorizon_V9661_Windows_x64.zip" -Force
-      - name: Upload tested V9.6.6.1 Windows build
+        run: Compress-Archive -Path "dist\OmegaHorizon.exe","dist\OmegaHorizon_V967_SHA256.txt" -DestinationPath "dist\OmegaHorizon_V967_Windows_x64.zip" -Force
+      - name: Upload tested V9.6.7 Windows build
         uses: actions/upload-artifact@v4
         with:
-          name: OmegaHorizon-Windows-x64-V9.6.6.1-STAGE1-RING-CENTERFIX
+          name: OmegaHorizon-Windows-x64-V9.6.7-STAGE2-SKYLINE-DEREPETITION
           path: |
             dist/OmegaHorizon.exe
-            dist/OmegaHorizon_V9661_SHA256.txt
-            dist/OmegaHorizon_V9661_Windows_x64.zip
+            dist/OmegaHorizon_V967_SHA256.txt
+            dist/OmegaHorizon_V967_Windows_x64.zip
           if-no-files-found: error
           retention-days: 30
