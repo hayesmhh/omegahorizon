@@ -5,7 +5,7 @@ Current visual-gated authored assets:
 - pyroclast_v91.png
 - title_screen_v96.png
 - title_logo_v96.png
-- stage01_space_v965.png (flagship space opener with centered refined distant ring system)
+- stage01_space_v9661.png (flagship space opener with centered refined distant ring system)
 - stage02_descent_strip_v966.png (single stabilized high-detail atmospheric descent strip, blended from five approved scenes)
 - stage05_station_v961.png
 - stage08_ice_v961.png
