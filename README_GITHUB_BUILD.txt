@@ -1,26 +1,20 @@
-OMEGA HORIZON V9.6.5 - STAGE 2 FLUID DESCENT
-================================================
-
-V9.6.5 keeps the recovered visual/gameplay baseline and focuses only on the two approved polish targets: Stage 1's distant ringed planet and Stage 2's atmospheric descent continuity.
-
-STAGE 1 RING POLISH
--------------------
-- Rebuilds the upper-right planet ring on top of the successful ringless flagship plate.
-- Centers the ring on the planet and uses a finer multi-band ellipse with front/back occlusion.
-- Preserves the rest of Stage 1 unchanged.
-
-STAGE 2 FLUID DESCENT
----------------------
-- Uses five high-detail authored atmospheric plates with fully illustrated cloud structure.
+OMEGA HORIZON V9.6.6 - STAGE 2 STABILIZED DESCENT
+---------------------------
+- Uses five approved high-detail authored scenes as source artwork.
+- Pre-blends those scenes into one continuous 256x663 descent strip.
+- Runtime rendering uses one pixel-snapped, monotonic camera viewport instead of independently scaled/faded plates.
 - Removes the old translucent ellipse haze / white-blob cloud overlay entirely.
-- Keeps plate camera transforms continuous when an incoming phase becomes the current phase, eliminating the V9.6.4 transform reset that caused visible jumpiness.
-- Uses quintic easing for gentler phase handoffs.
-- Retains restrained pixel velocity streaks and storm illumination as motion cues without covering the artwork.
-- Progresses from orbital cloud tops through sunset storm layers to alien spires/civilization, setting up Stage 3.
+- Keeps restrained pixel velocity streaks and brief storm illumination as motion cues without covering the authored clouds.
+- Progresses continuously from orbital cloud tops through sunset storm layers to alien spires/civilization, setting up Stage 3.
 
 BUILD
 -----
 Upload the package contents to the repository root, commit, then run:
-Build Omega Horizon V9.6.5 for Windows
+Build Omega Horizon V9.6.6 for Windows
 
-Artifact: OmegaHorizon-Windows-x64-V9.6.5-STAGE2-FLUID-DESCENT
+Artifact: OmegaHorizon-Windows-x64-V9.6.6-STAGE2-STABILIZED-DESCENT
+
+
+V9.6.6 STABILIZATION
+--------------------
+Stage 2 now renders from one pre-blended 256x663 authored descent strip. The runtime camera is pixel-snapped and monotonic; there are no independent plate scale/position resets at phase boundaries. The five high-detail scenes remain the visual source for the strip.

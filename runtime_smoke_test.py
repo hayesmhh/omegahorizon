@@ -1,8 +1,8 @@
-"""Omega Horizon V9.6.5 Stage 2 fluid descent source smoke test."""
+"""Omega Horizon V9.6.6 Stage 2 stabilized descent source smoke test."""
 import os
 import tempfile
 
-_tmp = tempfile.mkdtemp(prefix="omega_horizon_v965_")
+_tmp = tempfile.mkdtemp(prefix="omega_horizon_v966_")
 os.environ["LOCALAPPDATA"] = _tmp
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
@@ -11,9 +11,9 @@ import pygame
 import numpy as np
 import omega_horizon_shmup as game
 
-assert game.BUILD_ID == "V9.6.5-STAGE2-FLUID-DESCENT"
-assert game.DISPLAY_VERSION == "V9.6.5"
-assert game.DISPLAY_SUBTITLE == "STAGE 2 FLUID DESCENT"
+assert game.BUILD_ID == "V9.6.6-STAGE2-STABILIZED-DESCENT"
+assert game.DISPLAY_VERSION == "V9.6.6"
+assert game.DISPLAY_SUBTITLE == "STAGE 2 STABILIZED DESCENT"
 assert len(game.STAGES) == 10
 assert len(game.WEAPON_NAMES) == 10
 assert game.WEAPON_NAMES[4] == "HOMING ROCKET"
@@ -48,18 +48,25 @@ for rel in (
     "assets/player_ship_v91.png","assets/pyroclast_v91.png",
     "assets/title_screen_v96.png","assets/title_logo_v96.png",
     "assets/stage01_space_v965.png","assets/stage05_station_v961.png",
-    "assets/stage02_descent_0_v965.png","assets/stage02_descent_1_v965.png","assets/stage02_descent_2_v965.png","assets/stage02_descent_3_v965.png","assets/stage02_descent_4_v965.png",
+    "assets/stage02_descent_strip_v966.png",
     "assets/stage08_ice_v961.png","assets/stage09_nebula_v961.png"):
     assert os.path.exists(game.resource_path(rel)), rel
-# Stale files may remain in a user repository; V9.6.5 must simply never load them.
+# Stale files may remain in a user repository; V9.6.6 must simply never load them.
 assert game.STAGE1_FLAGSHIP_MODE
 assert game.STAGE1_FLAGSHIP_ASSET == "assets/stage01_space_v965.png"
-assert game.STAGE2_DESCENT_MODE and game.STAGE2_CONTINUOUS_DESCENT and len(game.STAGE2_DESCENT_ASSETS)==5
-# V9.6.5 removes the old translucent ellipse haze and keeps plate transforms continuous.
+assert game.STAGE2_DESCENT_MODE and game.STAGE2_CONTINUOUS_DESCENT
+assert game.STAGE2_DESCENT_STRIP_ASSET == "assets/stage02_descent_strip_v966.png"
+# V9.6.6 uses one pre-blended continuous strip and no runtime plate transforms.
 src=(__import__("pathlib").Path(game.__file__).read_text(encoding="utf-8"))
 assert "pygame.draw.ellipse(haze" not in src
-assert "moving_plate(plates[idx+1],idx+1,frac-1.0" in src and "age` is continuous" in src
-assert game.STAGE2_DESCENT_THRESHOLDS==(0.0,0.18,0.38,0.60,0.80)
+assert "moving_plate(" not in src
+assert 'ART_ASSETS.get("stage02_descent_strip")' in src
+assert "stage2_camera_offset(progress,strip.get_height(),view_h)" in src
+assert game.STAGE2_DESCENT_THRESHOLDS==(0.0,0.25,0.50,0.75,1.0)
+offsets=[game.stage2_camera_offset(i/100.0,663,203) for i in range(101)]
+assert offsets[0]==0 and offsets[-1]==460
+assert offsets==sorted(offsets)
+assert max(b-a for a,b in zip(offsets,offsets[1:]))<=7
 assert game.VISUAL_RECOVERY_BASELINE == "V9.4-BACKGROUNDS/V9.1-ENEMIES"
 assert game.BACKGROUND_RECOVERY_MODE and not game.AUTHORED_ENEMY_OVERRIDE
 wrapped=game.build_ending_lines()
@@ -96,6 +103,7 @@ assert arr.ndim == 2 and arr.shape[1] == 2
 g = game.Game()
 assert g.difficulty == "INSANE"
 assert game.ART_ASSETS["stage01_space"].get_size() == (256,203)
+assert game.ART_ASSETS["stage02_descent_strip"].get_size() == (256,663)
 for key in ("stage02_atmosphere","stage03_lava","stage04_water","stage06_hive","stage07_city","stage10_omega"):
     assert key not in game.ART_ASSETS, key
 for stage in range(1,11):

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-OMEGA HORIZON V9.6.5 - STAGE 2 FLUID DESCENT
+OMEGA HORIZON V9.6.6 - STAGE 2 STABILIZED DESCENT
 =========================================================
 Pygame shooter designed around a 256x224 SNES-like canvas with software
 perspective rendering, shipped authored pixel-art assets, original procedural support art,
@@ -23,7 +23,7 @@ Controls:
 Developer code:
     Type TERMINUS on the title screen to enable TEST MODE.
 
-Build identity: V9.6.5-STAGE2-FLUID-DESCENT
+Build identity: V9.6.6-STAGE2-STABILIZED-DESCENT
 """
 
 import json
@@ -51,9 +51,9 @@ FIXED_DT = 1.0 / FPS
 HUD_H = 21
 HORIZON_Y = 104
 AUDIO_RATE = 44100
-BUILD_ID = "V9.6.5-STAGE2-FLUID-DESCENT"
-DISPLAY_VERSION = "V9.6.5"
-DISPLAY_SUBTITLE = "STAGE 2 FLUID DESCENT"
+BUILD_ID = "V9.6.6-STAGE2-STABILIZED-DESCENT"
+DISPLAY_VERSION = "V9.6.6"
+DISPLAY_SUBTITLE = "STAGE 2 STABILIZED DESCENT"
 ENDING_SCROLL_SPEED = 15.0
 ENDING_STORY_TOP = 48
 ENDING_STORY_BOTTOM = 202
@@ -67,8 +67,9 @@ STAGE1_FLAGSHIP_MODE=True
 STAGE1_FLAGSHIP_ASSET="assets/stage01_space_v965.png"
 STAGE2_DESCENT_MODE=True
 STAGE2_CONTINUOUS_DESCENT=True
-STAGE2_DESCENT_ASSETS=tuple(f"assets/stage02_descent_{i}_v965.png" for i in range(5))
-STAGE2_DESCENT_THRESHOLDS=(0.0,0.18,0.38,0.60,0.80)
+STAGE2_DESCENT_ASSETS=tuple(f"assets/stage02_descent_{i}_v966.png" for i in range(5))
+STAGE2_DESCENT_STRIP_ASSET="assets/stage02_descent_strip_v966.png"
+STAGE2_DESCENT_THRESHOLDS=(0.0,0.25,0.50,0.75,1.0)
 
 DIFFICULTY_ORDER=("EASY","HARDER","DIFFICULT","INSANE")
 SHIELD_ORDER=("AEGIS","REFLECTOR","PHASE","INTERCEPTOR")
@@ -192,6 +193,14 @@ def color_lerp(a, b, t):
     return tuple(int(lerp(a[i], b[i], t)) for i in range(3))
 
 
+def stage2_camera_offset(progress, strip_height, view_height):
+    """Return the monotonic whole-pixel Stage 2 descent camera position."""
+    p=clamp(progress,0.0,1.0)
+    eased=p*p*(3.0-2.0*p)
+    max_scroll=max(0,int(strip_height)-int(view_height))
+    return max(0,min(max_scroll,int(round(eased*max_scroll))))
+
+
 def safe_set(surface, x, y, color):
     if 0 <= x < surface.get_width() and 0 <= y < surface.get_height():
         surface.set_at((x, y), color)
@@ -223,11 +232,7 @@ def load_v962_art_assets():
         "title_screen":("assets/title_screen_v96.png",False),
         "title_logo":("assets/title_logo_v96.png",True),
         "stage01_space":(STAGE1_FLAGSHIP_ASSET,False),
-        "stage02_descent_0":(STAGE2_DESCENT_ASSETS[0],False),
-        "stage02_descent_1":(STAGE2_DESCENT_ASSETS[1],False),
-        "stage02_descent_2":(STAGE2_DESCENT_ASSETS[2],False),
-        "stage02_descent_3":(STAGE2_DESCENT_ASSETS[3],False),
-        "stage02_descent_4":(STAGE2_DESCENT_ASSETS[4],False),
+        "stage02_descent_strip":(STAGE2_DESCENT_STRIP_ASSET,False),
         "stage05_station":("assets/stage05_station_v961.png",False),
         "stage08_ice":("assets/stage08_ice_v961.png",False),
         "stage09_nebula":("assets/stage09_nebula_v961.png",False),
@@ -3621,70 +3626,48 @@ class Background:
         self._stars(surf,HUD_H,NATIVE_H,1.0,(.7,.9,1.0))
 
     def draw_atmosphere(self,surf,stage):
-        """V9.6.5 fluid atmospheric descent with continuous camera transforms."""
+        """V9.6.6 stabilized Stage 2 descent through one continuous authored strip.
+
+        The five approved scenes are pre-blended into one tall background asset.
+        Runtime rendering uses a single pixel-snapped viewport, so there are no
+        per-phase scale, position, or alpha resets capable of producing jitter.
+        """
         if STAGE2_DESCENT_MODE:
-            plates=[ART_ASSETS.get(f"stage02_descent_{i}") for i in range(5)]
-            if all(p is not None for p in plates):
+            strip=ART_ASSETS.get("stage02_descent_strip")
+            if strip is not None:
                 progress=clamp(self.stage_progress,0.0,1.0)
-                travel=progress*4.0
-                idx=min(4,int(travel))
-                frac=0.0 if idx>=4 else travel-idx
-                # Quintic smoothstep keeps both velocity and acceleration gentle at
-                # phase boundaries, avoiding the old slideshow-like handoff.
-                ease=frac*frac*frac*(frac*(frac*6.0-15.0)+10.0)
-                surf.fill((4,7,15))
-
-                def moving_plate(plate,phase,age,alpha=255):
-                    # `age` is continuous for a plate as it changes from incoming to
-                    # current: -1..0 while arriving, then 0..1 while departing.
-                    # This is the key V9.6.5 fix: no transform resets at boundaries.
-                    zoom=1.055 + age*.042 + progress*.020
-                    w=max(NATIVE_W,int(NATIVE_W*zoom))
-                    h=max(NATIVE_H-HUD_H,int((NATIVE_H-HUD_H)*zoom))
-                    scaled=pygame.transform.scale(plate,(w,h))
-                    if alpha<255: scaled.set_alpha(alpha)
-                    global_drift=math.sin(self.time*.17)*1.4
-                    x=(NATIVE_W-w)//2 + int(global_drift + progress*1.5)
-                    rise=7.0 + age*10.0 + progress*7.0
-                    y=HUD_H-int(rise)
-                    surf.blit(scaled,(x,y))
-
-                # The current plate advances from age 0 -> 1. The incoming plate
-                # advances from age -1 -> 0, so at the boundary it has exactly the
-                # same transform it will have on the next frame as the current plate.
-                moving_plate(plates[idx],idx,frac,255)
-                if idx<4:
-                    moving_plate(plates[idx+1],idx+1,frac-1.0,int(255*ease))
+                view_h=NATIVE_H-HUD_H
+                max_scroll=max(0,strip.get_height()-view_h)
+                # Whole-pixel monotonic camera position preserves crisp pixel art.
+                # A cubic ease softens the first/last moments without changing the
+                # uninterrupted travel path through the stitched background.
+                camera_y=stage2_camera_offset(progress,strip.get_height(),view_h)
+                surf.blit(strip,(0,HUD_H),(0,camera_y,NATIVE_W,view_h))
 
                 if self.fx_level:
-                    # Speed cues are deliberately thin pixel streaks rather than
-                    # translucent geometric cloud blobs. The authored plates carry
-                    # all actual cloud structure and shading.
-                    streaks=3+(3 if progress>.24 else 0)+(3 if progress>.62 else 0)
-                    speed=38.0+progress*42.0
+                    # Motion cues stay separate from the authored cloud artwork.
+                    # Every coordinate is integer-snapped to avoid subpixel shimmer.
+                    streaks=2+(2 if progress>.22 else 0)+(2 if progress>.58 else 0)
+                    speed=42+int(progress*34)
                     for j in range(streaks):
-                        sx=int((j*67-self.time*(speed+j*3.0))%(NATIVE_W+54))-27
-                        sy=HUD_H+10+(j*29+int(self.time*(14+progress*13)))%(NATIVE_H-HUD_H-14)
-                        ln=2+int(progress*5)+(j%2)
-                        if progress<.38:
-                            col=(126,167,206)
-                        elif progress<.72:
-                            col=(178,147,199)
-                        else:
-                            col=(226,151,146)
+                        sx=int((j*73-int(self.time*speed))%(NATIVE_W+50))-25
+                        sy=HUD_H+12+(j*31+int(self.time*(11+progress*8)))%(view_h-20)
+                        ln=2+int(progress*4)+(j&1)
+                        if progress<.36: col=(111,148,196)
+                        elif progress<.72: col=(163,133,190)
+                        else: col=(214,133,137)
                         pygame.draw.line(surf,col,(sx,sy),(sx-ln,sy+max(1,ln//3)),1)
 
-                    # Lightning is an atmospheric illumination event, not a static
-                    # white overlay. It becomes more frequent deeper in the descent.
-                    if progress>.34:
-                        pulse=max(0.0,math.sin(self.time*(6.4+progress*2.0)+progress*10.0))**28
-                        if pulse>.015:
-                            veil=pygame.Surface((NATIVE_W,NATIVE_H-HUD_H),pygame.SRCALPHA)
-                            strength=int((22+34*progress)*pulse)
-                            veil.fill((176,189,255,strength))
+                    # Lightning is a brief scene-wide illumination only; no cloud
+                    # geometry is generated at runtime.
+                    if progress>.48:
+                        pulse=max(0.0,math.sin(self.time*(5.8+progress*1.8)+progress*8.0))**34
+                        if pulse>.02:
+                            veil=pygame.Surface((NATIVE_W,view_h),pygame.SRCALPHA)
+                            veil.fill((171,181,247,int((18+24*progress)*pulse)))
                             surf.blit(veil,(0,HUD_H))
                 return
-        # Recovery fallback if authored plates are unavailable.
+        # Recovery fallback if the stabilized authored strip is unavailable.
         self._gradient(surf,(8,16,40),(94,129,148),HUD_H,105)
         self._stars(surf,HUD_H,68,.55,(.6,.75,1.0))
         pygame.draw.ellipse(surf,(36,86,112),(-72,67,400,155))
@@ -6511,13 +6494,13 @@ class Game:
 # ---------------------------------------------------------------------------
 
 def packaged_smoke_test():
-    """Exercise V9.6.5 fluid Stage 2 descent and recovered baseline."""
+    """Exercise V9.6.6 stabilized Stage 2 descent and recovered baseline."""
     g=Game()
     assert DIFFICULTY_ORDER==("EASY","HARDER","DIFFICULT","INSANE")
     assert g.difficulty=="INSANE"
     assert DIFFICULTY_PROFILES["INSANE"]["damage"]==1.0
     try:
-        assert BUILD_ID=="V9.6.5-STAGE2-FLUID-DESCENT"
+        assert BUILD_ID=="V9.6.6-STAGE2-STABILIZED-DESCENT"
         assert WEAPON_NAMES[4]=="HOMING ROCKET"
         assert g.player.unlocked==[True]+[False]*9
         assert FIXED_DT==1.0/FPS
@@ -6536,6 +6519,8 @@ def packaged_smoke_test():
         assert VISUAL_RECOVERY_BASELINE=="V9.4-BACKGROUNDS/V9.1-ENEMIES"
         assert BACKGROUND_RECOVERY_MODE and not AUTHORED_ENEMY_OVERRIDE
         assert STAGE1_FLAGSHIP_MODE and STAGE1_FLAGSHIP_ASSET.endswith("stage01_space_v965.png")
+        assert STAGE2_CONTINUOUS_DESCENT and STAGE2_DESCENT_STRIP_ASSET.endswith("stage02_descent_strip_v966.png")
+        assert ART_ASSETS["stage02_descent_strip"].get_size()==(256,663)
         assert len(ART_ASSETS.get("player_ship_frames",[]))==5
         assert len(ART_ASSETS.get("pyroclast_frames",[]))==4
         assert ART_ASSETS["title_screen"].get_size()==(256,224)
