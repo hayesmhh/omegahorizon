@@ -1,11 +1,14 @@
-Omega Horizon V9.6.4 authored assets
+Omega Horizon V9.6.5 authored assets
 
-Stage 1:
-- stage01_space_v964.png (flagship space opener with refined multi-band distant planetary ring)
+Current visual-gated authored assets:
+- player_ship_v91.png
+- pyroclast_v91.png
+- title_screen_v96.png
+- title_logo_v96.png
+- stage01_space_v965.png (flagship space opener with centered refined distant ring system)
+- stage02_descent_0_v965.png through stage02_descent_4_v965.png (high-detail atmospheric descent phases)
+- stage05_station_v961.png
+- stage08_ice_v961.png
+- stage09_nebula_v961.png
 
-Stage 2:
-- stage02_descent_0_v964.png through stage02_descent_4_v964.png
-  Five cleaned, sharpened cinematic descent plates with generated static ships removed.
-
-Recovered assets for player ship, Pyroclast, title, Stage 5, Stage 8 and Stage 9 are retained.
-Recent simplified authored enemy overrides remain disabled.
+V9.6.5 does not use the regressed authored enemy-sheet branch.
