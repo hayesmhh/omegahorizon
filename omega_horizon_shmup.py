@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-OMEGA HORIZON V9.6.6.1 - STAGE 1 RING CENTERFIX
+OMEGA HORIZON V9.6.7 - STAGE 2 SKYLINE DE-REPETITION
 =========================================================
 Pygame shooter designed around a 256x224 SNES-like canvas with software
 perspective rendering, shipped authored pixel-art assets, original procedural support art,
@@ -23,7 +23,7 @@ Controls:
 Developer code:
     Type TERMINUS on the title screen to enable TEST MODE.
 
-Build identity: V9.6.6.1-STAGE1-RING-CENTERFIX
+Build identity: V9.6.7-STAGE2-SKYLINE-DEREPETITION
 """
 
 import json
@@ -51,9 +51,9 @@ FIXED_DT = 1.0 / FPS
 HUD_H = 21
 HORIZON_Y = 104
 AUDIO_RATE = 44100
-BUILD_ID = "V9.6.6.1-STAGE1-RING-CENTERFIX"
-DISPLAY_VERSION = "V9.6.6.1"
-DISPLAY_SUBTITLE = "STAGE 1 RING CENTERFIX"
+BUILD_ID = "V9.6.7-STAGE2-SKYLINE-DEREPETITION"
+DISPLAY_VERSION = "V9.6.7"
+DISPLAY_SUBTITLE = "STAGE 2 SKYLINE DE-REPETITION"
 ENDING_SCROLL_SPEED = 15.0
 ENDING_STORY_TOP = 48
 ENDING_STORY_BOTTOM = 202
@@ -69,8 +69,10 @@ STAGE1_RING_CENTERFIX=True
 STAGE1_RING_CENTER=(227,54)
 STAGE2_DESCENT_MODE=True
 STAGE2_CONTINUOUS_DESCENT=True
-STAGE2_DESCENT_ASSETS=tuple(f"assets/stage02_descent_{i}_v966.png" for i in range(5))
-STAGE2_DESCENT_STRIP_ASSET="assets/stage02_descent_strip_v966.png"
+STAGE2_DESCENT_STRIP_ASSET="assets/stage02_descent_strip_v967.png"
+STAGE2_DESCENT_ASSETS=(STAGE2_DESCENT_STRIP_ASSET,)
+STAGE2_SKYLINE_DEREPETITION=True
+STAGE2_SKYLINE_CLUSTER_COUNT=6
 STAGE2_DESCENT_THRESHOLDS=(0.0,0.25,0.50,0.75,1.0)
 
 DIFFICULTY_ORDER=("EASY","HARDER","DIFFICULT","INSANE")
@@ -3628,7 +3630,7 @@ class Background:
         self._stars(surf,HUD_H,NATIVE_H,1.0,(.7,.9,1.0))
 
     def draw_atmosphere(self,surf,stage):
-        """V9.6.6.1 stabilized Stage 2 descent through one continuous authored strip.
+        """V9.6.7 stabilized Stage 2 descent through one continuous de-repeated authored strip.
 
         The five approved scenes are pre-blended into one tall background asset.
         Runtime rendering uses a single pixel-snapped viewport, so there are no
@@ -6496,13 +6498,13 @@ class Game:
 # ---------------------------------------------------------------------------
 
 def packaged_smoke_test():
-    """Exercise V9.6.6.1 Stage 1 ring centerfix and stabilized Stage 2 baseline."""
+    """Exercise V9.6.7 Stage 2 skyline de-repetition and stabilized descent baseline."""
     g=Game()
     assert DIFFICULTY_ORDER==("EASY","HARDER","DIFFICULT","INSANE")
     assert g.difficulty=="INSANE"
     assert DIFFICULTY_PROFILES["INSANE"]["damage"]==1.0
     try:
-        assert BUILD_ID=="V9.6.6.1-STAGE1-RING-CENTERFIX"
+        assert BUILD_ID=="V9.6.7-STAGE2-SKYLINE-DEREPETITION"
         assert WEAPON_NAMES[4]=="HOMING ROCKET"
         assert g.player.unlocked==[True]+[False]*9
         assert FIXED_DT==1.0/FPS
@@ -6521,7 +6523,7 @@ def packaged_smoke_test():
         assert VISUAL_RECOVERY_BASELINE=="V9.4-BACKGROUNDS/V9.1-ENEMIES"
         assert BACKGROUND_RECOVERY_MODE and not AUTHORED_ENEMY_OVERRIDE
         assert STAGE1_FLAGSHIP_MODE and STAGE1_FLAGSHIP_ASSET.endswith("stage01_space_v9661.png")
-        assert STAGE2_CONTINUOUS_DESCENT and STAGE2_DESCENT_STRIP_ASSET.endswith("stage02_descent_strip_v966.png")
+        assert STAGE2_CONTINUOUS_DESCENT and STAGE2_DESCENT_STRIP_ASSET.endswith("stage02_descent_strip_v967.png")
         assert ART_ASSETS["stage02_descent_strip"].get_size()==(256,663)
         assert len(ART_ASSETS.get("player_ship_frames",[]))==5
         assert len(ART_ASSETS.get("pyroclast_frames",[]))==4
