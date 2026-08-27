@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-OMEGA HORIZON V9.6.6 - STAGE 2 STABILIZED DESCENT
+OMEGA HORIZON V9.6.6.1 - STAGE 1 RING CENTERFIX
 =========================================================
 Pygame shooter designed around a 256x224 SNES-like canvas with software
 perspective rendering, shipped authored pixel-art assets, original procedural support art,
@@ -23,7 +23,7 @@ Controls:
 Developer code:
     Type TERMINUS on the title screen to enable TEST MODE.
 
-Build identity: V9.6.6-STAGE2-STABILIZED-DESCENT
+Build identity: V9.6.6.1-STAGE1-RING-CENTERFIX
 """
 
 import json
@@ -51,9 +51,9 @@ FIXED_DT = 1.0 / FPS
 HUD_H = 21
 HORIZON_Y = 104
 AUDIO_RATE = 44100
-BUILD_ID = "V9.6.6-STAGE2-STABILIZED-DESCENT"
-DISPLAY_VERSION = "V9.6.6"
-DISPLAY_SUBTITLE = "STAGE 2 STABILIZED DESCENT"
+BUILD_ID = "V9.6.6.1-STAGE1-RING-CENTERFIX"
+DISPLAY_VERSION = "V9.6.6.1"
+DISPLAY_SUBTITLE = "STAGE 1 RING CENTERFIX"
 ENDING_SCROLL_SPEED = 15.0
 ENDING_STORY_TOP = 48
 ENDING_STORY_BOTTOM = 202
@@ -64,7 +64,9 @@ VISUAL_RECOVERY_BASELINE="V9.4-BACKGROUNDS/V9.1-ENEMIES"
 AUTHORED_ENEMY_OVERRIDE=False
 BACKGROUND_RECOVERY_MODE=True
 STAGE1_FLAGSHIP_MODE=True
-STAGE1_FLAGSHIP_ASSET="assets/stage01_space_v965.png"
+STAGE1_FLAGSHIP_ASSET="assets/stage01_space_v9661.png"
+STAGE1_RING_CENTERFIX=True
+STAGE1_RING_CENTER=(227,54)
 STAGE2_DESCENT_MODE=True
 STAGE2_CONTINUOUS_DESCENT=True
 STAGE2_DESCENT_ASSETS=tuple(f"assets/stage02_descent_{i}_v966.png" for i in range(5))
@@ -3626,7 +3628,7 @@ class Background:
         self._stars(surf,HUD_H,NATIVE_H,1.0,(.7,.9,1.0))
 
     def draw_atmosphere(self,surf,stage):
-        """V9.6.6 stabilized Stage 2 descent through one continuous authored strip.
+        """V9.6.6.1 stabilized Stage 2 descent through one continuous authored strip.
 
         The five approved scenes are pre-blended into one tall background asset.
         Runtime rendering uses a single pixel-snapped viewport, so there are no
@@ -6494,13 +6496,13 @@ class Game:
 # ---------------------------------------------------------------------------
 
 def packaged_smoke_test():
-    """Exercise V9.6.6 stabilized Stage 2 descent and recovered baseline."""
+    """Exercise V9.6.6.1 Stage 1 ring centerfix and stabilized Stage 2 baseline."""
     g=Game()
     assert DIFFICULTY_ORDER==("EASY","HARDER","DIFFICULT","INSANE")
     assert g.difficulty=="INSANE"
     assert DIFFICULTY_PROFILES["INSANE"]["damage"]==1.0
     try:
-        assert BUILD_ID=="V9.6.6-STAGE2-STABILIZED-DESCENT"
+        assert BUILD_ID=="V9.6.6.1-STAGE1-RING-CENTERFIX"
         assert WEAPON_NAMES[4]=="HOMING ROCKET"
         assert g.player.unlocked==[True]+[False]*9
         assert FIXED_DT==1.0/FPS
@@ -6518,7 +6520,7 @@ def packaged_smoke_test():
         assert "boss_v93_frames" not in ART_ASSETS and "bosses_v93_sheet" not in ART_ASSETS
         assert VISUAL_RECOVERY_BASELINE=="V9.4-BACKGROUNDS/V9.1-ENEMIES"
         assert BACKGROUND_RECOVERY_MODE and not AUTHORED_ENEMY_OVERRIDE
-        assert STAGE1_FLAGSHIP_MODE and STAGE1_FLAGSHIP_ASSET.endswith("stage01_space_v965.png")
+        assert STAGE1_FLAGSHIP_MODE and STAGE1_FLAGSHIP_ASSET.endswith("stage01_space_v9661.png")
         assert STAGE2_CONTINUOUS_DESCENT and STAGE2_DESCENT_STRIP_ASSET.endswith("stage02_descent_strip_v966.png")
         assert ART_ASSETS["stage02_descent_strip"].get_size()==(256,663)
         assert len(ART_ASSETS.get("player_ship_frames",[]))==5
@@ -6526,7 +6528,7 @@ def packaged_smoke_test():
         assert ART_ASSETS["title_screen"].get_size()==(256,224)
         assert ART_ASSETS["title_logo"].get_size()==(248,38)
         assert ART_ASSETS["stage01_space"].get_size()==(256,203)
-        assert STAGE1_FLAGSHIP_ASSET=="assets/stage01_space_v965.png"
+        assert STAGE1_FLAGSHIP_ASSET=="assets/stage01_space_v9661.png"
         for key in ("stage05_station","stage08_ice","stage09_nebula"):
             assert ART_ASSETS[key].get_size()==(256,91), key
         # Failed V9.5/V9.6 full-stage plates and enemy overrides must not be loaded.

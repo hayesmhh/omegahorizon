@@ -1,8 +1,8 @@
-"""Omega Horizon V9.6.6 Stage 2 stabilized descent source smoke test."""
+"""Omega Horizon V9.6.6.1 Stage 1 ring centerfix source smoke test."""
 import os
 import tempfile
 
-_tmp = tempfile.mkdtemp(prefix="omega_horizon_v966_")
+_tmp = tempfile.mkdtemp(prefix="omega_horizon_v9661_")
 os.environ["LOCALAPPDATA"] = _tmp
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
@@ -11,9 +11,9 @@ import pygame
 import numpy as np
 import omega_horizon_shmup as game
 
-assert game.BUILD_ID == "V9.6.6-STAGE2-STABILIZED-DESCENT"
-assert game.DISPLAY_VERSION == "V9.6.6"
-assert game.DISPLAY_SUBTITLE == "STAGE 2 STABILIZED DESCENT"
+assert game.BUILD_ID == "V9.6.6.1-STAGE1-RING-CENTERFIX"
+assert game.DISPLAY_VERSION == "V9.6.6.1"
+assert game.DISPLAY_SUBTITLE == "STAGE 1 RING CENTERFIX"
 assert len(game.STAGES) == 10
 assert len(game.WEAPON_NAMES) == 10
 assert game.WEAPON_NAMES[4] == "HOMING ROCKET"
@@ -47,16 +47,17 @@ for asset in (game.PYRO_PROFILE_HEAD, game.SENTINEL_CHASSIS, game.MOTHER_ABDOMEN
 for rel in (
     "assets/player_ship_v91.png","assets/pyroclast_v91.png",
     "assets/title_screen_v96.png","assets/title_logo_v96.png",
-    "assets/stage01_space_v965.png","assets/stage05_station_v961.png",
+    "assets/stage01_space_v9661.png","assets/stage05_station_v961.png",
     "assets/stage02_descent_strip_v966.png",
     "assets/stage08_ice_v961.png","assets/stage09_nebula_v961.png"):
     assert os.path.exists(game.resource_path(rel)), rel
-# Stale files may remain in a user repository; V9.6.6 must simply never load them.
+# Stale files may remain in a user repository; V9.6.6.1 must simply never load them.
 assert game.STAGE1_FLAGSHIP_MODE
-assert game.STAGE1_FLAGSHIP_ASSET == "assets/stage01_space_v965.png"
+assert game.STAGE1_FLAGSHIP_ASSET == "assets/stage01_space_v9661.png"
+assert game.STAGE1_RING_CENTERFIX and game.STAGE1_RING_CENTER == (227,54)
 assert game.STAGE2_DESCENT_MODE and game.STAGE2_CONTINUOUS_DESCENT
 assert game.STAGE2_DESCENT_STRIP_ASSET == "assets/stage02_descent_strip_v966.png"
-# V9.6.6 uses one pre-blended continuous strip and no runtime plate transforms.
+# V9.6.6.1 uses one pre-blended continuous strip and no runtime plate transforms.
 src=(__import__("pathlib").Path(game.__file__).read_text(encoding="utf-8"))
 assert "pygame.draw.ellipse(haze" not in src
 assert "moving_plate(" not in src
