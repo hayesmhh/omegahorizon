@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-OMEGA HORIZON V9.6.7 - STAGE 2 SKYLINE DE-REPETITION
-=========================================================
+OMEGA HORIZON V9.6.8 - STAGE 3 MAGMA CATHEDRAL
+==============================================
 Pygame shooter designed around a 256x224 SNES-like canvas with software
 perspective rendering, shipped authored pixel-art assets, original procedural support art,
 true stereo procedural audio, ten distinct stages, enemy archetypes, unique
@@ -23,7 +23,7 @@ Controls:
 Developer code:
     Type TERMINUS on the title screen to enable TEST MODE.
 
-Build identity: V9.6.7-STAGE2-SKYLINE-DEREPETITION
+Build identity: V9.6.8-STAGE3-MAGMA-CATHEDRAL
 """
 
 import json
@@ -51,9 +51,9 @@ FIXED_DT = 1.0 / FPS
 HUD_H = 21
 HORIZON_Y = 104
 AUDIO_RATE = 44100
-BUILD_ID = "V9.6.7-STAGE2-SKYLINE-DEREPETITION"
-DISPLAY_VERSION = "V9.6.7"
-DISPLAY_SUBTITLE = "STAGE 2 SKYLINE DE-REPETITION"
+BUILD_ID = "V9.6.8-STAGE3-MAGMA-CATHEDRAL"
+DISPLAY_VERSION = "V9.6.8"
+DISPLAY_SUBTITLE = "STAGE 3 MAGMA CATHEDRAL"
 ENDING_SCROLL_SPEED = 15.0
 ENDING_STORY_TOP = 48
 ENDING_STORY_BOTTOM = 202
@@ -74,6 +74,9 @@ STAGE2_DESCENT_ASSETS=(STAGE2_DESCENT_STRIP_ASSET,)
 STAGE2_SKYLINE_DEREPETITION=True
 STAGE2_SKYLINE_CLUSTER_COUNT=6
 STAGE2_DESCENT_THRESHOLDS=(0.0,0.25,0.50,0.75,1.0)
+STAGE3_MAGMA_CATHEDRAL_MODE=True
+STAGE3_MAGMA_STRIP_ASSET="assets/stage03_magma_cathedral_v968.png"
+STAGE3_MAGMA_SECTION_COUNT=8
 
 DIFFICULTY_ORDER=("EASY","HARDER","DIFFICULT","INSANE")
 SHIELD_ORDER=("AEGIS","REFLECTOR","PHASE","INTERCEPTOR")
@@ -205,6 +208,13 @@ def stage2_camera_offset(progress, strip_height, view_height):
     return max(0,min(max_scroll,int(round(eased*max_scroll))))
 
 
+def stage3_camera_offset(progress, strip_width, view_width):
+    """Return a monotonic whole-pixel horizontal camera position for Stage 3."""
+    p=clamp(progress,0.0,1.0)
+    max_scroll=max(0,int(strip_width)-int(view_width))
+    return max(0,min(max_scroll,int(round(p*max_scroll))))
+
+
 def safe_set(surface, x, y, color):
     if 0 <= x < surface.get_width() and 0 <= y < surface.get_height():
         surface.set_at((x, y), color)
@@ -221,12 +231,11 @@ def resource_path(relative_path):
 
 
 def load_v962_art_assets():
-    """Load only authored assets that passed the visual recovery gate.
+    """Load authored assets that passed the visual recovery/beautification gate.
 
-    Recent full-stage and enemy-sheet replacements are deliberately excluded.
-    Stronger layered background rendering and V9.1 procedural/metasprite enemies
-    remain authoritative until a future authored candidate clearly wins a
-    side-by-side quality review.
+    V9.6.8 adds only the Stage 3 Magma Cathedral panorama. The recovered
+    procedural/metasprite enemy branch remains authoritative until a later
+    dedicated sprite overhaul passes the same no-regression quality gate.
     """
     if ART_ASSETS:
         return ART_ASSETS
@@ -237,6 +246,7 @@ def load_v962_art_assets():
         "title_logo":("assets/title_logo_v96.png",True),
         "stage01_space":(STAGE1_FLAGSHIP_ASSET,False),
         "stage02_descent_strip":(STAGE2_DESCENT_STRIP_ASSET,False),
+        "stage03_magma_strip":(STAGE3_MAGMA_STRIP_ASSET,False),
         "stage05_station":("assets/stage05_station_v961.png",False),
         "stage08_ice":("assets/stage08_ice_v961.png",False),
         "stage09_nebula":("assets/stage09_nebula_v961.png",False),
@@ -3354,7 +3364,7 @@ class Background:
         fn(surf,stage)
         # V9.2 authored-world stages bypass older line-heavy procedural overlay stacks.
         # Their background plate + restrained foreground pass is the authoritative composition.
-        if theme in ('space','atmosphere','station','ice','veil'):
+        if theme in ('space','atmosphere','lava','station','ice','veil'):
             self.draw_combat_color_math(surf,stage)
             return
         self.draw_artist_layer(surf,stage)
@@ -3679,6 +3689,41 @@ class Background:
         self._floor_cast(surf,"atmosphere",112,0,(47,75,84))
 
     def draw_lava(self,surf,stage):
+        """V9.6.8 authored Stage 3 Magma Cathedral journey.
+
+        A single 2048x203 horizontal panorama carries the player from caldera
+        breach through lava tubes, megacaverns, magma basin, buried cathedral,
+        geothermal core and finally Pyroclast's throne chamber. Camera motion is
+        tied monotonically to existing stage progress; gameplay timing is unchanged.
+        """
+        if STAGE3_MAGMA_CATHEDRAL_MODE:
+            strip=ART_ASSETS.get("stage03_magma_strip")
+            if strip is not None:
+                progress=clamp(self.stage_progress,0.0,1.0)
+                view_w=NATIVE_W
+                camera_x=stage3_camera_offset(progress,strip.get_width(),view_w)
+                surf.blit(strip,(0,HUD_H),(camera_x,0,view_w,NATIVE_H-HUD_H))
+                if self.fx_level:
+                    # Sparse authored-compatible embers and heat motes add life without
+                    # rebuilding cave geometry or obscuring the combat plane.
+                    count=16 if self.fx_level==2 else 9
+                    intensity=.35+.65*progress
+                    for i in range(count):
+                        sx=int((i*53+self.time*(7+i%4)+camera_x*.07)%NATIVE_W)
+                        sy=HUD_H+25+int((i*37-self.time*(13+i%5))%(NATIVE_H-HUD_H-36))
+                        if i%5==0:
+                            col=(255,209,72)
+                        else:
+                            col=(225,74+int(25*intensity),18)
+                        safe_set(surf,sx,sy,col)
+                    # Restrained molten-light pulse near the lower edge; never a
+                    # full-screen red wash and never translucent blob geometry.
+                    pulse=max(0.0,math.sin(self.time*2.6+progress*4.0))
+                    if pulse>.82:
+                        y=NATIVE_H-10-int(progress*3)
+                        for x in range((int(self.time*17)%9),NATIVE_W,17):
+                            safe_set(surf,x,y,(174,49,15))
+                return
         self._gradient(surf,(16,4,5),(50,9,7),HUD_H,99)
         # Layered cavern walls and stalactites.
         for i in range(18):
@@ -6498,13 +6543,13 @@ class Game:
 # ---------------------------------------------------------------------------
 
 def packaged_smoke_test():
-    """Exercise V9.6.7 Stage 2 skyline de-repetition and stabilized descent baseline."""
+    """Exercise V9.6.8 Stage 3 Magma Cathedral plus protected V9.6.7 baselines."""
     g=Game()
     assert DIFFICULTY_ORDER==("EASY","HARDER","DIFFICULT","INSANE")
     assert g.difficulty=="INSANE"
     assert DIFFICULTY_PROFILES["INSANE"]["damage"]==1.0
     try:
-        assert BUILD_ID=="V9.6.7-STAGE2-SKYLINE-DEREPETITION"
+        assert BUILD_ID=="V9.6.8-STAGE3-MAGMA-CATHEDRAL"
         assert WEAPON_NAMES[4]=="HOMING ROCKET"
         assert g.player.unlocked==[True]+[False]*9
         assert FIXED_DT==1.0/FPS
@@ -6524,7 +6569,9 @@ def packaged_smoke_test():
         assert BACKGROUND_RECOVERY_MODE and not AUTHORED_ENEMY_OVERRIDE
         assert STAGE1_FLAGSHIP_MODE and STAGE1_FLAGSHIP_ASSET.endswith("stage01_space_v9661.png")
         assert STAGE2_CONTINUOUS_DESCENT and STAGE2_DESCENT_STRIP_ASSET.endswith("stage02_descent_strip_v967.png")
+        assert STAGE3_MAGMA_CATHEDRAL_MODE and STAGE3_MAGMA_STRIP_ASSET.endswith("stage03_magma_cathedral_v968.png")
         assert ART_ASSETS["stage02_descent_strip"].get_size()==(256,663)
+        assert ART_ASSETS["stage03_magma_strip"].get_size()==(2048,203)
         assert len(ART_ASSETS.get("player_ship_frames",[]))==5
         assert len(ART_ASSETS.get("pyroclast_frames",[]))==4
         assert ART_ASSETS["title_screen"].get_size()==(256,224)

@@ -1,8 +1,8 @@
-"""Omega Horizon V9.6.7 Stage 2 skyline de-repetition source smoke test."""
+"""Omega Horizon V9.6.8 Stage 3 Magma Cathedral source smoke test."""
 import os
 import tempfile
 
-_tmp = tempfile.mkdtemp(prefix="omega_horizon_v967_")
+_tmp = tempfile.mkdtemp(prefix="omega_horizon_v968_")
 os.environ["LOCALAPPDATA"] = _tmp
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
@@ -11,9 +11,9 @@ import pygame
 import numpy as np
 import omega_horizon_shmup as game
 
-assert game.BUILD_ID == "V9.6.7-STAGE2-SKYLINE-DEREPETITION"
-assert game.DISPLAY_VERSION == "V9.6.7"
-assert game.DISPLAY_SUBTITLE == "STAGE 2 SKYLINE DE-REPETITION"
+assert game.BUILD_ID == "V9.6.8-STAGE3-MAGMA-CATHEDRAL"
+assert game.DISPLAY_VERSION == "V9.6.8"
+assert game.DISPLAY_SUBTITLE == "STAGE 3 MAGMA CATHEDRAL"
 assert len(game.STAGES) == 10
 assert len(game.WEAPON_NAMES) == 10
 assert game.WEAPON_NAMES[4] == "HOMING ROCKET"
@@ -48,10 +48,10 @@ for rel in (
     "assets/player_ship_v91.png","assets/pyroclast_v91.png",
     "assets/title_screen_v96.png","assets/title_logo_v96.png",
     "assets/stage01_space_v9661.png","assets/stage05_station_v961.png",
-    "assets/stage02_descent_strip_v967.png",
+    "assets/stage02_descent_strip_v967.png","assets/stage03_magma_cathedral_v968.png",
     "assets/stage08_ice_v961.png","assets/stage09_nebula_v961.png"):
     assert os.path.exists(game.resource_path(rel)), rel
-# Stale files may remain in a user repository; V9.6.7 must simply never load them.
+# Stale regressed files may remain in a user repository; V9.6.8 must never load them.
 assert game.STAGE1_FLAGSHIP_MODE
 assert game.STAGE1_FLAGSHIP_ASSET == "assets/stage01_space_v9661.png"
 assert game.STAGE1_RING_CENTERFIX and game.STAGE1_RING_CENTER == (227,54)
@@ -59,7 +59,9 @@ assert game.STAGE2_DESCENT_MODE and game.STAGE2_CONTINUOUS_DESCENT
 assert game.STAGE2_SKYLINE_DEREPETITION and game.STAGE2_SKYLINE_CLUSTER_COUNT >= 6
 assert game.STAGE2_DESCENT_ASSETS == (game.STAGE2_DESCENT_STRIP_ASSET,)
 assert game.STAGE2_DESCENT_STRIP_ASSET == "assets/stage02_descent_strip_v967.png"
-# V9.6.7 uses one pre-blended continuous strip and no runtime plate transforms.
+assert game.STAGE3_MAGMA_CATHEDRAL_MODE and game.STAGE3_MAGMA_SECTION_COUNT == 8
+assert game.STAGE3_MAGMA_STRIP_ASSET == "assets/stage03_magma_cathedral_v968.png"
+# V9.6.8 preserves Stage 2 and adds a separate authored horizontal Stage 3 panorama.
 src=(__import__("pathlib").Path(game.__file__).read_text(encoding="utf-8"))
 assert "pygame.draw.ellipse(haze" not in src
 assert "moving_plate(" not in src
@@ -70,6 +72,9 @@ offsets=[game.stage2_camera_offset(i/100.0,663,203) for i in range(101)]
 assert offsets[0]==0 and offsets[-1]==460
 assert offsets==sorted(offsets)
 assert max(b-a for a,b in zip(offsets,offsets[1:]))<=7
+offsets3=[game.stage3_camera_offset(i/100.0,2048,256) for i in range(101)]
+assert offsets3[0]==0 and offsets3[-1]==1792 and offsets3==sorted(offsets3)
+assert max(b-a for a,b in zip(offsets3,offsets3[1:]))<=18
 assert game.VISUAL_RECOVERY_BASELINE == "V9.4-BACKGROUNDS/V9.1-ENEMIES"
 assert game.BACKGROUND_RECOVERY_MODE and not game.AUTHORED_ENEMY_OVERRIDE
 wrapped=game.build_ending_lines()
@@ -107,6 +112,7 @@ g = game.Game()
 assert g.difficulty == "INSANE"
 assert game.ART_ASSETS["stage01_space"].get_size() == (256,203)
 assert game.ART_ASSETS["stage02_descent_strip"].get_size() == (256,663)
+assert game.ART_ASSETS["stage03_magma_strip"].get_size() == (2048,203)
 for key in ("stage02_atmosphere","stage03_lava","stage04_water","stage06_hive","stage07_city","stage10_omega"):
     assert key not in game.ART_ASSETS, key
 for stage in range(1,11):
@@ -127,6 +133,8 @@ assert g.audio.intro_sound is not None
 bg = g.background
 for prog in (0.0,.2,.42,.64,.86,1.0):
     bg.stage_progress=prog; bg.draw(g.canvas,2)
+for prog in (0.0,.14,.29,.43,.58,.72,.86,1.0):
+    bg.stage_progress=prog; bg.draw(g.canvas,3)
 assert "ice" in bg.v86_tiles and "city" in bg.v86_tiles and "omega" in bg.v86_tiles
 assert set(bg.v87_tiles) == {"space","atmosphere","lava","water","station","hive","city","ice","veil","omega"}
 assert "lava_flip" in bg.v86_tiles
@@ -214,4 +222,4 @@ for _ in range(8): g.update(game.FIXED_DT)
 g.draw()
 
 g.audio.stop_music(); pygame.quit()
-print("OMEGA_V967_SOURCE_SMOKE_TEST_OK")
+print("OMEGA_V968_SOURCE_SMOKE_TEST_OK")
