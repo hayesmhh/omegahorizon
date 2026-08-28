@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-OMEGA HORIZON V9.6.8 - STAGE 3 MAGMA CATHEDRAL
+OMEGA HORIZON V9.6.8.1 - STAGE 3 PAINTERLY RECOVERY
 ==============================================
 Pygame shooter designed around a 256x224 SNES-like canvas with software
 perspective rendering, shipped authored pixel-art assets, original procedural support art,
@@ -23,7 +23,7 @@ Controls:
 Developer code:
     Type TERMINUS on the title screen to enable TEST MODE.
 
-Build identity: V9.6.8-STAGE3-MAGMA-CATHEDRAL
+Build identity: V9.6.8.1-STAGE3-PAINTERLY-RECOVERY
 """
 
 import json
@@ -51,9 +51,9 @@ FIXED_DT = 1.0 / FPS
 HUD_H = 21
 HORIZON_Y = 104
 AUDIO_RATE = 44100
-BUILD_ID = "V9.6.8-STAGE3-MAGMA-CATHEDRAL"
-DISPLAY_VERSION = "V9.6.8"
-DISPLAY_SUBTITLE = "STAGE 3 MAGMA CATHEDRAL"
+BUILD_ID = "V9.6.8.1-STAGE3-PAINTERLY-RECOVERY"
+DISPLAY_VERSION = "V9.6.8.1"
+DISPLAY_SUBTITLE = "STAGE 3 PAINTERLY RECOVERY"
 ENDING_SCROLL_SPEED = 15.0
 ENDING_STORY_TOP = 48
 ENDING_STORY_BOTTOM = 202
@@ -75,7 +75,7 @@ STAGE2_SKYLINE_DEREPETITION=True
 STAGE2_SKYLINE_CLUSTER_COUNT=6
 STAGE2_DESCENT_THRESHOLDS=(0.0,0.25,0.50,0.75,1.0)
 STAGE3_MAGMA_CATHEDRAL_MODE=True
-STAGE3_MAGMA_STRIP_ASSET="assets/stage03_magma_cathedral_v968.png"
+STAGE3_MAGMA_STRIP_ASSET="assets/stage03_magma_cathedral_v9681.png"
 STAGE3_MAGMA_SECTION_COUNT=8
 
 DIFFICULTY_ORDER=("EASY","HARDER","DIFFICULT","INSANE")
@@ -233,7 +233,7 @@ def resource_path(relative_path):
 def load_v962_art_assets():
     """Load authored assets that passed the visual recovery/beautification gate.
 
-    V9.6.8 adds only the Stage 3 Magma Cathedral panorama. The recovered
+    V9.6.8.1 replaces the failed flat/cartoon Stage 3 panorama with the reference-driven painterly recovery. The recovered
     procedural/metasprite enemy branch remains authoritative until a later
     dedicated sprite overhaul passes the same no-regression quality gate.
     """
@@ -3689,7 +3689,7 @@ class Background:
         self._floor_cast(surf,"atmosphere",112,0,(47,75,84))
 
     def draw_lava(self,surf,stage):
-        """V9.6.8 authored Stage 3 Magma Cathedral journey.
+        """V9.6.8.1 reference-driven Stage 3 Magma Cathedral painterly recovery.
 
         A single 2048x203 horizontal panorama carries the player from caldera
         breach through lava tubes, megacaverns, magma basin, buried cathedral,
@@ -6543,13 +6543,13 @@ class Game:
 # ---------------------------------------------------------------------------
 
 def packaged_smoke_test():
-    """Exercise V9.6.8 Stage 3 Magma Cathedral plus protected V9.6.7 baselines."""
+    """Exercise V9.6.8.1 Stage 3 Painterly Recovery plus protected V9.6.7 baselines."""
     g=Game()
     assert DIFFICULTY_ORDER==("EASY","HARDER","DIFFICULT","INSANE")
     assert g.difficulty=="INSANE"
     assert DIFFICULTY_PROFILES["INSANE"]["damage"]==1.0
     try:
-        assert BUILD_ID=="V9.6.8-STAGE3-MAGMA-CATHEDRAL"
+        assert BUILD_ID=="V9.6.8.1-STAGE3-PAINTERLY-RECOVERY"
         assert WEAPON_NAMES[4]=="HOMING ROCKET"
         assert g.player.unlocked==[True]+[False]*9
         assert FIXED_DT==1.0/FPS
@@ -6569,7 +6569,7 @@ def packaged_smoke_test():
         assert BACKGROUND_RECOVERY_MODE and not AUTHORED_ENEMY_OVERRIDE
         assert STAGE1_FLAGSHIP_MODE and STAGE1_FLAGSHIP_ASSET.endswith("stage01_space_v9661.png")
         assert STAGE2_CONTINUOUS_DESCENT and STAGE2_DESCENT_STRIP_ASSET.endswith("stage02_descent_strip_v967.png")
-        assert STAGE3_MAGMA_CATHEDRAL_MODE and STAGE3_MAGMA_STRIP_ASSET.endswith("stage03_magma_cathedral_v968.png")
+        assert STAGE3_MAGMA_CATHEDRAL_MODE and STAGE3_MAGMA_STRIP_ASSET.endswith("stage03_magma_cathedral_v9681.png")
         assert ART_ASSETS["stage02_descent_strip"].get_size()==(256,663)
         assert ART_ASSETS["stage03_magma_strip"].get_size()==(2048,203)
         assert len(ART_ASSETS.get("player_ship_frames",[]))==5

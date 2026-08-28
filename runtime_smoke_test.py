@@ -1,8 +1,8 @@
-"""Omega Horizon V9.6.8 Stage 3 Magma Cathedral source smoke test."""
+"""Omega Horizon V9.6.8.1 Stage 3 Painterly Recovery source smoke test."""
 import os
 import tempfile
 
-_tmp = tempfile.mkdtemp(prefix="omega_horizon_v968_")
+_tmp = tempfile.mkdtemp(prefix="omega_horizon_v9681_")
 os.environ["LOCALAPPDATA"] = _tmp
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
@@ -11,9 +11,9 @@ import pygame
 import numpy as np
 import omega_horizon_shmup as game
 
-assert game.BUILD_ID == "V9.6.8-STAGE3-MAGMA-CATHEDRAL"
-assert game.DISPLAY_VERSION == "V9.6.8"
-assert game.DISPLAY_SUBTITLE == "STAGE 3 MAGMA CATHEDRAL"
+assert game.BUILD_ID == "V9.6.8.1-STAGE3-PAINTERLY-RECOVERY"
+assert game.DISPLAY_VERSION == "V9.6.8.1"
+assert game.DISPLAY_SUBTITLE == "STAGE 3 PAINTERLY RECOVERY"
 assert len(game.STAGES) == 10
 assert len(game.WEAPON_NAMES) == 10
 assert game.WEAPON_NAMES[4] == "HOMING ROCKET"
@@ -48,10 +48,10 @@ for rel in (
     "assets/player_ship_v91.png","assets/pyroclast_v91.png",
     "assets/title_screen_v96.png","assets/title_logo_v96.png",
     "assets/stage01_space_v9661.png","assets/stage05_station_v961.png",
-    "assets/stage02_descent_strip_v967.png","assets/stage03_magma_cathedral_v968.png",
+    "assets/stage02_descent_strip_v967.png","assets/stage03_magma_cathedral_v9681.png",
     "assets/stage08_ice_v961.png","assets/stage09_nebula_v961.png"):
     assert os.path.exists(game.resource_path(rel)), rel
-# Stale regressed files may remain in a user repository; V9.6.8 must never load them.
+# Stale regressed files may remain in a user repository; V9.6.8.1 must never load them.
 assert game.STAGE1_FLAGSHIP_MODE
 assert game.STAGE1_FLAGSHIP_ASSET == "assets/stage01_space_v9661.png"
 assert game.STAGE1_RING_CENTERFIX and game.STAGE1_RING_CENTER == (227,54)
@@ -60,8 +60,8 @@ assert game.STAGE2_SKYLINE_DEREPETITION and game.STAGE2_SKYLINE_CLUSTER_COUNT >=
 assert game.STAGE2_DESCENT_ASSETS == (game.STAGE2_DESCENT_STRIP_ASSET,)
 assert game.STAGE2_DESCENT_STRIP_ASSET == "assets/stage02_descent_strip_v967.png"
 assert game.STAGE3_MAGMA_CATHEDRAL_MODE and game.STAGE3_MAGMA_SECTION_COUNT == 8
-assert game.STAGE3_MAGMA_STRIP_ASSET == "assets/stage03_magma_cathedral_v968.png"
-# V9.6.8 preserves Stage 2 and adds a separate authored horizontal Stage 3 panorama.
+assert game.STAGE3_MAGMA_STRIP_ASSET == "assets/stage03_magma_cathedral_v9681.png"
+# V9.6.8.1 preserves Stage 2 and loads the corrective painterly Stage 3 panorama.
 src=(__import__("pathlib").Path(game.__file__).read_text(encoding="utf-8"))
 assert "pygame.draw.ellipse(haze" not in src
 assert "moving_plate(" not in src
@@ -222,4 +222,4 @@ for _ in range(8): g.update(game.FIXED_DT)
 g.draw()
 
 g.audio.stop_music(); pygame.quit()
-print("OMEGA_V968_SOURCE_SMOKE_TEST_OK")
+print("OMEGA_V9681_SOURCE_SMOKE_TEST_OK")

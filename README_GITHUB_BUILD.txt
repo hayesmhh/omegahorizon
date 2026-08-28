@@ -1,22 +1,22 @@
-OMEGA HORIZON V9.6.8 - STAGE 3 MAGMA CATHEDRAL
+OMEGA HORIZON V9.6.8.1 - STAGE 3 PAINTERLY RECOVERY
 ---------------------------
-- Builds directly on the checksum-validated V9.6.7 Stage 2 Skyline De-Repetition baseline.
-- Preserves Stage 1's corrected ringed-planet background and Stage 2's stabilized single-strip atmospheric descent unchanged.
-- Replaces Stage 3's older procedural cave/floor overlay stack with one authored 2048x203 horizontal Magma Cathedral panorama.
-- Stage 3 now progresses through eight distinct visual regions: volcanic caldera breach, lava-tube descent, obsidian megacaverns, molten river basin, buried cathedral ruins, geothermal maelstrom, throne approach, and Pyroclast's throne chamber.
-- Near-black basalt/obsidian remains dominant while lava acts as the primary white/yellow/orange light source.
-- Sparse cyan/violet mineral accents appear only in the megacavern region for depth contrast.
-- Pyroclast's boss arena now has a ceremonial obsidian sanctum, horned throne silhouette, lava curtain, flanking trenches and a deliberately quieter central combat plane.
-- Stage progression uses the existing stage_distance/stage_goal timing; gameplay balance and stage duration are unchanged.
-- Full player-ship, enemy, Pyroclast sprite, mini-boss and stage-length expansion passes remain deferred as planned.
+- Corrective rebuild of the failed V9.6.8 Stage 3 art pass, still based directly on the checksum-validated V9.6.7 desktop baseline.
+- Preserves Stage 1's corrected flagship space background and Stage 2's stabilized atmospheric descent unchanged.
+- Replaces the flat/cartoon V9.6.8 Stage 3 panorama with a 2048x203 reference-driven painterly late-SNES panorama.
+- Geological opening sections derive their visual language from the supplied lava-tube, stalactite-cavern, obsidian-rock and lavafall references: irregular natural rock, photographic depth, cool mineral counterlight and lava as the actual light source.
+- The later journey transitions into the supplied buried-structure / Magma Cathedral inspirations, then a monumental throne approach and Pyroclast sanctum.
+- No flat outlined cave geometry, uniform cartoon lava columns or clean vector-like architectural panels are used for the authoritative Stage 3 plate.
+- Continuous overlap blending and shared foreground geology soften transitions between major environments.
+- Gameplay timing, Stage 3 enemies, Pyroclast sprite, difficulty, weapons and stage duration are unchanged.
+- Player/enemy/boss pseudo-3D overhaul and stage-expansion/mini-boss pass remain deferred as planned.
 
 BUILD
 -----
 Upload the package contents to the repository root, commit, then run:
-Build Omega Horizon V9.6.8 for Windows
+Build Omega Horizon V9.6.8.1 for Windows
 
-Artifact: OmegaHorizon-Windows-x64-V9.6.8-STAGE3-MAGMA-CATHEDRAL
+Artifact: OmegaHorizon-Windows-x64-V9.6.8.1-STAGE3-PAINTERLY-RECOVERY
 
-V9.6.8 VISUAL GATE
-------------------
-Stage 3 must read as one continuous descent/journey through a colossal volcanic underworld, keep lava as a light source rather than a full-screen wash, preserve a readable combat plane, and finish in an unmistakable Pyroclast throne sanctum.
+V9.6.8.1 VISUAL GATE
+--------------------
+Stage 3 must look substantially more realistic, textured and painting-like than V9.6.8 while remaining crisp late-generation SNES pixel art. Dark geological mass should dominate, lava should illuminate rather than flatten the scene into orange/red, and the final third should progressively become a volcanic cathedral/throne sanctum.
