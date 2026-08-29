@@ -1,4 +1,4 @@
-Omega Horizon V9.6.9 authored assets
+Omega Horizon V9.6.9.1 authored assets
 
 Current visual-gated authored assets:
 - player_ship_v91.png
