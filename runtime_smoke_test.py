@@ -1,8 +1,8 @@
-"""Omega Horizon V9.6.9 Soundtrack Identity + Urgency source smoke test."""
+"""Omega Horizon V9.6.9.1 Adaptive Window Fit source smoke test."""
 import os
 import tempfile
 
-_tmp = tempfile.mkdtemp(prefix="omega_horizon_v969_")
+_tmp = tempfile.mkdtemp(prefix="omega_horizon_v9691_")
 os.environ["LOCALAPPDATA"] = _tmp
 os.environ.setdefault("SDL_VIDEODRIVER", "dummy")
 os.environ.setdefault("SDL_AUDIODRIVER", "dummy")
@@ -11,9 +11,9 @@ import pygame
 import numpy as np
 import omega_horizon_shmup as game
 
-assert game.BUILD_ID == "V9.6.9-SOUNDTRACK-IDENTITY-URGENCY"
-assert game.DISPLAY_VERSION == "V9.6.9"
-assert game.DISPLAY_SUBTITLE == "SOUNDTRACK IDENTITY + URGENCY"
+assert game.BUILD_ID == "V9.6.9.1-ADAPTIVE-WINDOW-FIT"
+assert game.DISPLAY_VERSION == "V9.6.9.1"
+assert game.DISPLAY_SUBTITLE == "ADAPTIVE WINDOW FIT"
 assert len(game.STAGES) == 10
 assert len(game.WEAPON_NAMES) == 10
 assert game.WEAPON_NAMES[4] == "HOMING ROCKET"
@@ -229,4 +229,7 @@ for _ in range(8): g.update(game.FIXED_DT)
 g.draw()
 
 g.audio.stop_music(); pygame.quit()
-print("OMEGA_V969_SOURCE_SMOKE_TEST_OK")
+assert hasattr(game.Game,"_desktop_work_area")
+assert hasattr(game.Game,"_largest_fitting_window_scale")
+assert hasattr(game.Game,"_recenter_window")
+print("OMEGA_V9691_SOURCE_SMOKE_TEST_OK")

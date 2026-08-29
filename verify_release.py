@@ -1,4 +1,4 @@
-"""Readable pre-build verification for Omega Horizon V9.6.9."""
+"""Readable pre-build verification for Omega Horizon V9.6.9.1."""
 from pathlib import Path
 import omega_horizon_shmup as g
 ROOT=Path(__file__).resolve().parent
@@ -8,9 +8,9 @@ def check(name,condition,detail=""):
         raise AssertionError(f"[FAIL] {name}"+(f": {detail}" if detail else ""))
     print(f"[PASS] {name}")
 
-check("build id",g.BUILD_ID=="V9.6.9-SOUNDTRACK-IDENTITY-URGENCY",g.BUILD_ID)
-check("display version",g.DISPLAY_VERSION=="V9.6.9",g.DISPLAY_VERSION)
-check("display subtitle",g.DISPLAY_SUBTITLE=="SOUNDTRACK IDENTITY + URGENCY",g.DISPLAY_SUBTITLE)
+check("build id",g.BUILD_ID=="V9.6.9.1-ADAPTIVE-WINDOW-FIT",g.BUILD_ID)
+check("display version",g.DISPLAY_VERSION=="V9.6.9.1",g.DISPLAY_VERSION)
+check("display subtitle",g.DISPLAY_SUBTITLE=="ADAPTIVE WINDOW FIT",g.DISPLAY_SUBTITLE)
 check("Stage 1 refined ring asset",g.STAGE1_FLAGSHIP_ASSET=="assets/stage01_space_v9661.png",g.STAGE1_FLAGSHIP_ASSET)
 check("Stage 1 ring center locked",g.STAGE1_RING_CENTERFIX and g.STAGE1_RING_CENTER==(227,54),str(g.STAGE1_RING_CENTER))
 check("Stage 2 descent enabled",g.STAGE2_DESCENT_MODE is True)
@@ -47,4 +47,11 @@ check("Stage 3 authored renderer",'ART_ASSETS.get("stage03_magma_strip")' in src
 check("PyInstaller bundles assets","('assets', 'assets')" in (ROOT/"OmegaHorizon.spec").read_text(encoding="utf-8"))
 offs3=[g.stage3_camera_offset(i/100.0,2048,256) for i in range(101)]
 check("Stage 3 pixel-snapped monotonic camera",offs3[0]==0 and offs3[-1]==1792 and offs3==sorted(offs3))
-print("V9.6.9 RELEASE VERIFICATION OK")
+check("adaptive work-area helper",hasattr(g.Game,"_desktop_work_area"))
+check("adaptive scale helper",hasattr(g.Game,"_largest_fitting_window_scale"))
+check("window recenter helper",hasattr(g.Game,"_recenter_window"))
+check("1x emergency fallback",'clamp(int(data.get("window_scale",4)),1,5)' in src)
+check("settings resize permits 1x fallback",'window_scale"]+direction,1,5' in src)
+check("Windows taskbar-aware work area",'SPI_GETWORKAREA' in src)
+check("Windows resize recenter",'SetWindowPos' in src)
+print("V9.6.9.1 RELEASE VERIFICATION OK")

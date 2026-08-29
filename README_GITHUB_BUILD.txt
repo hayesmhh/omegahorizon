@@ -1,4 +1,4 @@
-OMEGA HORIZON V9.6.9 - SOUNDTRACK IDENTITY + URGENCY
+OMEGA HORIZON V9.6.9.1 - ADAPTIVE WINDOW FIT
 ---------------------------
 - Major in-game soundtrack pass built directly on V9.6.8.2; visual/gameplay systems remain protected.
 - Raises stage tempos selectively to increase shmup urgency instead of applying one global speed multiplier.
@@ -24,10 +24,18 @@ NEW STAGE TEMPOS
 BUILD
 -----
 Upload the package contents to the repository root, commit, then run:
-Build Omega Horizon V9.6.9 for Windows
+Build Omega Horizon V9.6.9.1 for Windows
 
-Artifact: OmegaHorizon-Windows-x64-V9.6.9-SOUNDTRACK-IDENTITY-URGENCY
+Artifact: OmegaHorizon-Windows-x64-V9.6.9.1-ADAPTIVE-WINDOW-FIT
 
 V9.6.9 AUDIO GATE
 -----------------
 The ten stage tracks should be more immediately distinguishable, generally more urgent, richer in atmosphere/orchestral weight, and more rhythmically propulsive. Techno should function as tasteful forward motion beneath the score rather than replacing the cinematic SNES identity.
+
+V9.6.9.1 DISPLAY PORTABILITY FIX
+- Windowed startup now detects the current monitor's usable work area.
+- Requested integer scale is automatically reduced only when the decorated window would not fit.
+- The Windows taskbar is excluded through SPI_GETWORKAREA.
+- Windowed mode is explicitly recentered after startup and every scale change.
+- Settings now permit 1x only as an emergency fallback on very small displays.
+- V9.6.9 soundtrack identity/urgency changes are preserved.

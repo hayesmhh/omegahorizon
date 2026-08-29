@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-OMEGA HORIZON V9.6.9 - SOUNDTRACK IDENTITY + URGENCY
+OMEGA HORIZON V9.6.9.1 - ADAPTIVE WINDOW FIT
 ==============================================
 Pygame shooter designed around a 256x224 SNES-like canvas with software
 perspective rendering, shipped authored pixel-art assets, original procedural support art,
@@ -23,7 +23,7 @@ Controls:
 Developer code:
     Type TERMINUS on the title screen to enable TEST MODE.
 
-Build identity: V9.6.9-SOUNDTRACK-IDENTITY-URGENCY
+Build identity: V9.6.9.1-ADAPTIVE-WINDOW-FIT
 """
 
 import json
@@ -31,6 +31,7 @@ import math
 import os
 import random
 import sys
+import platform
 from dataclasses import dataclass
 from typing import Optional
 
@@ -51,9 +52,9 @@ FIXED_DT = 1.0 / FPS
 HUD_H = 21
 HORIZON_Y = 104
 AUDIO_RATE = 44100
-BUILD_ID = "V9.6.9-SOUNDTRACK-IDENTITY-URGENCY"
-DISPLAY_VERSION = "V9.6.9"
-DISPLAY_SUBTITLE = "SOUNDTRACK IDENTITY + URGENCY"
+BUILD_ID = "V9.6.9.1-ADAPTIVE-WINDOW-FIT"
+DISPLAY_VERSION = "V9.6.9.1"
+DISPLAY_SUBTITLE = "ADAPTIVE WINDOW FIT"
 ENDING_SCROLL_SPEED = 15.0
 ENDING_STORY_TOP = 48
 ENDING_STORY_BOTTOM = 202
@@ -5837,7 +5838,7 @@ class Game:
                 self.settings["music_volume"]=clamp(float(data.get("music_volume",self.settings["music_volume"])),0,1)
                 self.settings["sfx_volume"]=clamp(float(data.get("sfx_volume",self.settings["sfx_volume"])),0,1)
                 self.settings["fullscreen"]=bool(data.get("fullscreen",False))
-                self.settings["window_scale"]=int(clamp(int(data.get("window_scale",4)),2,5))
+                self.settings["window_scale"]=int(clamp(int(data.get("window_scale",4)),1,5))
                 self.settings["effects"]=int(clamp(int(data.get("effects",2)),0,2))
         except Exception:
             pass
@@ -5850,6 +5851,72 @@ class Game:
         except Exception:
             return False
 
+    @staticmethod
+    def _desktop_work_area():
+        """Return usable desktop (left, top, width, height), excluding taskbar on Windows."""
+        try:
+            if platform.system()=="Windows":
+                import ctypes
+                from ctypes import wintypes
+                rect=wintypes.RECT()
+                SPI_GETWORKAREA=0x0030
+                if ctypes.windll.user32.SystemParametersInfoW(SPI_GETWORKAREA,0,ctypes.byref(rect),0):
+                    return rect.left,rect.top,max(1,rect.right-rect.left),max(1,rect.bottom-rect.top)
+        except Exception:
+            pass
+        try:
+            sizes=pygame.display.get_desktop_sizes()
+            if sizes:
+                return 0,0,max(1,int(sizes[0][0])),max(1,int(sizes[0][1]))
+        except Exception:
+            pass
+        try:
+            info=pygame.display.Info()
+            return 0,0,max(1,int(info.current_w)),max(1,int(info.current_h))
+        except Exception:
+            return 0,0,NATIVE_W*4,NATIVE_H*4
+
+    @staticmethod
+    def _outer_window_size(client_w,client_h):
+        """Estimate the decorated outer size needed for a windowed SDL client area."""
+        try:
+            if platform.system()=="Windows":
+                import ctypes
+                from ctypes import wintypes
+                rect=wintypes.RECT(0,0,int(client_w),int(client_h))
+                WS_OVERLAPPEDWINDOW=0x00CF0000
+                if ctypes.windll.user32.AdjustWindowRectEx(ctypes.byref(rect),WS_OVERLAPPEDWINDOW,False,0):
+                    return rect.right-rect.left,rect.bottom-rect.top
+        except Exception:
+            pass
+        return int(client_w)+16,int(client_h)+48
+
+    def _largest_fitting_window_scale(self,requested):
+        left,top,work_w,work_h=self._desktop_work_area()
+        requested=int(clamp(int(requested),1,5))
+        for scale in range(requested,0,-1):
+            outer_w,outer_h=self._outer_window_size(NATIVE_W*scale,NATIVE_H*scale)
+            if outer_w<=work_w and outer_h<=work_h:
+                return scale,(left,top,work_w,work_h),(outer_w,outer_h)
+        return 1,(left,top,work_w,work_h),self._outer_window_size(NATIVE_W,NATIVE_H)
+
+    def _recenter_window(self,work_area,outer_size):
+        left,top,work_w,work_h=work_area
+        outer_w,outer_h=outer_size
+        x=left+max(0,(work_w-outer_w)//2)
+        y=top+max(0,(work_h-outer_h)//2)
+        # Setting SDL's position helps initial creation; SetWindowPos makes resize changes reliable.
+        os.environ["SDL_VIDEO_WINDOW_POS"]=f"{x},{y}"
+        try:
+            if platform.system()=="Windows":
+                import ctypes
+                hwnd=pygame.display.get_wm_info().get("window")
+                if hwnd:
+                    SWP_NOSIZE=0x0001; SWP_NOZORDER=0x0004; SWP_NOACTIVATE=0x0010
+                    ctypes.windll.user32.SetWindowPos(hwnd,0,int(x),int(y),0,0,SWP_NOSIZE|SWP_NOZORDER|SWP_NOACTIVATE)
+        except Exception:
+            pass
+
     def set_display_mode(self):
         if self.settings.get("fullscreen",False):
             try:
@@ -5858,9 +5925,15 @@ class Game:
                 return
             except Exception:
                 self.settings["fullscreen"]=False
-        scale=int(clamp(int(self.settings.get("window_scale",4)),2,5))
+        requested=int(clamp(int(self.settings.get("window_scale",4)),1,5))
+        scale,work_area,outer_size=self._largest_fitting_window_scale(requested)
         self.settings["window_scale"]=scale
+        left,top,work_w,work_h=work_area
+        outer_w,outer_h=outer_size
+        x=left+max(0,(work_w-outer_w)//2); y=top+max(0,(work_h-outer_h)//2)
+        os.environ["SDL_VIDEO_WINDOW_POS"]=f"{x},{y}"
         self.window=pygame.display.set_mode((NATIVE_W*scale,NATIVE_H*scale))
+        self._recenter_window(work_area,outer_size)
         self.present_surface=None; self.present_size=None
 
     def apply_settings(self):
@@ -6016,7 +6089,7 @@ class Game:
         elif idx==2 and direction:
             self.settings["fullscreen"]=not self.settings["fullscreen"]
         elif idx==3:
-            self.settings["window_scale"]=int(clamp(self.settings["window_scale"]+direction,2,5))
+            self.settings["window_scale"]=int(clamp(self.settings["window_scale"]+direction,1,5))
         elif idx==4:
             self.settings["effects"]=int(clamp(self.settings["effects"]+direction,0,2))
         self.apply_settings()
@@ -6760,13 +6833,13 @@ class Game:
 # ---------------------------------------------------------------------------
 
 def packaged_smoke_test():
-    """Exercise V9.6.9 soundtrack identity/urgency plus protected visual baselines."""
+    """Exercise V9.6.9.1 adaptive window fit plus V9.6.9 audio and protected visual baselines."""
     g=Game()
     assert DIFFICULTY_ORDER==("EASY","HARDER","DIFFICULT","INSANE")
     assert g.difficulty=="INSANE"
     assert DIFFICULTY_PROFILES["INSANE"]["damage"]==1.0
     try:
-        assert BUILD_ID=="V9.6.9-SOUNDTRACK-IDENTITY-URGENCY"
+        assert BUILD_ID=="V9.6.9.1-ADAPTIVE-WINDOW-FIT"
         assert [s.bpm for s in STAGES]==[144,160,152,132,166,140,176,142,150,188]
         assert WEAPON_NAMES[4]=="HOMING ROCKET"
         assert g.player.unlocked==[True]+[False]*9
