@@ -1,4 +1,4 @@
-"""Readable pre-build verification for Omega Horizon V9.6.8.1."""
+"""Readable pre-build verification for Omega Horizon V9.6.9."""
 from pathlib import Path
 import omega_horizon_shmup as g
 ROOT=Path(__file__).resolve().parent
@@ -8,9 +8,9 @@ def check(name,condition,detail=""):
         raise AssertionError(f"[FAIL] {name}"+(f": {detail}" if detail else ""))
     print(f"[PASS] {name}")
 
-check("build id",g.BUILD_ID=="V9.6.8.1-STAGE3-PAINTERLY-RECOVERY",g.BUILD_ID)
-check("display version",g.DISPLAY_VERSION=="V9.6.8.1",g.DISPLAY_VERSION)
-check("display subtitle",g.DISPLAY_SUBTITLE=="STAGE 3 PAINTERLY RECOVERY",g.DISPLAY_SUBTITLE)
+check("build id",g.BUILD_ID=="V9.6.9-SOUNDTRACK-IDENTITY-URGENCY",g.BUILD_ID)
+check("display version",g.DISPLAY_VERSION=="V9.6.9",g.DISPLAY_VERSION)
+check("display subtitle",g.DISPLAY_SUBTITLE=="SOUNDTRACK IDENTITY + URGENCY",g.DISPLAY_SUBTITLE)
 check("Stage 1 refined ring asset",g.STAGE1_FLAGSHIP_ASSET=="assets/stage01_space_v9661.png",g.STAGE1_FLAGSHIP_ASSET)
 check("Stage 1 ring center locked",g.STAGE1_RING_CENTERFIX and g.STAGE1_RING_CENTER==(227,54),str(g.STAGE1_RING_CENTER))
 check("Stage 2 descent enabled",g.STAGE2_DESCENT_MODE is True)
@@ -24,15 +24,21 @@ check("Stage 3 authored panorama",g.STAGE3_MAGMA_STRIP_ASSET=="assets/stage03_ma
 check("Stage 3 section progression",g.STAGE3_MAGMA_SECTION_COUNT==8,str(g.STAGE3_MAGMA_SECTION_COUNT))
 check("recovery baseline preserved",g.VISUAL_RECOVERY_BASELINE=="V9.4-BACKGROUNDS/V9.1-ENEMIES",g.VISUAL_RECOVERY_BASELINE)
 check("authored enemies still disabled",g.AUTHORED_ENEMY_OVERRIDE is False)
+check("V9.6.9 stage tempos",[s.bpm for s in g.STAGES]==[144,160,152,132,166,140,176,142,150,188],str([s.bpm for s in g.STAGES]))
 for rel in (
     "assets/player_ship_v91.png","assets/pyroclast_v91.png","assets/title_screen_v96.png","assets/title_logo_v96.png",
     "assets/stage01_space_v9661.png","assets/stage05_station_v961.png","assets/stage08_ice_v961.png","assets/stage09_nebula_v961.png",
     g.STAGE2_DESCENT_STRIP_ASSET,g.STAGE3_MAGMA_STRIP_ASSET):
     check(f"required asset {rel}",(ROOT/rel).is_file())
 src=(ROOT/"omega_horizon_shmup.py").read_text(encoding="utf-8")
+for token in ("techpulse","acid","synthstab","V9.6.9 techno propulsion","V9.6.9 orchestral identity layer"):
+    check(f"music identity engine {token}",token in src)
 check("old blob-haze renderer removed","pygame.draw.ellipse(haze" not in src)
 check("old per-plate transform renderer removed","moving_plate(" not in src)
 check("single-strip camera renderer",'ART_ASSETS.get("stage02_descent_strip")' in src)
+check("Stage 2 de-repetition framing active",'self._draw_stage2_descent_framing(surf,progress)' in src)
+check("boss-aware Stage 2 framing active",'self.background.boss_active=bool(self.boss and not self.boss.dead)' in src)
+check("Stage 3 painterly vent hazard active",'def _draw_geyser_active(self,surf,x):' in src)
 offs=[g.stage2_camera_offset(i/100.0,663,203) for i in range(101)]
 check("pixel-snapped monotonic camera",offs[0]==0 and offs[-1]==460 and offs==sorted(offs))
 check("single strip loaded by runtime",'"stage02_descent_strip":(STAGE2_DESCENT_STRIP_ASSET,False)' in src)
@@ -41,4 +47,4 @@ check("Stage 3 authored renderer",'ART_ASSETS.get("stage03_magma_strip")' in src
 check("PyInstaller bundles assets","('assets', 'assets')" in (ROOT/"OmegaHorizon.spec").read_text(encoding="utf-8"))
 offs3=[g.stage3_camera_offset(i/100.0,2048,256) for i in range(101)]
 check("Stage 3 pixel-snapped monotonic camera",offs3[0]==0 and offs3[-1]==1792 and offs3==sorted(offs3))
-print("V9.6.8.1 RELEASE VERIFICATION OK")
+print("V9.6.9 RELEASE VERIFICATION OK")

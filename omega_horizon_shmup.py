@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-OMEGA HORIZON V9.6.8.1 - STAGE 3 PAINTERLY RECOVERY
+OMEGA HORIZON V9.6.9 - SOUNDTRACK IDENTITY + URGENCY
 ==============================================
 Pygame shooter designed around a 256x224 SNES-like canvas with software
 perspective rendering, shipped authored pixel-art assets, original procedural support art,
@@ -23,7 +23,7 @@ Controls:
 Developer code:
     Type TERMINUS on the title screen to enable TEST MODE.
 
-Build identity: V9.6.8.1-STAGE3-PAINTERLY-RECOVERY
+Build identity: V9.6.9-SOUNDTRACK-IDENTITY-URGENCY
 """
 
 import json
@@ -51,9 +51,9 @@ FIXED_DT = 1.0 / FPS
 HUD_H = 21
 HORIZON_Y = 104
 AUDIO_RATE = 44100
-BUILD_ID = "V9.6.8.1-STAGE3-PAINTERLY-RECOVERY"
-DISPLAY_VERSION = "V9.6.8.1"
-DISPLAY_SUBTITLE = "STAGE 3 PAINTERLY RECOVERY"
+BUILD_ID = "V9.6.9-SOUNDTRACK-IDENTITY-URGENCY"
+DISPLAY_VERSION = "V9.6.9"
+DISPLAY_SUBTITLE = "SOUNDTRACK IDENTITY + URGENCY"
 ENDING_SCROLL_SPEED = 15.0
 ENDING_STORY_TOP = 48
 ENDING_STORY_BOTTOM = 202
@@ -200,6 +200,13 @@ def color_lerp(a, b, t):
     return tuple(int(lerp(a[i], b[i], t)) for i in range(3))
 
 
+def smoothstep(a, b, x):
+    if a == b:
+        return 1.0 if x >= b else 0.0
+    t = clamp((x - a) / (b - a), 0.0, 1.0)
+    return t * t * (3.0 - 2.0 * t)
+
+
 def stage2_camera_offset(progress, strip_height, view_height):
     """Return the monotonic whole-pixel Stage 2 descent camera position."""
     p=clamp(progress,0.0,1.0)
@@ -233,9 +240,10 @@ def resource_path(relative_path):
 def load_v962_art_assets():
     """Load authored assets that passed the visual recovery/beautification gate.
 
-    V9.6.8.1 replaces the failed flat/cartoon Stage 3 panorama with the reference-driven painterly recovery. The recovered
-    procedural/metasprite enemy branch remains authoritative until a later
-    dedicated sprite overhaul passes the same no-regression quality gate.
+    V9.6.8.2 preserves the successful painterly Stage 3 recovery and the authored
+    Stage 2 descent strip while applying deferred composition/effects polish in
+    code. The recovered procedural/metasprite enemy branch remains authoritative
+    until a later dedicated sprite overhaul passes the same no-regression gate.
     """
     if ART_ASSETS:
         return ART_ASSETS
@@ -1976,34 +1984,34 @@ class StageProfile:
 STAGES = [
     StageProfile("NEON HORIZON", "DEEP SPACE", "space", "VALKYRIE CARRIER", "carrier",
                  ((6,8,26),(32,53,105),(68,206,255),(240,83,190)),
-                 ("NEEDLE", "GUNSHIP", "ARC TURRET", "DART"), 1, "heroic", 132, 0),
+                 ("NEEDLE", "GUNSHIP", "ARC TURRET", "DART"), 1, "heroic", 144, 0),
     StageProfile("CHROME TEMPEST", "ATMOSPHERIC DESCENT", "atmosphere", "TEMPEST BASTION", "bastion",
                  ((16,25,45),(62,87,112),(132,180,206),(235,225,148)),
-                 ("STORMWING", "GLIDE TANK", "LIGHTNING POD", "SKY RAZOR"), 2, "storm", 146, 2),
+                 ("STORMWING", "GLIDE TANK", "LIGHTNING POD", "SKY RAZOR"), 2, "storm", 160, 2),
     StageProfile("CRIMSON ORBIT", "MAGMA CAVERNS", "lava", "PYROCLAST", "pyroclast",
                  ((20,5,5),(83,20,12),(255,72,15),(255,211,74)),
-                 ("MAGMA BAT", "CRUST RAM", "MOLTEN SPITTER", "EMBER CLAW"), 3, "industrial", 138, 5),
+                 ("MAGMA BAT", "CRUST RAM", "MOLTEN SPITTER", "EMBER CLAW"), 3, "industrial", 152, 5),
     StageProfile("PHANTOM CIRCUIT", "PELAGIC RUINS", "water", "ABYSSAL LEVIATHAN", "leviathan",
                  ((2,23,48),(5,72,100),(32,170,177),(125,242,216)),
-                 ("RAZORFIN", "NAUTILUS", "JELLY MINE", "TORPEDO EEL"), 4, "aquatic", 116, 7),
+                 ("RAZORFIN", "NAUTILUS", "JELLY MINE", "TORPEDO EEL"), 4, "aquatic", 132, 7),
     StageProfile("ION CITADEL", "ORBITAL FORTRESS", "station", "CITADEL SENTINEL", "sentinel",
                  ((8,12,20),(54,67,83),(80,189,203),(255,180,64)),
-                 ("SEC DRONE", "WARDEN", "RAIL NODE", "CUTTER"), 5, "mechanical", 152, 9),
+                 ("SEC DRONE", "WARDEN", "RAIL NODE", "CUTTER"), 5, "mechanical", 166, 9),
     StageProfile("VOID REACTOR", "BIOMECH HIVE", "hive", "MOTHER NULL", "mother",
                  ((15,5,20),(63,24,59),(152,48,103),(119,245,151)),
-                 ("BONEWING", "CHITIN BULK", "PLASMA NODE", "PARASITE"), 6, "organic", 124, 1),
+                 ("BONEWING", "CHITIN BULK", "PLASMA NODE", "PARASITE"), 6, "organic", 140, 1),
     StageProfile("STARFORGE GAUNTLET", "RUINED MEGACITY", "city", "ARES-IX", "ares",
                  ((10,13,24),(45,52,68),(188,76,54),(255,198,79)),
-                 ("WARHAWK", "SIEGE POD", "ROOFTOP GUN", "HUNTER"), 7, "war", 164, 4),
+                 ("WARHAWK", "SIEGE POD", "ROOFTOP GUN", "HUNTER"), 7, "war", 176, 4),
     StageProfile("ECLIPSE ENGINE", "FROZEN MOON", "ice", "CRYON WYRM", "wyrm",
                  ((4,14,31),(37,74,109),(125,198,229),(225,249,255)),
-                 ("SHARDWING", "CRYO BULK", "ICE CANNON", "BURROWER"), 8, "crystal", 128, 6),
+                 ("SHARDWING", "CRYO BULK", "ICE CANNON", "BURROWER"), 8, "crystal", 142, 6),
     StageProfile("TERMINUS VEIL", "PARALLAX RINGWORLD", "veil", "PARALLAX SOVEREIGN", "sovereign",
                  ((10,4,25),(58,23,106),(206,58,209),(94,255,224)),
-                 ("MIRROR", "PRISM", "PHASE NODE", "FOLDING ONE"), 9, "unreal", 157, 8),
+                 ("MIRROR", "PRISM", "PHASE NODE", "FOLDING ONE"), 9, "unreal", 150, 8),
     StageProfile("OMEGA TERMINUS", "THE FINAL CORE", "omega", "OMEGA", "omega",
                  ((3,3,8),(40,18,44),(171,25,82),(255,233,172)),
-                 ("OMEGA NEEDLE", "OMEGA BULK", "OMEGA EYE", "OMEGA HUNTER"), None, "omega", 176, 0),
+                 ("OMEGA NEEDLE", "OMEGA BULK", "OMEGA EYE", "OMEGA HUNTER"), None, "omega", 188, 0),
 ]
 
 ENDING_SCROLL_LINES=[
@@ -2577,6 +2585,17 @@ class AudioSynth:
         if kind == "harp":
             return (self.voice(hz,duration,"tri",volume*.72,attack=.001,decay=max(.04,duration*.62)) +
                     self.voice(hz*2.0,duration,"sine",volume*.19,attack=.001,decay=max(.03,duration*.42)))
+        if kind == "techpulse":
+            # Tight sequencer voice: pulse transient + lightly detuned saw body.
+            return (self.voice(hz,duration,"pulse25",volume*.62,attack=.001,decay=max(.025,duration*.52)) +
+                    self.voice(hz*1.004,duration,"saw",volume*.23,attack=.002,decay=max(.025,duration*.44)))
+        if kind == "acid":
+            # Resonant-style approximation for tasteful techno accents.
+            return (self.voice(hz,duration,"saw",volume*.55,attack=.001,decay=max(.025,duration*.40),vibrato=.004,vibrato_rate=7.2) +
+                    self.voice(hz*2.01,duration,"pulse25",volume*.21,attack=.001,decay=max(.02,duration*.30)))
+        if kind == "synthstab":
+            return (self.voice(hz,duration,"square",volume*.48,attack=.002,decay=max(.035,duration*.62)) +
+                    self.voice(hz*1.498,duration,"tri",volume*.20,attack=.003,decay=max(.03,duration*.48)))
         return self.voice(hz,duration,"square",volume,attack=.004,decay=.08)
 
     def _kick(self, duration=.13, strength=.18):
@@ -2593,7 +2612,9 @@ class AudioSynth:
     def generate_stage_mix(self, stage_index, boss=False):
         """Build a genuinely different stereo composition for one stage."""
         p=STAGES[stage_index]
-        bpm = p.bpm + (14 if boss else 0)
+        boss_lift={"heroic":14,"storm":18,"industrial":16,"aquatic":14,"mechanical":18,
+                   "organic":16,"war":18,"crystal":14,"unreal":12,"omega":20}
+        bpm = p.bpm + (boss_lift[p.music_style] if boss else 0)
         beat=60.0/bpm
         bars=16
         total=bars*4*beat
@@ -2620,19 +2641,20 @@ class AudioSynth:
             degree=cfg["deg"][bar%len(cfg["deg"])]
             chord_root=base+degree+12
             for j,interval in enumerate(cfg["mode"]):
-                sig=self.instrument(cfg["pad"], chord_root+interval, beat*3.85, .045 if not boss else .052)
+                pad_vol=.056 if not boss else .064
+                sig=self.instrument(cfg["pad"], chord_root+interval, beat*3.85, pad_vol)
                 pan=(-.64 + j*.64) * (-1 if bar%2 else 1)
                 self.add_stereo(mix,bar*4*beat,self.pan_mono(sig,pan))
 
         # Bass patterns differ in subdivision across style.
-        bass_sub = 2 if p.music_style in ("aquatic","crystal") else 4
+        bass_sub = 3 if p.music_style in ("aquatic","crystal") else 4
         step=beat*4/bass_sub
         for bar in range(bars):
             degree=cfg["deg"][bar%len(cfg["deg"])]
             for i in range(bass_sub):
                 pat=cfg["basspat"][(bar*bass_sub+i)%len(cfg["basspat"])]
                 note=base+degree+(pat%12)
-                sig=self.instrument("bass",note,step*.78,.075 if not boss else .09)
+                sig=self.instrument("bass",note,step*.78,.082 if not boss else .098)
                 self.add_stereo(mix,(bar*4*beat+i*step),self.pan_mono(sig,0))
 
         # Stage-specific lead melodies, deliberately different contour/rhythm.
@@ -2649,7 +2671,7 @@ class AudioSynth:
             "omega": [12,13,18,15,12,10,6,1, 12,18,19,15,13,12,6,0],
         }
         melody=melodies[p.music_style]
-        lead_step=beat/2 if p.music_style not in ("aquatic","crystal") else beat
+        lead_step=beat if p.music_style=="unreal" else (beat*.75 if p.music_style in ("aquatic","crystal") else beat/2)
         start_bar=1 if not boss else 0
         for i,noteoff in enumerate(melody*(2 if lead_step==beat/2 else 1)):
             start=(start_bar*4*beat)+i*lead_step
@@ -2696,6 +2718,71 @@ class AudioSynth:
             pan=(-.72 if i%2==0 else .72)
             self.add_stereo(mix,i*arp_step,self.pan_mono(sig,pan))
 
+        # V9.6.9 orchestral identity layer: every stage gets a distinct cinematic color
+        # above the rhythm section instead of sharing the same pad/lead balance.
+        orchestral={
+            "heroic":("brass",[0,7,12],.036),
+            "storm":("strings",[0,3,10],.034),
+            "industrial":("organ",[0,3,6],.041),
+            "aquatic":("strings",[0,5,10],.032),
+            "mechanical":("brass",[0,3,7],.030),
+            "organic":("choir",[0,6,13],.040),
+            "war":("brass",[0,5,12],.043),
+            "crystal":("strings",[0,8,12],.030),
+            "unreal":("choir",[0,1,8],.038),
+            "omega":("choir",[0,1,6],.048),
+        }
+        oinst,ointervals,ovol=orchestral[p.music_style]
+        if boss: ovol*=1.18
+        for bar in range(0,bars,2):
+            degree=cfg["deg"][bar%len(cfg["deg"])]
+            root=base+degree+12
+            for j,iv in enumerate(ointervals):
+                dur=beat*7.7
+                sig=self.instrument(oinst,root+iv,dur,ovol*(1.0 if j==0 else .82))
+                pan=(-.70+j*.70) * (-1 if (bar//2)%2 else 1)
+                self.add_stereo(mix,bar*4*beat,self.pan_mono(sig,pan))
+
+        # V9.6.9 techno propulsion. Intensity and sequencing are deliberately stage-specific;
+        # this is an accent layer under the orchestral score, not a genre replacement.
+        techno={
+            "heroic":    dict(level=.48,inst="techpulse",seq=[0,7,12,7,5,7,12,14],sub=4,gate=.45),
+            "storm":     dict(level=.66,inst="techpulse",seq=[0,3,10,7,0,10,12,7],sub=4,gate=.38),
+            "industrial":dict(level=.44,inst="synthstab",seq=[0,0,6,1,0,3,1,6],sub=2,gate=.50),
+            "aquatic":   dict(level=.48,inst="techpulse",seq=[0,7,10,7,5,10,12,7],sub=4,gate=.48),
+            "mechanical":dict(level=.82,inst="acid",seq=[0,3,7,6,0,10,7,3],sub=4,gate=.34),
+            "organic":   dict(level=.42,inst="acid",seq=[0,6,1,5,6,1,8,5],sub=3,gate=.42),
+            "war":       dict(level=.86,inst="techpulse",seq=[0,5,7,12,7,5,10,12],sub=4,gate=.32),
+            "crystal":   dict(level=.52,inst="techpulse",seq=[0,8,12,8,5,10,12,15],sub=4,gate=.46),
+            "unreal":    dict(level=.28,inst="acid",seq=[0,8,1,6,11,3,9,1],sub=2,gate=.50),
+            "omega":     dict(level=.94,inst="acid",seq=[0,1,6,3,8,6,1,12],sub=4,gate=.30),
+        }[p.music_style]
+        tech_step=beat/techno["sub"]
+        tech_count=int(total/tech_step)
+        tech_vol=.020+.028*techno["level"]+(.008 if boss else 0)
+        for i in range(tech_count):
+            # Musical rests keep the sequencer from becoming a constant wall.
+            if p.music_style=="organic" and i%7 in (2,6): continue
+            if p.music_style=="unreal" and i%4 in (1,2): continue
+            if p.music_style=="heroic" and i%8==6: continue
+            bar=int((i*tech_step)/(beat*4))
+            deg=cfg["deg"][bar%len(cfg["deg"])]
+            noff=techno["seq"][i%len(techno["seq"])]
+            octave=12 if p.music_style in ("aquatic","crystal","unreal") else 0
+            sig=self.instrument(techno["inst"],base+deg+octave+noff,tech_step*techno["gate"],tech_vol)
+            pan=(-.62 if i%2==0 else .62) * (.45+.45*techno["level"])
+            self.add_stereo(mix,i*tech_step,self.pan_mono(sig,pan))
+
+        # Electronic off-beat accents provide club-like forward pressure on the techno-heavy worlds.
+        if techno["level"]>=.45:
+            accent_step=beat/2
+            for i in range(int(total/accent_step)):
+                if i%2==0: continue
+                st=i*accent_step
+                note=base+24+cfg["mode"][(i//2)%len(cfg["mode"])]
+                sig=self.instrument("synthstab",note,accent_step*.18,.012+.015*techno["level"])
+                self.add_stereo(mix,st,self.pan_mono(sig,.68 if i%4==1 else -.68))
+
         # Percussion styles.
         for bi in range(bars*4):
             st=bi*beat
@@ -2708,15 +2795,32 @@ class AudioSynth:
             elif kind=="odd":
                 kick=bi%5 in (0,3); snare=bi%4 in (1,3)
             elif kind=="double":
-                kick=True if bi%2==0 else (boss and bi%4==3); snare=bi%4 in (1,3)
+                kick=bi%2==0 or (boss and bi%4==3); snare=bi%4 in (1,3)
             elif kind=="stomp":
                 kick=bi%2==0; snare=bi%4==2
-            else:
+            elif kind=="sync":
+                kick=bi%4 in (0,2,3); snare=bi%4 in (1,3)
+            elif kind=="machine":
+                kick=True; snare=bi%4 in (1,3)
+            elif kind=="pulse":
+                kick=bi%4 in (0,3); snare=bi%4==2
+            elif kind=="final":
+                kick=True; snare=bi%4 in (1,3)
+            else:  # drive
                 kick=bi%4 in (0,2); snare=bi%4 in (1,3)
             if kick:
                 self.add_stereo(mix,st,self.pan_mono(self._kick(.13,.15 if not boss else .19),0))
             if snare:
                 self.add_stereo(mix,st,self.pan_mono(self._snare(2000+stage_index*100+bi,strength=.09 if not boss else .12),.08))
+            # Style-specific sub-beat hits make the rhythmic fingerprints genuinely different.
+            if kind=="sync" and bi%2==0:
+                self.add_stereo(mix,st+beat*.625,self.pan_mono(self._kick(.075,.070 if not boss else .085),-.08))
+            elif kind=="machine":
+                self.add_stereo(mix,st+beat*.5,self.pan_mono(self._kick(.065,.052 if not boss else .068),.06 if bi%2 else -.06))
+            elif kind=="double" and bi%2==0:
+                self.add_stereo(mix,st+beat*.5,self.pan_mono(self._kick(.075,.080 if not boss else .098),0))
+            elif kind=="final":
+                self.add_stereo(mix,st+beat*.5,self.pan_mono(self._kick(.070,.066 if not boss else .082),0))
 
         # Section-end fills at bars 4/8/12 keep the loop from sounding like a
         # continuously repeated procedural groove.
@@ -2727,12 +2831,14 @@ class AudioSynth:
                 self.add_stereo(mix,start+j*(beat/4),self.pan_mono(sig,-.35+j*.23))
 
         # Hi-hats/percussion have style-dependent density and stereo separation.
-        hat_step=beat/2 if p.music_style in ("aquatic","crystal") else beat/4
+        hat_step=beat/4 if p.music_style in ("aquatic","crystal") else (beat/8 if p.music_style in ("storm","mechanical","war","omega") else beat/4)
         for i in range(int(total/hat_step)):
             if p.music_style=="industrial" and i%4==1: continue
+            if p.music_style=="unreal" and i%3==1: continue
             n=int(.035*AUDIO_RATE)
             rng=np.random.default_rng(3000+stage_index*200+i)
-            hat=rng.uniform(-1,1,n).astype(np.float32)*np.linspace(.032,0,n,dtype=np.float32)
+            hvol=.026 if p.music_style in ("aquatic","unreal") else (.038 if p.music_style in ("storm","mechanical","war","omega") else .032)
+            hat=rng.uniform(-1,1,n).astype(np.float32)*np.linspace(hvol,0,n,dtype=np.float32)
             pan=.58 if i%2 else -.58
             self.add_stereo(mix,i*hat_step,self.pan_mono(hat,pan))
 
@@ -2762,10 +2868,13 @@ class AudioSynth:
             amb=.008*np.sin(2*np.pi*(57+9*np.sin(2*np.pi*.07*tt))*tt)
         else:
             amb=.010*np.sin(2*np.pi*41*tt)+arng.uniform(-1,1,n).astype(np.float32)*.003
+        # V9.6.9 raises environmental air in the mix while preserving headroom.
+        ambience_gain=1.28 if p.music_style not in ("war","omega") else 1.18
+        amb*=ambience_gain
         # Slow opposing pan modulation keeps ambience stereo rather than centered.
         panwave=np.sin(2*np.pi*.035*tt+stage_index*.4)
-        mix[:,0]+=amb*(.65-.22*panwave)
-        mix[:,1]+=amb*(.65+.22*panwave)
+        mix[:,0]+=amb*(.68-.24*panwave)
+        mix[:,1]+=amb*(.68+.24*panwave)
 
         # Boss versions gain a stage-specific low ostinato and a second lead
         # response, making them arrangements rather than simply faster loops.
@@ -2778,7 +2887,7 @@ class AudioSynth:
             ost_step=beat/2
             for i in range(int(total/ost_step)):
                 note=base-12+boss_pattern[i%len(boss_pattern)]
-                sig=self.instrument("bass",note,ost_step*.48,.045)
+                sig=self.instrument("bass",note,ost_step*.48,.058)
                 self.add_stereo(mix,i*ost_step,self.pan_mono(sig,-.10 if i%2 else .10))
             response=[7,10,12,15,12,10,7,5]
             for section_bar in (3,7,11,15):
@@ -2802,7 +2911,7 @@ class AudioSynth:
                               .22 if p.music_style in ("aquatic","crystal") else .135,
                               .29 if p.music_style in ("aquatic","crystal") else .185,
                               .24 if not boss else .18)
-        mix=np.tanh(mix*1.4)*.72
+        mix=np.tanh(mix*1.34)*.74
         return self._sound_from_stereo(mix)
 
     def generate_boss_stinger(self,stage_index):
@@ -2841,9 +2950,9 @@ class AudioSynth:
             start=bar*2.0
             chord=[root+deg+12, root+deg+16, root+deg+19]
             for i,note in enumerate(chord):
-                sig=self.instrument("strings",note,1.9,.040)
+                sig=self.instrument("strings",note,1.9,.050)
                 self.add_stereo(mix,start,self.pan_mono(sig,-.45+i*.45))
-            bass=self.instrument("bass",root+deg,1.55,.055)
+            bass=self.instrument("bass",root+deg,1.55,.062)
             self.add_stereo(mix,start,self.pan_mono(bass,0))
         melody=[12,14,17,19,21,19,17,14,12,14,17,21,24,21,19,17,14,12,10,12,14,17,19,21]
         for i,noff in enumerate(melody):
@@ -2869,7 +2978,7 @@ class AudioSynth:
 
     def generate_intro_theme(self):
         """Title theme: the ending motif heard before the journey, unresolved and expectant."""
-        dur=24.0; bpm=96.0; beat=60.0/bpm
+        dur=24.0; bpm=106.0; beat=60.0/bpm
         mix=np.zeros((int(dur*AUDIO_RATE),2),dtype=np.float32)
         root=50
         progression=[0,5,3,7,0,8,5,7]
@@ -2878,7 +2987,7 @@ class AudioSynth:
             deg=progression[bar%len(progression)]
             start=bar*2.0
             for i,note in enumerate((root+deg+12,root+deg+15,root+deg+19)):
-                sig=self.instrument("choir" if bar<4 else "strings",note,1.86,.034)
+                sig=self.instrument("choir" if bar<4 else "strings",note,1.86,.043)
                 self.add_stereo(mix,start,self.pan_mono(sig,-.54+i*.54))
             bass=self.instrument("bass",root+deg,1.42,.042)
             self.add_stereo(mix,start,self.pan_mono(bass,0))
@@ -2981,6 +3090,7 @@ class Background:
         self.rng=random.Random(1337)
         self.fx_level=2
         self.stage_progress=0.0
+        self.boss_active=False
         self.readability_surface=pygame.Surface((NATIVE_W,NATIVE_H),pygame.SRCALPHA)
         self.stars=[]
         for count,speed,bright in [(46,.16,90),(34,.40,150),(24,.82,230)]:
@@ -3639,22 +3749,84 @@ class Background:
         self._gradient(surf,(3,4,18),(11,5,32))
         self._stars(surf,HUD_H,NATIVE_H,1.0,(.7,.9,1.0))
 
-    def draw_atmosphere(self,surf,stage):
-        """V9.6.7 stabilized Stage 2 descent through one continuous de-repeated authored strip.
+    def _draw_stage2_descent_framing(self,surf,progress):
+        """Hide the remaining false lower horizon and intensify the final storm/boss approach.
 
-        The five approved scenes are pre-blended into one tall background asset.
-        Runtime rendering uses a single pixel-snapped viewport, so there are no
-        per-phase scale, position, or alpha resets capable of producing jitter.
+        The underlying authored strip stays intact, but increasingly near-field cloud mass,
+        skyline silhouettes and a dedicated Tempest Bastion framing pass keep Stage 2 reading
+        as one believable descent rather than a quick loop of two horizon bands.
+        """
+        view_h=NATIVE_H-HUD_H
+        veil=pygame.Surface((NATIVE_W,view_h),pygame.SRCALPHA)
+        p=clamp(progress,0.0,1.0)
+        boss_mix=1.0 if self.boss_active else smoothstep(.92,1.0,p)
+        rise=smoothstep(.18,.86,p)
+        base=int(179-38*rise-16*boss_mix)
+        crest=int(base-7-6*rise)
+        # Lower atmospheric shelf that climbs with the descent and obscures the repeated lower arc.
+        shelf=[(-10,view_h),(-10,base+16),(14,base+12),(36,base+9),(62,base+3),(88,crest),
+               (116,base-3),(146,base+1),(174,base-6-int(8*boss_mix)),(204,base-1),(232,base+6),(266,base+18),(266,view_h)]
+        pygame.draw.polygon(veil,(29,18,52,int(42+58*rise+44*boss_mix)),shelf)
+        inner=[(-10,view_h),(-10,base+11),(20,base+7),(52,base+3),(80,base-3),(108,base-7),
+               (138,base-3),(168,base-7-int(5*boss_mix)),(197,base-2),(226,base+3),(266,base+13),(266,view_h)]
+        pygame.draw.polygon(veil,(53,34,83,int(28+34*rise+28*boss_mix)),inner)
+        pygame.draw.line(veil,(245,166,132,int(18+26*rise+18*boss_mix)),(0,base+1),(NATIVE_W,base-2),1)
+        # Low purple-gray mist strengthens depth without erasing the plate art.
+        fog_top=max(base+4,0)
+        pygame.draw.rect(veil,(42,28,67,int(16+34*rise+36*boss_mix)),(0,fog_top,NATIVE_W,view_h-fog_top))
+        # Distant skyline / storm bastion silhouettes progressively replace the lower duplicate horizon.
+        skyline_mix=max(smoothstep(.34,.88,p),boss_mix)
+        if skyline_mix>0:
+            alpha=int(28+96*skyline_mix)
+            base_y=int(159-10*boss_mix)
+            towers=[(18,22,7),(44,31,8),(72,20,6),(96,39,10),(124,24,7),(152,47,10),(181,26,7),(210,36,9),(237,23,7)]
+            for cx,h,w in towers:
+                pts=[(cx-w,base_y),(cx-w//2,base_y-h//3),(cx-2,base_y-h+8),(cx,base_y-h),(cx+2,base_y-h+7),(cx+w//2,base_y-h//3),(cx+w,base_y)]
+                pygame.draw.polygon(veil,(11,9,26,alpha),pts)
+                pygame.draw.line(veil,(87,74,105,min(110,alpha)),(cx,base_y-h+4),(cx,base_y-2),1)
+            pygame.draw.line(veil,(16,13,32,min(120,alpha+10)),(0,base_y),(NATIVE_W,base_y),2)
+            if skyline_mix>.42:
+                for i in range(5):
+                    x=22+i*47+int(math.sin(self.time*.45+i)*6)
+                    safe_set(veil,x,base_y-10-(i%3)*4,(246,189,138,150))
+        # Dramatic storm-wall / approach transition in the last stretch.
+        wall_mix=max(smoothstep(.76,.92,p),boss_mix)
+        if wall_mix>0:
+            right=[(160,15),(182,11),(205,18),(226,31),(244,53),(256,83),(256,view_h),(156,view_h),(156,122),
+                   (168,104),(176,83),(180,62),(178,45),(171,28)]
+            pygame.draw.polygon(veil,(18,14,34,int(24+64*wall_mix)),right)
+            pygame.draw.polygon(veil,(58,48,86,int(12+32*wall_mix)),[(174,36),(194,32),(214,42),(229,58),(239,80),(240,107),(220,97),(199,82),(183,61)])
+            if int(self.time*4.2)%9==0:
+                bx=192+int(math.sin(self.time*1.7)*14)
+                bolt=[(bx,29),(bx-4,43),(bx+2,56),(bx-2,72),(bx+3,89),(bx-1,104)]
+                pygame.draw.lines(veil,(219,231,255,int(66*wall_mix)),False,bolt,1)
+                pygame.draw.lines(veil,(126,181,255,int(38*wall_mix)),False,bolt,1)
+        # Boss encounter gets a dedicated Tempest Bastion silhouette instead of exposing the repeated arc.
+        if boss_mix>0:
+            arena_alpha=int(72+86*boss_mix)
+            dais=[(144,view_h),(144,170),(156,163),(169,160),(183,155),(194,149),(207,142),(223,138),(239,139),(256,145),(256,view_h)]
+            pygame.draw.polygon(veil,(9,8,21,arena_alpha),dais)
+            bastion=[(188,137),(197,120),(206,98),(214,80),(220,61),(225,51),(229,61),(233,82),(238,112),(244,137)]
+            pygame.draw.polygon(veil,(13,11,30,min(255,arena_alpha+14)),bastion)
+            for cx,h,w in ((210,31,8),(223,46,10),(236,34,8)):
+                pts=[(cx-w,137),(cx-w//2,137-h//3),(cx,137-h),(cx+w//2,137-h//3),(cx+w,137)]
+                pygame.draw.polygon(veil,(8,7,18,min(255,arena_alpha+18)),pts)
+                pygame.draw.line(veil,(88,96,136,120),(cx,137-h+3),(cx,134),1)
+        surf.blit(veil,(0,HUD_H))
+
+    def draw_atmosphere(self,surf,stage):
+        """V9.6.8.2 deepens Stage 2 descent composition without destabilizing the strip renderer.
+
+        The authored strip still provides the core painted descent, but a new near-field framing
+        pass progressively hides the false lower horizon and intensifies the approach into the
+        Tempest Bastion boss zone.
         """
         if STAGE2_DESCENT_MODE:
             strip=ART_ASSETS.get("stage02_descent_strip")
             if strip is not None:
                 progress=clamp(self.stage_progress,0.0,1.0)
                 view_h=NATIVE_H-HUD_H
-                max_scroll=max(0,strip.get_height()-view_h)
                 # Whole-pixel monotonic camera position preserves crisp pixel art.
-                # A cubic ease softens the first/last moments without changing the
-                # uninterrupted travel path through the stitched background.
                 camera_y=stage2_camera_offset(progress,strip.get_height(),view_h)
                 surf.blit(strip,(0,HUD_H),(0,camera_y,NATIVE_W,view_h))
 
@@ -3672,14 +3844,14 @@ class Background:
                         else: col=(214,133,137)
                         pygame.draw.line(surf,col,(sx,sy),(sx-ln,sy+max(1,ln//3)),1)
 
-                    # Lightning is a brief scene-wide illumination only; no cloud
-                    # geometry is generated at runtime.
+                    # Lightning is a brief scene-wide illumination only; no cloud geometry is rebuilt.
                     if progress>.48:
                         pulse=max(0.0,math.sin(self.time*(5.8+progress*1.8)+progress*8.0))**34
                         if pulse>.02:
                             veil=pygame.Surface((NATIVE_W,view_h),pygame.SRCALPHA)
                             veil.fill((171,181,247,int((18+24*progress)*pulse)))
                             surf.blit(veil,(0,HUD_H))
+                self._draw_stage2_descent_framing(surf,progress)
                 return
         # Recovery fallback if the stabilized authored strip is unavailable.
         self._gradient(surf,(8,16,40),(94,129,148),HUD_H,105)
@@ -3689,7 +3861,7 @@ class Background:
         self._floor_cast(surf,"atmosphere",112,0,(47,75,84))
 
     def draw_lava(self,surf,stage):
-        """V9.6.8.1 reference-driven Stage 3 Magma Cathedral painterly recovery.
+        """V9.6.8.2 reference-driven Stage 3 Magma Cathedral painterly recovery.
 
         A single 2048x203 horizontal panorama carries the player from caldera
         breach through lava tubes, megacaverns, magma basin, buried cathedral,
@@ -4192,11 +4364,56 @@ class Hazard:
     def collides(self,rect):
         if not self.active: return False
         if self.kind=="lightning": return rect.colliderect(pygame.Rect(self.x-3,HUD_H,7,NATIVE_H-HUD_H))
-        if self.kind=="geyser": return rect.colliderect(pygame.Rect(self.x-7,135,14,89))
+        if self.kind=="geyser": return rect.colliderect(pygame.Rect(self.x-9,138,18,81))
         if self.kind=="laser_gate": return rect.colliderect(pygame.Rect(self.x-2,45,5,160))
         if self.kind in ("spore","debris","icefall","rift","surge"):
             return rect.colliderect(pygame.Rect(int(self.x-7),int(self.y-7),14,14))
         return False
+
+    def _draw_geyser_telegraph(self,surf,x):
+        floor=NATIVE_H-4
+        mouth=206
+        # A glowing vent crack is less cartoonish than a full orange warning spike.
+        pygame.draw.polygon(surf,(17,9,10),[(x-14,floor),(x-9,mouth),(x+8,mouth),(x+14,floor)])
+        pygame.draw.polygon(surf,(43,18,13),[(x-10,floor-2),(x-5,mouth+1),(x+4,mouth+1),(x+10,floor-2)])
+        pygame.draw.line(surf,(139,51,18),(x-5,mouth+1),(x+4,mouth+1),1)
+        pygame.draw.line(surf,(255,177,68),(x-2,mouth+1),(x+2,mouth+1),1)
+        for dy,col in ((-4,(190,72,24)),(-8,(119,43,19))):
+            safe_set(surf,x,mouth+dy,col)
+            safe_set(surf,x-2,mouth+dy+1,col)
+            safe_set(surf,x+2,mouth+dy+1,col)
+
+    def _draw_geyser_active(self,surf,x):
+        floor=NATIVE_H-4
+        mouth=206
+        top=140+int(math.sin(self.age*7.4)*3)
+        phase=self.age*8.6
+        segments=[(mouth,10),(196,9),(186,8),(176,7),(166,6),(156,5),(148,5),(top,4)]
+        left=[]; right=[]; ileft=[]; iright=[]
+        for idx,(yy,half) in enumerate(segments):
+            sway=int(round(math.sin(phase+idx*.72)*1.7+math.sin(phase*.43+idx*1.11)*1.1))
+            inner_half=max(1,half-3)
+            yyi=yy+1 if idx < len(segments)-1 else yy
+            left.append((x+sway-half,yy))
+            right.append((x+sway+half,yy))
+            ileft.append((x+sway-inner_half,yyi))
+            iright.append((x+sway+inner_half,yyi))
+        outer=[(x-12,floor),(x-10,213)] + left + right[::-1] + [(x+10,213),(x+12,floor)]
+        inner=[(x-6,214)] + ileft + iright[::-1] + [(x+6,214)]
+        pygame.draw.polygon(surf,(76,24,12),outer)
+        pygame.draw.polygon(surf,(224,78,18),inner)
+        core=[(x+int(math.sin(phase+i*.55)*1.4),yy) for i,(yy,_) in enumerate(segments[2:])]
+        pygame.draw.lines(surf,(255,220,88),False,core,2)
+        # Dark vent base ties the eruption into the painterly floor rather than making it float.
+        pygame.draw.polygon(surf,(14,9,11),[(x-14,floor),(x-10,mouth+1),(x+10,mouth+1),(x+14,floor)])
+        pygame.draw.line(surf,(96,35,17),(x-8,mouth+1),(x+8,mouth+1),1)
+        # Scattered incandescent droplets near the plume head.
+        head_x=x+int(math.sin(phase+2.1)*2)
+        for dx,dy,col in ((-6,-3,(255,146,45)),(-3,-8,(255,207,78)),(2,-6,(255,175,61)),(6,-2,(228,76,24)),(0,-11,(255,219,96))):
+            pygame.draw.circle(surf,col,(head_x+dx,top+dy),1)
+        for dy in range(0,34,6):
+            sx=x+int(math.sin(phase+dy*.17)*2.5)
+            safe_set(surf,sx,mouth-dy,(255,188,70))
 
     def draw(self,surf):
         x,y=int(self.x),int(self.y)
@@ -4207,9 +4424,8 @@ class Hazard:
                 pts=[(x,HUD_H),(x-5,59),(x+4,86),(x-4,120),(x+3,157),(x,211)]
                 pygame.draw.lines(surf,WHITE,False,pts,2); pygame.draw.lines(surf,(98,194,255),False,pts,1)
         elif self.kind=="geyser":
-            col=(104,38,14) if tele else LAVA
-            pygame.draw.polygon(surf,col,[(x-7,220),(x-3,153),(x,135),(x+4,157),(x+7,220)])
-            if not tele: pygame.draw.line(surf,YELLOW,(x,145),(x,214),2)
+            if tele:self._draw_geyser_telegraph(surf,x)
+            else:self._draw_geyser_active(surf,x)
         elif self.kind=="laser_gate":
             col=(108,30,22) if tele else RED
             pygame.draw.line(surf,col,(x,45),(x,205),1 if tele else 3)
@@ -6351,6 +6567,7 @@ class Game:
 
     def draw_gameplay(self):
         self.background.stage_progress=clamp(self.stage_distance/max(1.0,self.stage_goal),0.0,1.0)
+        self.background.boss_active=bool(self.boss and not self.boss.dead)
         self.background.draw(self.canvas,self.stage)
         if self.stage==10 and self.boss and not self.boss.dead:
             phase=self.boss.phase; pulse=int((math.sin(self.boss.age*3)+1)*2)
@@ -6543,13 +6760,14 @@ class Game:
 # ---------------------------------------------------------------------------
 
 def packaged_smoke_test():
-    """Exercise V9.6.8.1 Stage 3 Painterly Recovery plus protected V9.6.7 baselines."""
+    """Exercise V9.6.9 soundtrack identity/urgency plus protected visual baselines."""
     g=Game()
     assert DIFFICULTY_ORDER==("EASY","HARDER","DIFFICULT","INSANE")
     assert g.difficulty=="INSANE"
     assert DIFFICULTY_PROFILES["INSANE"]["damage"]==1.0
     try:
-        assert BUILD_ID=="V9.6.8.1-STAGE3-PAINTERLY-RECOVERY"
+        assert BUILD_ID=="V9.6.9-SOUNDTRACK-IDENTITY-URGENCY"
+        assert [s.bpm for s in STAGES]==[144,160,152,132,166,140,176,142,150,188]
         assert WEAPON_NAMES[4]=="HOMING ROCKET"
         assert g.player.unlocked==[True]+[False]*9
         assert FIXED_DT==1.0/FPS
